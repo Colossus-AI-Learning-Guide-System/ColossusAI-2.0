@@ -5,22 +5,51 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const next = requestUrl.searchParams.get("next") ?? "/dashboard";
 
   if (code) {
     const supabase = createRouteHandlerClient({ cookies });
 
     try {
       // Exchange the code for a session
-      const { error: sessionError } =
+      const { data, error: sessionError } =
         await supabase.auth.exchangeCodeForSession(code);
-      if (sessionError) throw sessionError;
 
-      // Redirect to dashboard after successful OAuth
-      return NextResponse.redirect(new URL("/dashboard", requestUrl.origin));
-    } catch (error) {
+      if (sessionError) {
+        console.error("Session exchange error:", sessionError);
+        throw sessionError;
+      }
+
+      // Check if the user's email is confirmed
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("User fetch error:", userError);
+        throw userError;
+      }
+
+      if (!user?.email_confirmed_at) {
+        return NextResponse.redirect(
+          new URL(
+            `/signin?message=Please confirm your email to continue`,
+            requestUrl.origin
+          )
+        );
+      }
+
+      // Redirect to dashboard after successful verification
+      return NextResponse.redirect(new URL(next, requestUrl.origin));
+    } catch (error: any) {
       console.error("Auth callback error:", error);
+      const errorMessage = error?.message || "Unknown error occurred";
       return NextResponse.redirect(
-        new URL(`/signin?error=Authentication failed`, requestUrl.origin)
+        new URL(
+          `/signin?error=Authentication failed: ${errorMessage}`,
+          requestUrl.origin
+        )
       );
     }
   }
