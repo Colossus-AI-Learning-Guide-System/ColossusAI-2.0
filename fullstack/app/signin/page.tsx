@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/singin/input";
 import { Label } from "@/components/ui/singin/label";
 import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
 import Link from "next/link";
+import Image from "next/image";
 import { useId } from "react";
 
 export default function SignInPage() {
@@ -13,20 +14,14 @@ export default function SignInPage() {
   return (
     <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-xl border bg-card p-6 shadow-lg">
       <div className="flex flex-col items-center gap-2">
-        <div
-          className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border"
-          aria-hidden="true"
-        >
-          <svg
-            className="stroke-zinc-800 dark:stroke-zinc-100"
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 32 32"
-            aria-hidden="true"
-          >
-            <circle cx="16" cy="16" r="12" fill="none" strokeWidth="8" />
-          </svg>
+        <div className="w-[44px] h-[44px] relative">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain"
+            priority
+          />
         </div>
         <div className="space-y-1.5 text-center">
           <h1 className="text-lg font-semibold tracking-tight">Welcome back</h1>
