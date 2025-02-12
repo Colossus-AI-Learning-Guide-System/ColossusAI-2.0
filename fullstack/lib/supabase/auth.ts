@@ -10,37 +10,43 @@ export const signUpWithEmail = async (
   password: string,
   fullName: string
 ) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
-      emailConfirmation: false,
-    },
-  });
-
-  if (!error && data?.user) {
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
+  try {
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
         email,
         password,
-      });
-    return { data: signInData, error: signInError };
-  }
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      }
+    );
 
-  return { data, error };
+    if (signUpError) {
+      throw signUpError;
+    }
+
+    return { data: signUpData, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
 };
 
 // Email/Password Sign In
 export const signInWithEmail = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
 };
 
 // Resend confirmation email

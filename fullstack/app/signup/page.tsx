@@ -7,7 +7,11 @@ import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
 import Link from "next/link";
 import Image from "next/image";
 import { useId } from "react";
-import { signUpWithEmail, signInWithOAuth } from "@/lib/supabase/auth";
+import {
+  signUpWithEmail,
+  signInWithOAuth,
+  resendConfirmationEmail,
+} from "@/lib/supabase/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -19,35 +23,85 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showResendButton, setShowResendButton] = useState(false);
+
+  const handleResendConfirmation = async () => {
+    setLoading(true);
+    try {
+      const { error } = await resendConfirmationEmail(email);
+      if (error) throw error;
+      setSuccessMessage(
+        "Confirmation email has been resent. Please check your inbox."
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to resend confirmation email"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
+    setShowResendButton(false);
 
     try {
-      const { data, error } = await signUpWithEmail(email, password, fullName);
-      if (error) throw error;
+      // Validate inputs
+      if (!fullName.trim()) {
+        throw new Error("Full name is required");
+      }
+      if (!email.trim()) {
+        throw new Error("Email is required");
+      }
+      if (password.length < 6) {
+        throw new Error("Password must be at least 6 characters long");
+      }
 
-      // If we have a session, redirect to dashboard
-      if (data?.session) {
-        router.push("/dashboard");
-      } else {
-        throw new Error("Failed to create account");
+      // Attempt to sign up
+      const { data, error: signUpError } = await signUpWithEmail(
+        email,
+        password,
+        fullName
+      );
+
+      if (signUpError) {
+        const errorMessage =
+          typeof signUpError === "object" && signUpError !== null
+            ? (signUpError as { message?: string }).message
+            : "Unknown error occurred";
+
+        if (errorMessage?.toLowerCase().includes("rate limit")) {
+          throw new Error(
+            "Too many sign-up attempts. Please wait a few minutes before trying again."
+          );
+        } else if (
+          errorMessage?.includes("unique constraint") ||
+          errorMessage?.includes("already registered")
+        ) {
+          throw new Error("An account with this email already exists");
+        }
+        throw new Error(errorMessage || "Failed to create account");
       }
-    } catch (err: any) {
+
+      // Show success message
+      setError(null);
+      setSuccess(true);
+      setShowResendButton(true);
+      setSuccessMessage(
+        "Sign up successful! Please check your email for a confirmation link. Click the link to verify your email address."
+      );
+    } catch (err) {
       console.error("Signup error:", err);
-      if (err.message.includes("unique constraint")) {
-        setError("An account with this email already exists");
-      } else {
-        setError(err.message || "An error occurred during sign up");
-      }
+      setError(
+        err instanceof Error ? err.message : "An error occurred during sign up"
+      );
     } finally {
       setLoading(false);
     }
@@ -55,11 +109,27 @@ export default function SignUpPage() {
 
   const handleOAuthSignUp = async (provider: "github" | "google") => {
     setError(null);
+    setLoading(true);
+
     try {
-      const { error } = await signInWithOAuth(provider);
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err.message);
+      const { error: oauthError } = await signInWithOAuth(provider);
+      if (oauthError) {
+        throw new Error(
+          typeof oauthError === "object" && oauthError !== null
+            ? (oauthError as { message?: string }).message ||
+              `Failed to sign up with ${provider}`
+            : `Failed to sign up with ${provider}`
+        );
+      }
+    } catch (err) {
+      console.error("OAuth error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Failed to sign up with ${provider}`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,86 +155,22 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      <form onSubmit={handleEmailSignUp} className="space-y-5">
-        {error && (
-          <div className="text-sm text-red-500 text-center">{error}</div>
-        )}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor={`${id}-name`}>Full name</Label>
-            <Input
-              id={`${id}-name`}
-              placeholder="Matt Welsh"
-              type="text"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={`${id}-email`}>Email</Label>
-            <Input
-              id={`${id}-email`}
-              placeholder="hi@yourcompany.com"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={`${id}-password`}>Password</Label>
-            <Input
-              id={`${id}-password`}
-              placeholder="Enter your password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-        </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing up..." : "Sign up"}
-        </Button>
-      </form>
-
-      <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-        <span className="text-xs text-muted-foreground">Or continue with</span>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-center gap-4">
-          <Button
-            variant="outline"
-            aria-label="Sign up with Google"
-            className="h-11 w-11"
-            onClick={() => handleOAuthSignUp("google")}
-            type="button"
-          >
-            <RiGoogleFill size={20} aria-hidden="true" />
-          </Button>
-          <Button
-            variant="outline"
-            aria-label="Sign up with GitHub"
-            className="h-11 w-11"
-            onClick={() => handleOAuthSignUp("github")}
-            type="button"
-          >
-            <RiGithubFill size={20} aria-hidden="true" />
-          </Button>
-        </div>
-
-        <div className="space-y-2 text-center text-sm">
-          <p className="text-xs text-muted-foreground">
-            By signing up you agree to our{" "}
-            <Link href="/terms" className="underline hover:no-underline">
-              Terms
-            </Link>
-            .
-          </p>
-          <p className="text-muted-foreground">
-            Already have an account?{" "}
+      {success ? (
+        <div className="text-center space-y-4">
+          <div className="text-green-600 font-medium">{successMessage}</div>
+          {showResendButton && (
+            <button
+              onClick={handleResendConfirmation}
+              className="text-blue-600 hover:underline text-sm"
+              disabled={loading}
+            >
+              {loading
+                ? "Sending..."
+                : "Didn't receive the email? Click to resend"}
+            </button>
+          )}
+          <p className="text-sm text-muted-foreground">
+            Already confirmed your email?{" "}
             <Link
               href="/signin"
               className="text-primary underline hover:no-underline"
@@ -173,7 +179,101 @@ export default function SignUpPage() {
             </Link>
           </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <form onSubmit={handleEmailSignUp} className="space-y-5">
+            {error && (
+              <div className="text-sm text-red-500 text-center">{error}</div>
+            )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-name`}>Full name</Label>
+                <Input
+                  id={`${id}-name`}
+                  placeholder="Matt Welsh"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-email`}>Email</Label>
+                <Input
+                  id={`${id}-email`}
+                  placeholder="hi@yourcompany.com"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-password`}>Password</Label>
+                <Input
+                  id={`${id}-password`}
+                  placeholder="Enter your password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing up..." : "Sign up"}
+            </Button>
+          </form>
+
+          <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+            <span className="text-xs text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-center gap-4">
+              <Button
+                variant="outline"
+                aria-label="Sign up with Google"
+                className="h-11 w-11"
+                onClick={() => handleOAuthSignUp("google")}
+                type="button"
+              >
+                <RiGoogleFill size={20} aria-hidden="true" />
+              </Button>
+              <Button
+                variant="outline"
+                aria-label="Sign up with GitHub"
+                className="h-11 w-11"
+                onClick={() => handleOAuthSignUp("github")}
+                type="button"
+              >
+                <RiGithubFill size={20} aria-hidden="true" />
+              </Button>
+            </div>
+
+            <div className="space-y-2 text-center text-sm">
+              <p className="text-xs text-muted-foreground">
+                By signing up you agree to our{" "}
+                <Link href="/terms" className="underline hover:no-underline">
+                  Terms
+                </Link>
+                .
+              </p>
+              <p className="text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  href="/signin"
+                  className="text-primary underline hover:no-underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
