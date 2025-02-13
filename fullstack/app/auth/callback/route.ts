@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     try {
       // Exchange the code for a session
-      const { data, error: sessionError } =
+      const { error: sessionError } =
         await supabase.auth.exchangeCodeForSession(code);
 
       if (sessionError) {
@@ -42,9 +42,10 @@ export async function GET(request: Request) {
 
       // Redirect to dashboard after successful verification
       return NextResponse.redirect(new URL(next, requestUrl.origin));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Auth callback error:", error);
-      const errorMessage = error?.message || "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.redirect(
         new URL(
           `/signin?error=Authentication failed: ${errorMessage}`,
