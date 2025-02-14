@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { TestimonialsSection } from "@/components/blocks/testimonials-with-marquee";
+import { HeroScrollDemo } from "@/components/blocks/code-demo";
 
 const testimonials = [
   {
@@ -137,6 +138,9 @@ export default function Home() {
           </div>
         </motion.div>
       </div>
+
+      {/* Scroll Demo Section */}
+      <HeroScrollDemo />
 
       {/* Testimonials Section */}
       <TestimonialsSection
