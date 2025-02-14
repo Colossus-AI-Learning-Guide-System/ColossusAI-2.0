@@ -18,7 +18,7 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+  background: linear-gradient(45deg, #FF9F4A, #FF4A8D, #8B4AFF);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -27,12 +27,12 @@ body {
 .hero-gradient {
   background: radial-gradient(
       circle at top right,
-      rgba(255, 107, 107, 0.1),
+      rgba(139, 74, 255, 0.1),
       transparent 50%
     ),
     radial-gradient(
       circle at bottom left,
-      rgba(255, 142, 83, 0.1),
+      rgba(255, 159, 74, 0.1),
       transparent 50%
     );
 }
