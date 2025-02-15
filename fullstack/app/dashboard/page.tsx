@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/singin/button";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/signin/button";
 import {
-  getCurrentSession,
-  getCurrentUser,
-  signOut,
+    getCurrentSession,
+    getCurrentUser,
+    signOut,
 } from "@/lib/supabase/auth";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const router = useRouter();

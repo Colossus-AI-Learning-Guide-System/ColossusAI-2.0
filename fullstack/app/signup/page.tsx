@@ -14,6 +14,7 @@ import {
 } from "@/lib/supabase/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/signin/checkbox";
 
 export default function SignUpPage() {
   const id = useId();
@@ -220,6 +221,32 @@ export default function SignUpPage() {
                 />
               </div>
             </div>
+            <div className="flex items-center space-x-2 mt-4">
+              <Checkbox 
+                id="terms" 
+                required
+                aria-required="true"
+              />
+              <label 
+                htmlFor="terms" 
+                className="text-sm text-muted-foreground"
+              >
+                I confirm that I have read, consent to, and agree to Colossus.AI's{' '}
+                <Link 
+                  href="/terms" 
+                  className="text-primary underline hover:no-underline"
+                >
+                  Terms & Conditions
+                </Link>{' '}
+                and{' '}
+                <Link 
+                  href="/privacy" 
+                  className="text-primary underline hover:no-underline"
+                >
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing up..." : "Sign up"}
             </Button>
@@ -254,13 +281,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2 text-center text-sm">
-              <p className="text-xs text-muted-foreground">
-                By signing up you agree to our{" "}
-                <Link href="/terms" className="underline hover:no-underline">
-                  Terms
-                </Link>
-                .
-              </p>
+
               <p className="text-muted-foreground">
                 Already have an account?{" "}
                 <Link

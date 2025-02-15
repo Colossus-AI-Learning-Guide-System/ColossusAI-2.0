@@ -1,20 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/singin/button";
-import { Checkbox } from "@/components/ui/singin/checkbox";
-import { Input } from "@/components/ui/singin/input";
-import { Label } from "@/components/ui/singin/label";
-import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
-import Link from "next/link";
-import Image from "next/image";
-import { useId } from "react";
+import { Button } from "@/components/ui/signin/button";
+import { Checkbox } from "@/components/ui/signin/checkbox";
+import { Input } from "@/components/ui/signin/input";
+import { Label } from "@/components/ui/signin/label";
 import {
-  signInWithEmail,
-  signInWithOAuth,
-  resendConfirmationEmail,
+    resendConfirmationEmail,
+    signInWithEmail,
+    signInWithOAuth,
 } from "@/lib/supabase/auth";
+import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export default function SignInPage() {
   const id = useId();
