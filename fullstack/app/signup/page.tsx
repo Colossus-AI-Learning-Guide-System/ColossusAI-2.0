@@ -135,166 +135,187 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-xl border bg-card p-6 shadow-lg">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-[44px] h-[44px] relative">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
-        <div className="space-y-1.5 text-center">
-          <h1 className="text-lg font-semibold tracking-tight">
-            Sign up Origin UI
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            We just need a few details to get you started.
-          </p>
-        </div>
-      </div>
-
-      {success ? (
-        <div className="text-center space-y-4">
-          <div className="text-green-600 font-medium">{successMessage}</div>
-          {showResendButton && (
-            <button
-              onClick={handleResendConfirmation}
-              className="text-blue-600 hover:underline text-sm"
-              disabled={loading}
-            >
-              {loading
-                ? "Sending..."
-                : "Didn't receive the email? Click to resend"}
-            </button>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Already confirmed your email?{" "}
-            <Link
-              href="/signin"
-              className="text-primary underline hover:no-underline"
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <>
-          <form onSubmit={handleEmailSignUp} className="space-y-5">
-            {error && (
-              <div className="text-sm text-red-500 text-center">{error}</div>
-            )}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-name`}>Full name</Label>
-                <Input
-                  id={`${id}-name`}
-                  placeholder="Matt Welsh"
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-email`}>Email</Label>
-                <Input
-                  id={`${id}-email`}
-                  placeholder="hi@yourcompany.com"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-password`}>Password</Label>
-                <Input
-                  id={`${id}-password`}
-                  placeholder="Enter your password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 mt-4">
-              <Checkbox 
-                id="terms" 
-                required
-                aria-required="true"
-              />
-              <label 
-                htmlFor="terms" 
-                className="text-sm text-muted-foreground"
-              >
-                I confirm that I have read, consent to, and agree to Colossus.AI's{' '}
-                <Link 
-                  href="/terms" 
-                  className="text-primary underline hover:no-underline"
-                >
-                  Terms & Conditions
-                </Link>{' '}
-                and{' '}
-                <Link 
-                  href="/privacy" 
-                  className="text-primary underline hover:no-underline"
-                >
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing up..." : "Sign up"}
-            </Button>
-          </form>
-
-          <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-            <span className="text-xs text-muted-foreground">
-              Or continue with
-            </span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="w-full max-w-[520px] space-y-8 rounded-2xl border bg-white dark:bg-gray-900 p-8 shadow-xl transition-all">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-[60px] h-[60px] relative animate-pulse">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
+          <div className="space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Create your account
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Start your journey with Colossus.AI
+            </p>
+          </div>
+        </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-center gap-4">
-              <Button
-                variant="outline"
-                aria-label="Sign up with Google"
-                className="h-11 w-11"
-                onClick={() => handleOAuthSignUp("google")}
-                type="button"
+        {success ? (
+          <div className="text-center space-y-4 bg-green-50 dark:bg-green-900/20 p-6 rounded-xl">
+            <div className="text-green-600 dark:text-green-400 font-medium">{successMessage}</div>
+            {showResendButton && (
+              <button
+                onClick={handleResendConfirmation}
+                className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+                disabled={loading}
               >
-                <RiGoogleFill size={20} aria-hidden="true" />
-              </Button>
-              <Button
-                variant="outline"
-                aria-label="Sign up with GitHub"
-                className="h-11 w-11"
-                onClick={() => handleOAuthSignUp("github")}
-                type="button"
+                {loading ? "Sending..." : "Didn't receive the email? Click to resend"}
+              </button>
+            )}
+            <p className="text-sm text-muted-foreground">
+              Already confirmed your email?{" "}
+              <Link
+                href="/signin"
+                className="text-primary font-medium underline hover:no-underline"
               >
-                <RiGithubFill size={20} aria-hidden="true" />
+                Sign in
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <>
+            <form onSubmit={handleEmailSignUp} className="space-y-6">
+              {error && (
+                <div className="text-sm text-red-500 text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`${id}-name`} className="text-sm font-medium">Full name</Label>
+                  <Input
+                    id={`${id}-name`}
+                    placeholder="Matt Welsh"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${id}-email`} className="text-sm font-medium">Email</Label>
+                  <Input
+                    id={`${id}-email`}
+                    placeholder="hi@yourcompany.com"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${id}-password`} className="text-sm font-medium">Password</Label>
+                  <Input
+                    id={`${id}-password`}
+                    placeholder="Enter your password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox 
+                  id="terms" 
+                  required
+                  aria-required="true"
+                  className="mt-1"
+                />
+                <label 
+                  htmlFor="terms" 
+                  className="text-sm text-muted-foreground"
+                >
+                  I confirm that I have read, consent to, and agree to Colossus.AI's{' '}
+                  <Link 
+                    href="/terms" 
+                    className="text-primary font-medium underline hover:no-underline"
+                  >
+                    Terms & Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link 
+                    href="/privacy" 
+                    className="text-primary font-medium underline hover:no-underline"
+                  >
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base font-medium transition-all hover:scale-[1.02]" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Signing up...
+                  </div>
+                ) : (
+                  "Create account"
+                )}
               </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-gray-900 px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-2 text-center text-sm">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-11 text-base font-medium hover:scale-[1.02] transition-all"
+                  onClick={() => handleOAuthSignUp("google")}
+                  type="button"
+                >
+                  <RiGoogleFill size={20} className="mr-2" />
+                  Google
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-11 text-base font-medium hover:scale-[1.02] transition-all"
+                  onClick={() => handleOAuthSignUp("github")}
+                  type="button"
+                >
+                  <RiGithubFill size={20} className="mr-2" />
+                  GitHub
+                </Button>
+              </div>
 
-              <p className="text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link
                   href="/signin"
-                  className="text-primary underline hover:no-underline"
+                  className="text-primary font-medium underline hover:no-underline"
                 >
                   Sign in
                 </Link>
               </p>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
