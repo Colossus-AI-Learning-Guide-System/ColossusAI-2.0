@@ -1,0 +1,23 @@
+.content {
+    padding: 20px;
+    height: 100%;
+  }
+  
+  .content h2 {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+  }
+  
+  .contentBody {
+    padding: 20px;
+    background: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  
+  .contentBody p {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  
+  
