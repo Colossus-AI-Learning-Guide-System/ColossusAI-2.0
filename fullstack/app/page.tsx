@@ -94,7 +94,6 @@ function Navbar() {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
             {[
-              "Features",
               "Feedback",
               "Rateus",
               "ContactUs",
