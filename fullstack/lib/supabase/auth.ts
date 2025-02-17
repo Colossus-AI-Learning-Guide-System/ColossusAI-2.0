@@ -1,7 +1,5 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { type Provider } from "@supabase/supabase-js";
-import { PostgrestError } from "@supabase/supabase-js";
-import { AuthError } from "@supabase/supabase-js";
 
 // Initialize the Supabase client
 const supabase = createClientComponentClient();
@@ -113,46 +111,15 @@ export const sendPasswordResetEmail = async (email: string) => {
 };
 
 // Reset Password with new password
-export const resetPassword = async (email: string) => {
+export const resetPassword = async (newPassword: string) => {
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
     });
 
-    return { error: error as PostgrestError | null };
-  } catch (err) {
-    return { error: err as PostgrestError };
-  }
-};
-
-// Update password
-export const updatePassword = async (newPassword: string) => {
-  try {
-    // Get the current session first
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      return { error: sessionError };
-    }
-
-    if (!session) {
-      return { 
-        error: new AuthError("No active session found. Please use the reset link from your email.") 
-      };
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword
-    });
-
-    if (error) {
-      return { error };
-    }
-
-    return { error: null };
-  } catch (err) {
-    return { 
-      error: err instanceof AuthError ? err : new AuthError("Failed to update password") 
-    };
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
   }
 };
