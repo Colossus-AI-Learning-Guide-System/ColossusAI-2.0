@@ -1,68 +1,59 @@
 .dashboard {
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
-  
-  .mainContent {
-    flex: 1;
-    display: flex;
-    gap: 1px;
-    background: var(--border);
-  }
-  
-  .roadmapSection,
-  .contentSection,
-  .chatSection {
-    flex: 1;
-    background: var(--background);
-    min-width: 300px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .chatSection {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  
-  .chatInput {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-    background: var(--accent);
-    border-radius: 25px;
-  }
-  
-  .chatInput input {
-    flex: 1;
-    padding: 12px 20px;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.2s ease;
-  }
-  
-  .chatInput input:focus {
-    border-color: var(--accent);
-  }
-  
-  .chatInput button {
-    padding: 12px 24px;
-    background: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  
-  .chatInput button:hover {
-    background: var(--border);
-  }
-  
-  
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+}
+
+.roadmapSection,
+.contentSection,
+.chatSection {
+  flex: 1;
+  background: var(--background);
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatSection {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.chatInput {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background: var(--accent);
+  border-radius: 8px;
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.chatInput button {
+  padding: 8px 16px;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.chatInput button:hover {
+  background: var(--border);
+}
+
