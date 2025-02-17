@@ -1,20 +1,19 @@
 "use client";
 
+import { Checkbox } from "@/components/ui/signin/checkbox";
 import { Button } from "@/components/ui/signup/button";
 import { Input } from "@/components/ui/signup/input";
 import { Label } from "@/components/ui/signup/label";
-import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
-import Link from "next/link";
-import Image from "next/image";
-import { useId } from "react";
 import {
-  signUpWithEmail,
-  signInWithOAuth,
   resendConfirmationEmail,
+  signInWithOAuth,
+  signUpWithEmail,
 } from "@/lib/supabase/auth";
+import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Checkbox } from "@/components/ui/signin/checkbox";
+import { useId, useState } from "react";
 
 export default function SignUpPage() {
   const id = useId();
@@ -22,11 +21,14 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showResendButton, setShowResendButton] = useState(false);
+  const [isPasswordTouched, setIsPasswordTouched] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const handleResendConfirmation = async () => {
     setLoading(true);
@@ -47,6 +49,45 @@ export default function SignUpPage() {
     }
   };
 
+  const validatePassword = (password: string) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("At least 8 characters");
+    }
+    if (!/\d/.test(password)) {
+      errors.push("At least one number");
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push("At least one special character");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("At least one uppercase letter");
+    }
+    return errors;
+  };
+
+  const validateFullName = (name: string) => {
+    const errors = [];
+    const nameParts = name.trim().split(/\s+/);
+    
+    // Check for minimum two parts (first and last name)
+    if (nameParts.length < 2) {
+      errors.push("Please enter both your first and last name");
+    }
+
+    // Check for numbers and special characters
+    if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(name)) {
+      errors.push("Name should not contain numbers or special characters");
+    }
+
+    // Check each part length
+    if (nameParts.some(part => part.length < 2)) {
+      errors.push("Each name part should be at least 2 characters long");
+    }
+
+    return errors;
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -54,15 +95,55 @@ export default function SignUpPage() {
     setShowResendButton(false);
 
     try {
-      // Validate inputs
+      // Validate full name
       if (!fullName.trim()) {
-        throw new Error("Full name is required");
+        setError("Please enter your full name");
+        return;
       }
+
+      const nameParts = fullName.trim().split(/\s+/);
+      if (nameParts.length < 2) {
+        setError("Please enter both your first and last name");
+        return;
+      }
+
+      // Check for numbers and special characters in name
+      if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(fullName)) {
+        setError("Name should not contain numbers or special characters");
+        return;
+      }
+
+      // Validate email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email.trim()) {
-        throw new Error("Email is required");
+        setError("Please enter your email address");
+        return;
       }
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
+      if (!emailRegex.test(email)) {
+        setError("Please enter a valid email address");
+        return;
+      }
+
+      // Validate password
+      if (!password.trim()) {
+        setError("Please enter your password");
+        return;
+      }
+
+      const passwordErrors = validatePassword(password);
+      if (passwordErrors.length > 0) {
+        setValidationErrors(passwordErrors);
+        return;
+      }
+
+      // Validate password confirmation
+      if (!confirmPassword.trim()) {
+        setError("Please confirm your password");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("The passwords you entered don't match. Please try again.");
+        return;
       }
 
       // Attempt to sign up
@@ -73,36 +154,52 @@ export default function SignUpPage() {
       );
 
       if (signUpError) {
-        const errorMessage =
-          typeof signUpError === "object" && signUpError !== null
-            ? (signUpError as { message?: string }).message
-            : "Unknown error occurred";
-
-        if (errorMessage?.toLowerCase().includes("rate limit")) {
-          throw new Error(
-            "Too many sign-up attempts. Please wait a few minutes before trying again."
-          );
-        } else if (
-          errorMessage?.includes("unique constraint") ||
-          errorMessage?.includes("already registered")
-        ) {
-          throw new Error("An account with this email already exists");
+        if (signUpError.message?.includes("already exists")) {
+          setShowResendButton(true);
+          setError(signUpError.message);
+          setPassword("");
+          return;
         }
-        throw new Error(errorMessage || "Failed to create account");
+        throw signUpError;
       }
 
-      // Show success message
-      setError(null);
+      if (!data?.user) {
+        setError("Account creation failed. Please try again.");
+        return;
+      }
+
+      // Success
       setSuccess(true);
-      setShowResendButton(true);
       setSuccessMessage(
-        "Sign up successful! Please check your email for a confirmation link. Click the link to verify your email address."
+        "Please check your email for a confirmation link to complete your registration."
       );
-    } catch (err) {
-      console.error("Signup error:", err);
-      setError(
-        err instanceof Error ? err.message : "An error occurred during sign up"
-      );
+
+    } catch (err: any) {
+      const errorDetails = {
+        type: 'SIGNUP_ERROR',
+        message: err.message || 'Unknown error occurred',
+        code: err.code || 'UNKNOWN',
+        details: err.details || {},
+        context: {
+          email,
+          hasPassword: !!password,
+          hasFullName: !!fullName,
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      console.error("Sign up error:", errorDetails);
+      
+      const userMessage = err instanceof Error 
+        ? err.message 
+        : "An unexpected error occurred during sign up. Please try again later.";
+      
+      setError(userMessage);
+      
+      if (userMessage.includes("already exists")) {
+        setPassword("");
+        setShowResendButton(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -213,11 +310,50 @@ export default function SignUpPage() {
                 <Label htmlFor={`${id}-password`}>Password</Label>
                 <Input
                   id={`${id}-password`}
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setIsPasswordTouched(true);
+                    setValidationErrors(validatePassword(e.target.value));
+                    setError(null);
+                  }}
+                />
+                {isPasswordTouched && (
+                  <div className="text-sm space-y-2">
+                    <div className="font-medium">Password requirements:</div>
+                    <ul className="space-y-1">
+                      <li className={password.length >= 8 ? 'text-green-600' : 'text-red-500'}>
+                        {password.length >= 8 ? '✓' : '×'} At least 8 characters
+                      </li>
+                      <li className={/\d/.test(password) ? 'text-green-600' : 'text-red-500'}>
+                        {/\d/.test(password) ? '✓' : '×'} At least one number
+                      </li>
+                      <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'text-green-600' : 'text-red-500'}>
+                        {/[!@#$%^&*(),.?":{}|<>]/.test(password) ? '✓' : '×'} At least one special character (!@#$%^&*)
+                      </li>
+                      <li className={/[A-Z]/.test(password) ? 'text-green-600' : 'text-red-500'}>
+                        {/[A-Z]/.test(password) ? '✓' : '×'} At least one uppercase letter
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-confirm-password`}>Confirm Password</Label>
+                <Input
+                  id={`${id}-confirm-password`}
+                  placeholder="Confirm your password"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setError(null);
+                  }}
+                  className={error && error.includes("don't match") ? 'border-red-500' : ''}
                 />
               </div>
             </div>
@@ -247,8 +383,12 @@ export default function SignUpPage() {
                 </Link>
               </label>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing up..." : "Sign up"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading || (isPasswordTouched && validationErrors.length > 0)}
+            >
+              {loading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 

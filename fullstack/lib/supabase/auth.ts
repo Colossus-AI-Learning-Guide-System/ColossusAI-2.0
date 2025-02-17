@@ -11,26 +11,108 @@ export const signUpWithEmail = async (
   fullName: string
 ) => {
   try {
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
-      {
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      }
-    );
-
-    if (signUpError) {
-      throw signUpError;
+    // Basic validation
+    if (!email || !password || !fullName) {
+      throw new Error("All fields are required");
     }
 
-    return { data: signUpData, error: null };
-  } catch (error) {
-    return { data: null, error };
+    // Proceed with signup
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      const authError = {
+        type: 'AUTH_ERROR',
+        code: error.status || 'UNKNOWN',
+        message: error.message,
+        metadata: error.status ? { status: error.status } : {},
+        email,
+        timestamp: new Date().toISOString()
+      };
+      console.error("Auth signup error:", authError);
+
+      if (error.message?.includes("duplicate key") || 
+          error.message?.includes("already registered")) {
+        throw new Error("An account with this email already exists. Please sign in or reset your password.");
+      }
+      if (error.message?.includes("rate limit")) {
+        throw new Error("Too many signup attempts. Please try again in a few minutes.");
+      }
+      throw error;
+    }
+
+    if (!data?.user) {
+      throw new Error("Signup failed. Please try again.");
+    }
+
+    // Create profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: data.user.id,
+        email: email,
+        full_name: fullName,
+        updated_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      });
+
+    if (profileError) {
+      const profileErrorDetails = {
+        type: 'PROFILE_ERROR',
+        code: profileError.code || 'UNKNOWN',
+        message: profileError.message || 'Unknown error occurred',
+        metadata: {},
+        userId: data.user.id,
+        email,
+        timestamp: new Date().toISOString()
+      };
+
+      console.error("Profile creation error:", profileErrorDetails);
+
+      // Clean up auth user
+      try {
+        await supabase.auth.admin.deleteUser(data.user.id);
+      } catch (deleteError: any) {
+        console.error("Failed to clean up auth user:", {
+          type: 'CLEANUP_ERROR',
+          code: deleteError.code || 'UNKNOWN',
+          message: deleteError.message || 'Unknown error occurred',
+          metadata: {},
+          userId: data.user.id,
+          email,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      throw new Error("We encountered an issue setting up your profile. Please try again.");
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    const processError = {
+      type: 'PROCESS_ERROR',
+      code: error.code || 'UNKNOWN',
+      message: error.message || 'An unexpected error occurred',
+      metadata: {},
+      email,
+      timestamp: new Date().toISOString()
+    };
+    console.error("Signup process error:", processError);
+
+    return { 
+      data: null, 
+      error: {
+        message: error.message || "An unexpected error occurred during signup."
+      }
+    };
   }
 };
 

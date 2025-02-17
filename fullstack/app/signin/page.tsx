@@ -5,9 +5,9 @@ import { Checkbox } from "@/components/ui/signin/checkbox";
 import { Input } from "@/components/ui/signin/input";
 import { Label } from "@/components/ui/signin/label";
 import {
-    resendConfirmationEmail,
-    signInWithEmail,
-    signInWithOAuth,
+  resendConfirmationEmail,
+  signInWithEmail,
+  signInWithOAuth,
 } from "@/lib/supabase/auth";
 import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
 import Image from "next/image";
@@ -36,13 +36,29 @@ export default function SignInPage() {
     setShowResendButton(false);
 
     try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email.trim()) {
+        throw new Error("Please enter your email address");
+      }
+      if (!emailRegex.test(email)) {
+        throw new Error("Please enter a valid email address (e.g., example@domain.com)");
+      }
+
+      // Validate password
+      if (!password.trim()) {
+        throw new Error("Please enter your password");
+      }
+
       const { data, error } = await signInWithEmail(email, password);
-      if (error) {
-        if (error.message.includes("Email not confirmed")) {
-          setError("Please confirm your email address before signing in");
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = error.message as string;
+        
+        if (errorMessage.includes("Email not confirmed")) {
+          setError("Your email address hasn't been verified. Please check your inbox and click the verification link.");
           setShowResendButton(true);
-        } else if (error.message.includes("Invalid login credentials")) {
-          setError("Invalid email or password");
+        } else if (errorMessage.includes("Invalid login credentials")) {
+          setError("The email or password you entered is incorrect. Please try again.");
         } else {
           throw error;
         }
@@ -54,7 +70,10 @@ export default function SignInPage() {
       }
     } catch (err: any) {
       console.error("Signin error:", err);
-      setError(err.message || "An error occurred during sign in");
+      setError(
+        err.message || 
+        "We couldn't sign you in. Please check your credentials and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -62,11 +81,22 @@ export default function SignInPage() {
 
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setError(null);
+    setLoading(true);
+    
     try {
       const { error } = await signInWithOAuth(provider);
-      if (error) throw error;
+      if (error) {
+        throw new Error(
+          `Unable to sign in with ${provider}. Please try again or use another sign-in method.`
+        );
+      }
     } catch (err: any) {
-      setError(err.message);
+      setError(
+        err.message || 
+        `We couldn't complete your ${provider} sign-in. Please try again later.`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
