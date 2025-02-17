@@ -33,24 +33,32 @@
     gap: 10px;
     padding: 15px;
     background: var(--accent);
-    border-radius: 8px;
+    border-radius: 25px;
   }
   
   .chatInput input {
     flex: 1;
-    padding: 8px 12px;
+    padding: 12px 20px;
     background: var(--background);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 20px;
     color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  
+  .chatInput input:focus {
+    border-color: var(--accent);
   }
   
   .chatInput button {
-    padding: 8px 16px;
+    padding: 12px 24px;
     background: var(--accent);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 20px;
     color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.2s ease;
   }
   
   .chatInput button:hover {
