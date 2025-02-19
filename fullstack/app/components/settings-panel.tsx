@@ -186,15 +186,17 @@ export function SettingsPanel({
       case "addCard":
         newPath = "/addcard"
         break
+      default:
+        newPath = "/settings"
     }
-    router.replace(`${newPath}?modal=true`)
+    router.push(`${newPath}?modal=true`)
     setActivePanel(panel)
-    setIsOpen(true)
   }
 
   // Handle modal close and navigate back to dashboard
   const handleCloseModal = () => {
-    router.push("/") // Navigate back to the dashboard (main) page
+    setIsOpen(false)
+    router.push("/")
   }
 
   // Render content based on active panel
