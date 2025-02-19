@@ -11,6 +11,7 @@ import {
 import { TestimonialsSection } from "@/app/components/block/testimonials-with-marquee";
 import { HeroScrollDemo } from "@/app/components/block/code-demo";
 import Link from "next/link";
+import { Navbar } from "@/app/components/layout/navbar";
 import {
   Facebook,
   Youtube,
@@ -18,7 +19,7 @@ import {
   Linkedin,
   Twitter,
   MessageCircle,
-  Github
+  Github,
 } from "lucide-react";
 import { AnimatedBackground } from "@/app/components/ui/animated-background";
 
@@ -63,82 +64,6 @@ const testimonials = [
   },
 ];
 
-function Navbar() {
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/10 backdrop-blur-lg border-b border-white/10">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo with continuous rotation */}
-          <Link href="/" className="flex items-center gap-2">
-            <motion.div
-              animate={{ 
-                rotate: 360 
-              }}
-              transition={{ 
-                duration: 4,
-                ease: "linear",
-                repeat: Infinity
-              }}
-            >
-              <Image
-                src="/logo.png"
-                alt="Colossus.AI Logo"
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
-            </motion.div>
-            <span className="font-bold text-xl">Colossus.AI</span>
-          </Link>
-
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
-            {[
-              "Feedback",
-              "Rateus",
-              "Contactus",
-              "About"
-            ].map((item) => (
-              <Link
-                key={item}
-                href={`/${item.toLowerCase().replace(/ & /g, '-')}`}
-                className="relative text-gray-300 hover:text-white transition-colors group"
-              >
-                {item}
-                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-              </Link>
-            ))}
-          </div>
-
-          {/* Auth Buttons */}
-          <div className="flex items-center">
-            <div className="inline-flex rounded-full overflow-hidden border border-white/30">
-              <Link href="/signin">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-white pr-6 pl-8 py-2 font-semibold hover:text-[#FF4A8D] transition-colors rounded-l-full border-r border-white/0"
-                >
-                  Sign In
-                </motion.button>
-              </Link>
-              <Link href="/signup">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-2 rounded-full font-semibold"
-                >
-                  Sign Up
-                </motion.button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
 function Footer() {
   return (
     <footer className="bg-black/20 backdrop-blur-lg border-t border-white/10 py-12">
@@ -157,7 +82,8 @@ function Footer() {
               <span className="font-bold text-xl">Colossus.AI</span>
             </Link>
             <p className="text-gray-400 text-sm">
-              Transforming learning experiences through intelligent visualization.
+              Transforming learning experiences through intelligent
+              visualization.
             </p>
           </div>
 
@@ -165,16 +91,18 @@ function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              {["Features", "Feedback", "Rateus", "Contactus", "About"].map((item) => (
-                <li key={item}>
-                  <Link
-                    href={`/${item.toLowerCase().replace(/ /g, '-')}`}
-                    className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
+              {["Features", "Feedback", "Rateus", "Contactus", "About"].map(
+                (item) => (
+                  <li key={item}>
+                    <Link
+                      href={`/${item.toLowerCase().replace(/ /g, "-")}`}
+                      className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
@@ -182,16 +110,18 @@ function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
-              {["Help Center", "Terms of Service", "Privacy Policy", "FAQ"].map((item) => (
-                <li key={item}>
-                  <Link
-                    href={`/${item.toLowerCase().replace(/ /g, '-')}`}
-                    className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
+              {["Help Center", "Terms of Service", "Privacy Policy", "FAQ"].map(
+                (item) => (
+                  <li key={item}>
+                    <Link
+                      href={`/${item.toLowerCase().replace(/ /g, "-")}`}
+                      className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
@@ -299,10 +229,10 @@ export default function Home() {
               />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Welcome to <span className="gradient-text">Colossus.AI</span>
+               <span className="gradient-text">Colossus.AI</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-              Your intelligent roadmap visualization tool for seamless learning
+              Your AI Powered roadmap visualization tool for seamless learning
               and documentation navigation
             </p>
 
@@ -317,9 +247,9 @@ export default function Home() {
                   <ArrowRightIcon className="w-5 h-5" />
                 </motion.button>
               </Link>
-              <Link 
-                href="https://www.youtube.com/@ColossusAI" 
-                target="_blank" 
+              <Link
+                href="https://www.youtube.com/@ColossusAI"
+                target="_blank"
                 rel="noopener noreferrer"
               >
                 <motion.button
