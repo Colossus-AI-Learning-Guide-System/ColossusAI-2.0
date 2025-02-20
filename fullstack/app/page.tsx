@@ -20,9 +20,8 @@ import {
   MessageCircle,
   Github,
 } from "lucide-react";
-import { AnimatedBackground } from "./components/ui/animated-background";
-import { LampContainer } from "./components/ui/lamp";
 import { TextEffect } from "./components/core/text-effect";
+import { Particles } from "./components/ui/particles";
 
 const testimonials = [
   {
@@ -67,7 +66,7 @@ const testimonials = [
 
 function Footer() {
   return (
-    <footer className="bg-black/100 backdrop-blur-lg border-t border-white/10 py-12">
+    <footer className="relative z-10 bg-black/50 backdrop-blur-lg border-t border-white/10 py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -209,63 +208,62 @@ function Footer() {
 export default function Home() {
   return (
     <>
-      <AnimatedBackground />
+      <Particles
+        className="fixed inset-0 -z-10 pointer-events-none"
+        quantity={300}
+        staticity={30}
+        ease={50}
+        color="#FF4A8D"
+      />
       <Navbar />
 
-      {/* Hero Section with Lamp Effect */}
-      <main className="min-h-screen hero-gradient">
-        <div>
-          <LampContainer>
-            <div className="flex flex-col items-center justify-center mt-[500px]">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, ease: "linear", repeat: Infinity }}
-                className="mb-12"
-              >
-                <Image
-                  src="/logo.png"
-                  alt="Colossus.AI Logo"
-                  width={250}
-                  height={250}
-                  className="rounded-full"
-                />
-              </motion.div>
-              <h1 className="text-6xl md:text-7xl font-bold mb-10 text-center">
-                <TextEffect per="word" preset="fade" className="text-white">
-                  {`AI-Powered Learning,\nSmarter Knowledge Navigation`}
-                </TextEffect>
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto text-center">
-                Your AI Powered roadmap visualization tool for seamless learning
-                and documentation navigation
-              </p>
-              <div className="flex gap-6">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-10 py-4 rounded-full font-semibold text-lg"
-                >
-                  Get Started →
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-[#1A1A1A] text-white px-10 py-4 rounded-full font-semibold text-lg hover:bg-[#252525] transition-colors"
-                >
-                  Learn More
-                </motion.button>
-              </div>
-            </div>
-          </LampContainer>
+      {/* Hero Section */}
+      <main className="min-h-screen bg-transparent">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center min-h-screen pt-24 pb-16">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+              className="mb-8"
+            >
+              <Image
+                src="/logo.png"
+                alt="Colossus.AI Logo"
+                width={200}
+                height={200}
+                className="rounded-full"
+              />
+            </motion.div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-16 text-center">
+              <TextEffect per="word" preset="fade" className="text-white">
+                {`AI-Powered Learning,\nSmarter Knowledge Navigation`}
+              </TextEffect>
+            </h1>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all mb-8"
+            >
+              Try Colossus.AI →
+            </motion.button>
+          </div>
         </div>
 
         {/* Features Section */}
-        <div className="container mx-auto px-4 pt-32 pb-32">
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl md:text-5xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]"
+          >
+            Your Personalized AI Roadmaps
+          </motion.h2>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
               <DocumentTextIcon className="w-12 h-12 text-[#ff6b6b] mb-4" />
@@ -301,14 +299,18 @@ export default function Home() {
         </div>
 
         {/* Scroll Demo Section */}
-        <HeroScrollDemo />
+        <div className="relative z-10">
+          <HeroScrollDemo />
+        </div>
 
         {/* Testimonials Section */}
-        <TestimonialsSection
-          title="Trusted by educators and researchers worldwide"
-          description="Join thousands of professionals who are already transforming their learning experience with Colossus.AI"
-          testimonials={testimonials}
-        />
+        <div className="relative z-10">
+          <TestimonialsSection
+            title="Trusted by educators and researchers worldwide"
+            description="Join thousands of professionals who are already transforming their learning experience with Colossus.AI"
+            testimonials={testimonials}
+          />
+        </div>
       </main>
       <Footer />
     </>

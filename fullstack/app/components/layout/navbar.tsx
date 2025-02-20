@@ -6,9 +6,9 @@ import { motion } from "framer-motion";
 
 export function Navbar() {
   return (
-    <nav className="static top-0 left-0 right-0 z-50 bg-black border-b border-[#FF4A8D]/20">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-transparent">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 backdrop-blur-sm bg-black/10">
           {/* Logo with continuous rotation */}
           <Link href="/" className="flex items-center gap-2">
             <motion.div
@@ -23,7 +23,7 @@ export function Navbar() {
                 className="rounded-full"
               />
             </motion.div>
-            <span className="font-bold text-2xl">ColossusAI</span>
+            <span className="font-bold text-2xl text-white">ColossusAI</span>
           </Link>
 
           {/* Navigation Links */}
@@ -37,7 +37,7 @@ export function Navbar() {
                       ? "/"
                       : `/${item.toLowerCase().replace(/ & /g, "-")}`
                   }
-                  className="relative text-gray-300 hover:text-white transition-colors group text-lg"
+                  className="relative text-white hover:text-white/80 transition-colors group text-lg"
                 >
                   {item}
                   <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -45,17 +45,6 @@ export function Navbar() {
               )
             )}
           </div>
-
-          {/* Get Started Button */}
-          <Link href="/signup">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-3 rounded-full font-semibold text-lg"
-            >
-              Get Started
-            </motion.button>
-          </Link>
         </div>
       </div>
     </nav>
