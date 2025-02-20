@@ -23,7 +23,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 20px;
+    padding: 20px 0;
   }
   
   .collapsed {
@@ -45,6 +45,21 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    height: 100%;
+  }
+  
+  .mainControls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .bottomControls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: auto;
+    padding-bottom: 20px;
   }
   
   .sidebarControls::after {
