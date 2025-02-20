@@ -19,7 +19,7 @@
     padding: 15px;
     background: var(--accent);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 30px;
     transition: background-color 0.2s;
   }
   
