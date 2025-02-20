@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/10 backdrop-blur-lg border-b border-white/10">
+    <nav className="static top-0 left-0 right-0 z-50 bg-black border-b border-[#FF4A8D]/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo with continuous rotation */}
@@ -47,17 +47,15 @@ export function Navbar() {
           </div>
 
           {/* Get Started Button */}
-          <div className="flex items-center">
-            <Link href="/signup">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-3 rounded-full font-semibold text-lg"
-              >
-                Get Started
-              </motion.button>
-            </Link>
-          </div>
+          <Link href="/signup">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-3 rounded-full font-semibold text-lg"
+            >
+              Get Started
+            </motion.button>
+          </Link>
         </div>
       </div>
     </nav>

@@ -3,15 +3,14 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
-  ArrowRightIcon,
   DocumentTextIcon,
   ShareIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
-import { TestimonialsSection } from "@/app/components/block/testimonials-with-marquee";
-import { HeroScrollDemo } from "@/app/components/block/code-demo";
+import { TestimonialsSection } from "./components/block/testimonials-with-marquee";
+import { HeroScrollDemo } from "./components/block/code-demo";
 import Link from "next/link";
-import { Navbar } from "@/app/components/layout/navbar";
+import { Navbar } from "./components/layout/navbar";
 import {
   Facebook,
   Youtube,
@@ -21,7 +20,8 @@ import {
   MessageCircle,
   Github,
 } from "lucide-react";
-import { AnimatedBackground } from "@/app/components/ui/animated-background";
+import { AnimatedBackground } from "./components/ui/animated-background";
+import { LampContainer } from "./components/ui/lamp";
 
 const testimonials = [
   {
@@ -66,7 +66,7 @@ const testimonials = [
 
 function Footer() {
   return (
-    <footer className="bg-black/20 backdrop-blur-lg border-t border-white/10 py-12">
+    <footer className="bg-black/100 backdrop-blur-lg border-t border-white/10 py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -210,60 +210,54 @@ export default function Home() {
     <>
       <AnimatedBackground />
       <Navbar />
-      <main className="min-h-screen hero-gradient">
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 pt-32 pb-32">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <div className="flex justify-center mb-8">
-              <Image
-                src="/logo.png"
-                alt="Colossus.AI Logo"
-                width={120}
-                height={120}
-                className="rounded-full"
-              />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-               <span className="gradient-text">Colossus.AI</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-              Your AI Powered roadmap visualization tool for seamless learning
-              and documentation navigation
-            </p>
 
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/signup">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2"
-                >
-                  Get Started
-                  <ArrowRightIcon className="w-5 h-5" />
-                </motion.button>
-              </Link>
-              <Link
-                href="https://www.youtube.com/@ColossusAI"
-                target="_blank"
-                rel="noopener noreferrer"
+      {/* Hero Section with Lamp Effect */}
+      <main className="min-h-screen hero-gradient">
+        <div>
+          <LampContainer>
+            <div className="flex flex-col items-center justify-center mt-[500px]">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+                className="mb-12"
               >
+                <Image
+                  src="/logo.png"
+                  alt="Colossus.AI Logo"
+                  width={250}
+                  height={250}
+                  className="rounded-full"
+                />
+              </motion.div>
+              <h1 className="text-6xl md:text-7xl font-bold mb-10">
+                <span className="gradient-text">Colossus.AI</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto text-center">
+                Your AI Powered roadmap visualization tool for seamless learning
+                and documentation navigation
+              </p>
+              <div className="flex gap-6">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white/10 text-white px-8 py-3 rounded-full font-semibold backdrop-blur-sm transition-all duration-300"
+                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-10 py-4 rounded-full font-semibold text-lg"
+                >
+                  Get Started →
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#1A1A1A] text-white px-10 py-4 rounded-full font-semibold text-lg hover:bg-[#252525] transition-colors"
                 >
                   Learn More
                 </motion.button>
-              </Link>
+              </div>
             </div>
-          </motion.div>
+          </LampContainer>
+        </div>
 
-          {/* Features Section */}
+        {/* Features Section */}
+        <div className="container mx-auto px-4 pt-32 pb-32">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
