@@ -33,23 +33,28 @@ export default function Dashboard() {
           </div>
         )}
         <div className={styles.chatSection}>
-          <div className={styles.chatInput}>
-            <input type="text" placeholder="Type here..." />
-            <button onClick={handleSend} className={styles.arrowButton} style={{ borderRadius: '50%', padding: '10px', border: 'none' }}>
-              <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </button>
+          <div className={styles.chatArea}>
+            <div className={styles.welcomeMessage}>
+              How can I help you?
+            </div>
+            <div className={styles.chatInput}>
+              <input type="text" placeholder="Type here..." />
+              <button onClick={handleSend} className={styles.arrowButton} style={{ borderRadius: '50%', padding: '10px', border: 'none' }}>
+                <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
