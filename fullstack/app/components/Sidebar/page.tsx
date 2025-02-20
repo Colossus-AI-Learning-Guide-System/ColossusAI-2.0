@@ -2,10 +2,13 @@
 
 import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
+import { useRouter } from 'next/navigation'
 
 export default function Sidebar() {
   const [documents, setDocuments] = useState<File[]>([])
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
   const handleAddDocument = () => {
     fileInputRef.current?.click()
@@ -23,8 +26,34 @@ export default function Sidebar() {
     setDocuments(prev => prev.filter((_, i) => i !== index))
   }
 
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed)
+  }
+
+  const goToHome = () => {
+    router.push('/')
+  }
+
   return (
-    <div className={styles.sidebar}>
+    <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
+      <div className={styles.sidebarControls}>
+        <button className={styles.controlButton} onClick={toggleSidebar}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {isCollapsed ? (
+              <path d="M9 18l6-6-6-6" />
+            ) : (
+              <path d="M15 18l-6-6 6-6" />
+            )}
+          </svg>
+        </button>
+        <button className={styles.controlButton} onClick={goToHome}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </button>
+      </div>
+
       <div className={styles.logo}>Colossus.Ai</div>
 
       <div className={styles.section}>

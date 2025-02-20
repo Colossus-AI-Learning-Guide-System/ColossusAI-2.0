@@ -2,10 +2,64 @@
     width: var(--sidebar-width);
     background: var(--background);
     border-right: 1px solid var(--border);
-    padding: 20px;
+    padding: 20px 20px 20px 60px;
     display: flex;
     flex-direction: column;
     gap: 30px;
+    position: relative;
+    transition: width 0.3s ease;
+    margin-left: 50px;
+  }
+  
+  .sidebar::before {
+    content: '';
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 50px;
+    background: var(--accent);
+    border-right: 1px solid var(--border);
+    z-index: 1;
+  }
+  
+  .collapsed {
+    width: 80px;
+    padding: 20px 10px 20px 60px;
+  }
+  
+  .collapsed .logo,
+  .collapsed .section h2,
+  .collapsed .documentName,
+  .collapsed .addButton {
+    display: none;
+  }
+  
+  .sidebarControls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: fixed;
+    top: 20px;
+    left: 9px;
+    z-index: 2;
+  }
+  
+  .controlButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    transition: background 0.2s;
+  }
+  
+  .controlButton:hover {
+    background: var(--border);
   }
   
   .logo {
