@@ -18,9 +18,22 @@ export default function Dashboard() {
     setShowContent(true)
   }
 
+  const toggleRoadmap = () => {
+    setShowRoadmap(!showRoadmap)
+  }
+
+  const toggleContent = () => {
+    setShowContent(!showContent)
+  }
+
   return (
     <main className={styles.dashboard}>
-      <Sidebar />
+      <Sidebar 
+        onToggleRoadmap={toggleRoadmap} 
+        isRoadmapVisible={showRoadmap}
+        onToggleContent={toggleContent}
+        isContentVisible={showContent}
+      />
       <div className={styles.mainContent}>
         {showRoadmap && (
           <div className={styles.roadmapSection}>

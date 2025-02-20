@@ -70,6 +70,12 @@
     position: relative;
   }
   
+  .controlButton.active {
+    background: var(--border);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+  }
+  
   .controlButton svg {
     width: 20px;
     height: 20px;

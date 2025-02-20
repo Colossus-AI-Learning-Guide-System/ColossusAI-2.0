@@ -4,7 +4,19 @@ import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
 import { useRouter } from 'next/navigation'
 
-export default function Sidebar() {
+interface SidebarProps {
+  onToggleRoadmap: () => void;
+  isRoadmapVisible: boolean;
+  onToggleContent: () => void;
+  isContentVisible: boolean;
+}
+
+export default function Sidebar({ 
+  onToggleRoadmap, 
+  isRoadmapVisible,
+  onToggleContent,
+  isContentVisible 
+}: SidebarProps) {
   const [documents, setDocuments] = useState<File[]>([])
   const [isCollapsed, setIsCollapsed] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -35,11 +47,11 @@ export default function Sidebar() {
   }
 
   const toggleRoadmap = () => {
-    // Implementation for roadmap toggle
+    onToggleRoadmap()
   }
 
   const toggleContent = () => {
-    // Implementation for content toggle
+    onToggleContent()
   }
 
   return (
@@ -61,7 +73,10 @@ export default function Sidebar() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </button>
-          <button className={styles.controlButton} onClick={toggleRoadmap}>
+          <button 
+            className={`${styles.controlButton} ${isRoadmapVisible ? styles.active : ''}`} 
+            onClick={toggleRoadmap}
+          >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="3" />
               <path d="M3 12h6" />
@@ -70,7 +85,10 @@ export default function Sidebar() {
               <path d="M12 15v6" />
             </svg>
           </button>
-          <button className={styles.controlButton} onClick={toggleContent}>
+          <button 
+            className={`${styles.controlButton} ${isContentVisible ? styles.active : ''}`} 
+            onClick={toggleContent}
+          >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <path d="M14 2v6h6" />
