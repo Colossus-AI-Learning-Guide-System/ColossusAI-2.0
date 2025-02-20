@@ -44,4 +44,60 @@
     background: var(--border);
   }
   
+  .documentList {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .documentItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 15px;
+    background: var(--accent);
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  
+  .documentItem:hover {
+    background: var(--border);
+  }
+  
+  .pdfIcon {
+    min-width: 24px;
+    color: var(--text-primary);
+  }
+  
+  .documentName {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .deleteButton {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--text-primary);
+    opacity: 0.5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .deleteButton:hover {
+    opacity: 1;
+    background: var(--border);
+  }
+  
   
