@@ -43,6 +43,12 @@ export default function Sidebar({
   }
 
   const goToHome = () => {
+    if (isRoadmapVisible) {
+      onToggleRoadmap();
+    }
+    if (isContentVisible) {
+      onToggleContent();
+    }
     router.push('/')
   }
 
