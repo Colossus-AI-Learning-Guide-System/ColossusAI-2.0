@@ -34,8 +34,13 @@ export default function Dashboard() {
         )}
         <div className={styles.chatSection}>
           <div className={styles.chatArea}>
-            <div className={styles.welcomeMessage}>
-              How can I help you?
+            <div className={styles.welcomeContainer}>
+              <div className={styles.welcomeMessage}>
+                How can I help you?
+              </div>
+              <div className={styles.subheading}>
+                Colossus.Ai assistant
+              </div>
             </div>
             <div className={styles.chatInput}>
               <input type="text" placeholder="Type here..." />
