@@ -44,7 +44,16 @@
   .sidebarControls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
+  }
+  
+  .sidebarControls::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 1px;
+    background: var(--border);
+    margin: 10px auto;
   }
   
   .controlButton {
@@ -57,11 +66,22 @@
     background: var(--accent);
     border: 1px solid var(--border);
     color: var(--text-primary);
-    transition: background 0.2s;
+    transition: all 0.2s;
+    position: relative;
+  }
+  
+  .controlButton svg {
+    width: 20px;
+    height: 20px;
   }
   
   .controlButton:hover {
     background: var(--border);
+    transform: translateX(2px);
+  }
+  
+  .controlButton:active {
+    transform: translateX(1px);
   }
   
   .logo {
