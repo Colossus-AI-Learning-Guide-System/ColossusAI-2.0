@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { AnimatedBackground } from "./components/ui/animated-background";
 import { LampContainer } from "./components/ui/lamp";
+import { TextEffect } from "./components/core/text-effect";
 
 const testimonials = [
   {
@@ -229,8 +230,10 @@ export default function Home() {
                   className="rounded-full"
                 />
               </motion.div>
-              <h1 className="text-6xl md:text-7xl font-bold mb-10">
-                <span className="gradient-text">Colossus.AI</span>
+              <h1 className="text-6xl md:text-7xl font-bold mb-10 text-center">
+                <TextEffect per="word" preset="fade" className="text-white">
+                  {`AI-Powered Learning,\nSmarter Knowledge Navigation`}
+                </TextEffect>
               </h1>
               <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto text-center">
                 Your AI Powered roadmap visualization tool for seamless learning
