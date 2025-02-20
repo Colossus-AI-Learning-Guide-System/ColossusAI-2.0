@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import styles from "./page.module.css"
-import Sidebar from "./Components/Sidebar/page"
-import Roadmap from "./Components/Roadmap/page"
-import Content from "./Components/Content/page"
+import Sidebar from "./components/Sidebar/page"
+import Roadmap from "./components/Roadmap/page"
+import Content from "./components/Content/page"
 
 export default function Dashboard() {
   const [showRoadmap, setShowRoadmap] = useState(false)
