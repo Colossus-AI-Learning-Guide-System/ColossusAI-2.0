@@ -2,11 +2,6 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import {
-  DocumentTextIcon,
-  ShareIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
 import { TestimonialsSection } from "./components/block/testimonials-with-marquee";
 import { HeroScrollDemo } from "./components/block/code-demo";
 import Link from "next/link";
@@ -22,6 +17,8 @@ import {
 } from "lucide-react";
 import { TextEffect } from "./components/core/text-effect";
 import { Particles } from "./components/ui/particles";
+import { FeaturePopup } from "./components/ui/feature-popup";
+import { useState } from "react";
 
 const testimonials = [
   {
@@ -61,6 +58,106 @@ const testimonials = [
         "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
     },
     text: "Colossus.AI has made it possible to create comprehensive learning paths for our medical residents. A game-changer in medical education.",
+  },
+];
+
+// Feature data structure
+interface Feature {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  shortDescription: string;
+}
+
+const features: Feature[] = [
+  {
+    title: "AI-Powered Knowledge Graphs",
+    description:
+      "Process documents and generate structured, interactive visual roadmaps, making learning more engaging and intuitive.\n\nKey Features:\n• Automated graph generation\n• Interactive visualization\n• Semantic relationship mapping\n• Real-time updates",
+    icon: (
+      <div className="relative w-16 h-16">
+        <Image
+          src="/icons/Knowledge Graph.png"
+          alt="Knowledge Graph Icon"
+          fill
+          className="object-contain invert brightness-0"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      </div>
+    ),
+    shortDescription: "Visual roadmaps from documents for easier learning",
+  },
+  {
+    title: "Intelligent Search & Query",
+    description:
+      "Enter natural language queries and retrieve relevant insights from uploaded documents with ease.\n\nKey Features:\n• Natural language processing\n• Semantic search\n• Context-aware results\n• Quick filtering options",
+    icon: (
+      <div className="relative w-16 h-16">
+        <Image
+          src="/icons/search.png"
+          alt="Search Icon"
+          fill
+          className="object-contain invert brightness-0"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      </div>
+    ),
+    shortDescription:
+      "Enter queries in natural language to find relevant insights quickly.",
+  },
+  {
+    title: "Smart Document Management",
+    description:
+      "Upload, organize, and search documents effortlessly. Create and manage custom directories for efficient content structuring.\n\nKey Features:\n• Drag-and-drop upload\n• Automatic categorization\n• Version control\n• Advanced search capabilities",
+    icon: (
+      <div className="relative w-16 h-16">
+        <Image
+          src="/icons/Document.png"
+          alt="Document Management Icon"
+          fill
+          className="object-contain invert brightness-0"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      </div>
+    ),
+    shortDescription:
+      "Upload and organize documents with ease for efficient access.",
+  },
+  {
+    title: "AI-Generated Summaries",
+    description:
+      "Save time with concise, AI-powered document summaries for quick insights.\n\nKey Features:\n• Automatic summarization\n• Key points extraction\n• Customizable length\n• Multi-document synthesis",
+    icon: (
+      <div className="relative w-16 h-16">
+        <Image
+          src="/icons/summarize.png"
+          alt="Summaries Icon"
+          fill
+          className="object-contain invert brightness-0"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      </div>
+    ),
+    shortDescription:
+      "Get quick, AI-powered summaries to understand documents faster.",
+  },
+  {
+    title: "Collaboration & Sharing",
+    description:
+      "Easily share generated knowledge graphs with peers. Enhance group learning and team collaboration.\n\nKey Features:\n• Real-time collaboration\n• Access control\n• Comment system\n• Export and sharing options",
+    icon: (
+      <div className="relative w-16 h-16">
+        <Image
+          src="/icons/share.png"
+          alt="Share Icon"
+          fill
+          className="object-contain invert brightness-0"
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      </div>
+    ),
+    shortDescription:
+      "Share knowledge graphs with others to enhance group learning.",
   },
 ];
 
@@ -206,6 +303,8 @@ function Footer() {
 }
 
 export default function Home() {
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+
   return (
     <>
       <Particles
@@ -216,6 +315,15 @@ export default function Home() {
         color="#FF4A8D"
       />
       <Navbar />
+
+      {/* Feature Popup */}
+      <FeaturePopup
+        isOpen={selectedFeature !== null}
+        onClose={() => setSelectedFeature(null)}
+        title={selectedFeature?.title || ""}
+        description={selectedFeature?.description || ""}
+        icon={selectedFeature?.icon}
+      />
 
       {/* Hero Section */}
       <main className="min-h-screen bg-transparent">
@@ -250,50 +358,71 @@ export default function Home() {
         </div>
 
         {/* Features Section */}
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl md:text-5xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]"
-          >
-            Your Personalized AI Roadmaps
-          </motion.h2>
+        <div className="container mx-auto px-4 py-24 relative z-10">
+          <div className="text-4xl md:text-5xl font-bold text-center mb-16">
+            <TextEffect
+              className="inline-flex bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]"
+              per="char"
+              preset="stagger"
+              reverseScroll={true}
+            >
+              Innovative Tools for Smarter Learning
+            </TextEffect>
+          </div>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
           >
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
-              <DocumentTextIcon className="w-12 h-12 text-[#ff6b6b] mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                Smart Document Processing
-              </h3>
-              <p className="text-gray-400">
-                Upload and process your documentation materials with ease,
-                creating intuitive knowledge graphs.
-              </p>
-            </div>
+            {features.slice(0, 3).map((feature) => (
+              <motion.div
+                key={feature.title}
+                className="bg-[#2d2d2d] backdrop-blur-lg rounded-xl p-8 hover:bg-[#333] transition-all duration-300 border border-white/10 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-black/20 group"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                animate={{
+                  opacity: selectedFeature?.title === feature.title ? 0 : 1,
+                  scale: selectedFeature?.title === feature.title ? 0.8 : 1,
+                }}
+                onClick={() => setSelectedFeature(feature)}
+              >
+                <div className="mb-6 transform transition-transform group-hover:scale-110 duration-300">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-4 text-[#e1e1e1]">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">
+                  {feature.shortDescription}
+                </p>
+              </motion.div>
+            ))}
 
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
-              <ChartBarIcon className="w-12 h-12 text-[#ff8e53] mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                Visual Knowledge Graphs
-              </h3>
-              <p className="text-gray-400">
-                Transform complex information into clear, interactive visual
-                roadmaps.
-              </p>
-            </div>
-
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
-              <ShareIcon className="w-12 h-12 text-[#ff6b6b] mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Easy Sharing</h3>
-              <p className="text-gray-400">
-                Share your generated knowledge graphs with others to enhance
-                collaboration.
-              </p>
+            <div className="md:col-span-3 flex justify-center gap-8">
+              {features.slice(3).map((feature) => (
+                <motion.div
+                  key={feature.title}
+                  className="bg-[#2d2d2d] backdrop-blur-lg rounded-xl p-8 hover:bg-[#333] transition-all duration-300 border border-white/10 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-black/20 group w-full md:w-[calc(33.33%-1rem)]"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{
+                    opacity: selectedFeature?.title === feature.title ? 0 : 1,
+                    scale: selectedFeature?.title === feature.title ? 0.8 : 1,
+                  }}
+                  onClick={() => setSelectedFeature(feature)}
+                >
+                  <div className="mb-6 transform transition-transform group-hover:scale-110 duration-300">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4 text-[#e1e1e1]">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    {feature.shortDescription}
+                  </p>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
