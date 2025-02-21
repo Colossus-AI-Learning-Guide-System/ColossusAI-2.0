@@ -79,7 +79,7 @@ export function HeroVideoDialog({
 
   return (
     <div className={cn("relative w-full", className)}>
-      <div className="aspect-[16/9] w-full">
+      <div className="aspect-[16/9] w-full max-w-[1000px]">
         {!isVideoOpen ? (
           <div
             className="relative cursor-pointer group w-full h-full"

@@ -18,7 +18,7 @@ import { TextEffect } from "./components/core/text-effect";
 import { Particles } from "./components/ui/particles";
 import { FeaturePopup } from "./components/ui/feature-popup";
 import { useState } from "react";
-import { TestimonialDemo } from "./components/ui/testimonial-card.demo";
+import { TestimonialsDemo } from "./components/ui/testimonials.demo";
 
 // Feature data structure
 interface Feature {
@@ -391,7 +391,8 @@ export default function Home() {
           <HeroScrollDemo />
         </div>
 
-        <TestimonialDemo />
+        {/* Add the TestimonialsDemo component here */}
+        <TestimonialsDemo />
       </main>
       <Footer />
     </>
