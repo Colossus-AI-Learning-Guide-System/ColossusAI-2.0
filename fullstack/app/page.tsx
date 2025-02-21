@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { TestimonialsSection } from "./components/block/testimonials-with-marquee";
 import { HeroScrollDemo } from "./components/block/code-demo";
 import Link from "next/link";
 import { Navbar } from "./components/layout/navbar";
@@ -19,47 +18,6 @@ import { TextEffect } from "./components/core/text-effect";
 import { Particles } from "./components/ui/particles";
 import { FeaturePopup } from "./components/ui/feature-popup";
 import { useState } from "react";
-
-const testimonials = [
-  {
-    author: {
-      name: "Sudesh Senevirathne",
-      handle: "@profanderson",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    },
-    text: "The knowledge graph visualization has completely transformed how I teach complex subjects. My students grasp concepts much faster now.",
-    href: "https://twitter.com/profanderson",
-  },
-  {
-    author: {
-      name: "Dr. Emily Zhang",
-      handle: "@emilyzhang_ai",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    },
-    text: "As a researcher, Colossus.AI has been invaluable. It turns our complex documentation into clear, navigable roadmaps.",
-    href: "https://twitter.com/emilyzhang_ai",
-  },
-  {
-    author: {
-      name: "Mark Davidson",
-      handle: "@markdavidson",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-    },
-    text: "The intuitive interface and powerful visualization tools have revolutionized how our team handles documentation. Simply brilliant!",
-  },
-  {
-    author: {
-      name: "Dr. Rachel Martinez",
-      handle: "@drmartinez",
-      avatar:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-    },
-    text: "Colossus.AI has made it possible to create comprehensive learning paths for our medical residents. A game-changer in medical education.",
-  },
-];
 
 // Feature data structure
 interface Feature {
@@ -430,15 +388,6 @@ export default function Home() {
         {/* Scroll Demo Section */}
         <div className="relative z-10">
           <HeroScrollDemo />
-        </div>
-
-        {/* Testimonials Section */}
-        <div className="relative z-10">
-          <TestimonialsSection
-            title="Trusted by educators and researchers worldwide"
-            description="Join thousands of professionals who are already transforming their learning experience with Colossus.AI"
-            testimonials={testimonials}
-          />
         </div>
       </main>
       <Footer />

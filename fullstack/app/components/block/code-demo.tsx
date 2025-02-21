@@ -11,15 +11,15 @@ export function HeroScrollDemo() {
         <HeroVideoDialog
           className="dark:hidden block"
           animationStyle="from-center"
-          videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb&autoplay=1"
+          videoSrc="/Scroll Animation/Sample Graph.mp4"
           thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
           thumbnailAlt="Hero Video"
         />
         <HeroVideoDialog
           className="hidden dark:block"
           animationStyle="from-center"
-          videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb&autoplay=1"
-          thumbnailSrc="https://startup-template-sage.vercel.app/hero-dark.png"
+          videoSrc="/Scroll Animation/Sample Graph.mp4"
+          thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
           thumbnailAlt="Hero Video"
         />
       </div>
@@ -31,16 +31,22 @@ export function HeroScrollDemo() {
             <h1 className="text-4xl font-semibold text-black dark:text-white">
               Unleash the power of <br />
               <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
-                Scroll Animations
+                Roadmap Generation
               </span>
             </h1>
           </>
         }
       >
-        <div className="h-full w-full bg-[#1F2937] rounded-2xl flex items-center justify-center">
-          <h2 className="text-4xl md:text-6xl font-bold text-white/80">
-            Colossus.AI Demo
-          </h2>
+        <div className="h-full w-full bg-[#1F2937] rounded-2xl flex flex-col items-center justify-center">
+          <video
+            className="w-full h-full object-cover rounded-none"
+            autoPlay
+            loop
+            muted
+          >
+            <source src="fullstack\public\Scroll Animation\Sample Graph.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
       </ContainerScroll>
     </div>
