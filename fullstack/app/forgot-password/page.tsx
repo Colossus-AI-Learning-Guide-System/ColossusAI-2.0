@@ -7,6 +7,7 @@ import { sendPasswordResetEmail } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { RiLockFill } from "react-icons/ri";
 
 export default function ForgotPasswordPage() {
   const id = useId();
@@ -216,12 +217,14 @@ export default function ForgotPasswordPage() {
                 />
               </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+              onClick={handleSubmit}
               disabled={loading || timeRemaining > 0}
             >
-              {loading ? "Sending..." : "Send reset instructions"}
+              <RiLockFill size={24} />
+              <span>{loading ? "Sending..." : "Send reset instructions"}</span>
             </Button>
           </form>
 

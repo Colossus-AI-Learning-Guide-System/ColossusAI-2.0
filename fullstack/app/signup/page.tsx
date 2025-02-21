@@ -9,7 +9,7 @@ import {
   signInWithOAuth,
   signUpWithEmail,
 } from "@/lib/supabase/auth";
-import { RiGithubFill, RiGoogleFill } from "@remixicon/react";
+import { RiGithubFill } from "@remixicon/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -232,82 +232,138 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-xl border bg-card p-6 shadow-lg">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-[44px] h-[44px] relative">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            fill
-            className="object-contain"
-            priority
-          />
+    <div className="flex min-h-screen">
+      {/* Left section with gradient background */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B6B] via-[#FF3399] to-[#9933FF] p-12">
+        <div className="flex flex-col justify-center text-white max-w-xl">
+          <h1 className="text-4xl font-bold mb-4">WELCOME</h1>
+          <p className="text-lg opacity-90">Create your account and start your journey with ColossusAI</p>
         </div>
-        <div className="space-y-1.5 text-center">
-          <h1 className="text-lg font-semibold tracking-tight">
-            Sign up Origin UI
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            We just need a few details to get you started.
-          </p>
-        </div>
+        {/* Decorative circles */}
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/4 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2"></div>
       </div>
 
-      {success ? (
-        <div className="text-center space-y-4">
-          <div className="text-green-600 font-medium">{successMessage}</div>
-          {showResendButton && (
-            <button
-              onClick={handleResendConfirmation}
-              className="text-blue-600 hover:underline text-sm"
-              disabled={loading}
+      {/* Right section with sign up form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-[60px] h-[60px] relative mb-4">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="space-y-1.5 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">Create Account</h1>
+              <p className="text-sm text-muted-foreground">
+                Enter your details to create your account
+              </p>
+            </div>
+          </div>
+
+          {/* OAuth Buttons - Placed before the form for better visibility */}
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+              onClick={() => handleOAuthSignUp("google")}
             >
-              {loading
-                ? "Sending..."
-                : "Didn't receive the email? Click to resend"}
-            </button>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Already confirmed your email?{" "}
-            <Link
-              href="/signin"
-              className="text-primary underline hover:no-underline"
+              <svg viewBox="0 0 24 24" width="24" height="24" className="mr-2">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span className="text-gray-600">Sign up with Google</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+              onClick={() => handleOAuthSignUp("github")}
             >
-              Sign in
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <>
-          <form onSubmit={handleEmailSignUp} className="space-y-5">
+              <RiGithubFill size={24} />
+              <span className="text-gray-600">Sign up with GitHub</span>
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleEmailSignUp} className="space-y-6">
             {error && (
-              <div className="text-sm text-red-500 text-center">{error}</div>
+              <div className="text-sm text-red-500 text-center">
+                {error}
+                {showResendButton && (
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    className="ml-2 text-blue-500 hover:underline"
+                    disabled={loading}
+                  >
+                    Resend confirmation email
+                  </button>
+                )}
+              </div>
             )}
-            <div className="space-y-4">
+            {successMessage && (
+              <div className="text-sm text-green-500 text-center bg-green-50 p-3 rounded-lg">
+                {successMessage}
+              </div>
+            )}
+
+            <div className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor={`${id}-name`}>Full name</Label>
+                <Label htmlFor={`${id}-fullname`} className="text-sm font-medium">Full Name</Label>
                 <Input
-                  id={`${id}-name`}
-                  placeholder="Matt Welsh"
+                  id={`${id}-fullname`}
+                  placeholder="John Doe"
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor={`${id}-email`}>Email</Label>
+                <Label htmlFor={`${id}-email`} className="text-sm font-medium">Email</Label>
                 <Input
                   id={`${id}-email`}
-                  placeholder="hi@yourcompany.com"
+                  placeholder="you@example.com"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor={`${id}-password`}>Password</Label>
+                <Label htmlFor={`${id}-password`} className="text-sm font-medium">Password</Label>
                 <Input
                   id={`${id}-password`}
                   placeholder="Create a password"
@@ -318,123 +374,63 @@ export default function SignUpPage() {
                     setPassword(e.target.value);
                     setIsPasswordTouched(true);
                     setValidationErrors(validatePassword(e.target.value));
-                    setError(null);
                   }}
+                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
-                {isPasswordTouched && (
-                  <div className="text-sm space-y-2">
-                    <div className="font-medium">Password requirements:</div>
-                    <ul className="space-y-1">
-                      <li className={password.length >= 8 ? 'text-green-600' : 'text-red-500'}>
-                        {password.length >= 8 ? '✓' : '×'} At least 8 characters
-                      </li>
-                      <li className={/\d/.test(password) ? 'text-green-600' : 'text-red-500'}>
-                        {/\d/.test(password) ? '✓' : '×'} At least one number
-                      </li>
-                      <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'text-green-600' : 'text-red-500'}>
-                        {/[!@#$%^&*(),.?":{}|<>]/.test(password) ? '✓' : '×'} At least one special character (!@#$%^&*)
-                      </li>
-                      <li className={/[A-Z]/.test(password) ? 'text-green-600' : 'text-red-500'}>
-                        {/[A-Z]/.test(password) ? '✓' : '×'} At least one uppercase letter
-                      </li>
-                    </ul>
-                  </div>
+                {isPasswordTouched && validationErrors.length > 0 && (
+                  <ul className="mt-2 text-sm text-red-500 space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
                 )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor={`${id}-confirm-password`}>Confirm Password</Label>
+                <Label htmlFor={`${id}-confirm-password`} className="text-sm font-medium">Confirm Password</Label>
                 <Input
                   id={`${id}-confirm-password`}
                   placeholder="Confirm your password"
                   type="password"
                   required
                   value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    setError(null);
-                  }}
-                  className={error && error.includes("don't match") ? 'border-red-500' : ''}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-2 mt-4">
-              <Checkbox 
-                id="terms" 
-                required
-                aria-required="true"
-              />
-              <label 
-                htmlFor="terms" 
-                className="text-sm text-muted-foreground"
-              >
-                I confirm that I have read, consent to, and agree to Colossus.AI's{' '}
-                <Link 
-                  href="/terms" 
-                  className="text-primary underline hover:no-underline"
-                >
-                  Terms & Conditions
-                </Link>{' '}
-                and{' '}
-                <Link 
-                  href="/privacy" 
-                  className="text-primary underline hover:no-underline"
-                >
+
+            <div className="flex items-center gap-2">
+              <Checkbox id={`${id}-terms`} className="rounded border-gray-300" required />
+              <Label htmlFor={`${id}-terms`} className="text-sm text-gray-600">
+                I agree to the{" "}
+                <Link href="/terms" className="text-purple-600 hover:text-purple-500">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="text-purple-600 hover:text-purple-500">
                   Privacy Policy
                 </Link>
-              </label>
+              </Label>
             </div>
+
             <Button 
               type="submit" 
-              className="w-full" 
-              disabled={loading || (isPasswordTouched && validationErrors.length > 0)}
+              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
+              disabled={loading}
             >
               {loading ? "Creating account..." : "Create account"}
             </Button>
+
+            <p className="text-center text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link href="/signin" className="text-purple-600 hover:text-purple-500 font-medium">
+                Sign in
+              </Link>
+            </p>
           </form>
-
-          <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-            <span className="text-xs text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-center gap-4">
-              <Button
-                variant="outline"
-                aria-label="Sign up with Google"
-                className="h-11 w-11"
-                onClick={() => handleOAuthSignUp("google")}
-                type="button"
-              >
-                <RiGoogleFill size={20} aria-hidden="true" />
-              </Button>
-              <Button
-                variant="outline"
-                aria-label="Sign up with GitHub"
-                className="h-11 w-11"
-                onClick={() => handleOAuthSignUp("github")}
-                type="button"
-              >
-                <RiGithubFill size={20} aria-hidden="true" />
-              </Button>
-            </div>
-
-            <div className="space-y-2 text-center text-sm">
-
-              <p className="text-muted-foreground">
-                Already have an account?{" "}
-                <Link
-                  href="/signin"
-                  className="text-primary underline hover:no-underline"
-                >
-                  Sign in
-                </Link>
-              </p>
-            </div>
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

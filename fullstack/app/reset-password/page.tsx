@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
+import { RiLockFill } from "react-icons/ri";
 
 export default function ResetPasswordPage() {
   const id = useId();
@@ -84,15 +85,18 @@ export default function ResetPasswordPage() {
       const { error: resetError } = await resetPassword(password);
 
       if (resetError) {
+        // Type assertion to inform TypeScript about the error structure
+        const errorMessage = (resetError as { message?: string }).message;
+
         // Handle specific API errors
-        if (resetError.message?.toLowerCase().includes("invalid")) {
+        if (errorMessage?.toLowerCase().includes("invalid")) {
           setError("The password reset link has expired. Please request a new one.");
           router.push('/forgot-password');
           return;
         }
         
         // Handle same password error
-        if (resetError.message?.toLowerCase().includes("different from the old password")) {
+        if (errorMessage?.toLowerCase().includes("different from the old password")) {
           setError("Your new password must be different from your current password.");
           setPassword("");
           setConfirmPassword("");
@@ -102,7 +106,7 @@ export default function ResetPasswordPage() {
         }
         
         // Handle other errors
-        setError(resetError.message || "An error occurred while resetting your password");
+        setError(errorMessage || "An error occurred while resetting your password");
         return;
       }
 
@@ -214,12 +218,14 @@ export default function ResetPasswordPage() {
             />
           </div>
         </div>
-        <Button 
-          type="submit" 
-          className="w-full" 
+        <Button
+          variant="outline"
+          className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+          onClick={handleSubmit}
           disabled={loading || (isPasswordTouched && validationErrors.length > 0)}
         >
-          {loading ? "Resetting..." : "Reset Password"}
+          <RiLockFill size={24} />
+          <span>Reset Password</span>
         </Button>
       </form>
 
