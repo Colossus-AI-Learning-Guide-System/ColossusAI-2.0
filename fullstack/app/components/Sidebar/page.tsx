@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
 import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 
 interface SidebarProps {
   onToggleRoadmap: () => void;
@@ -125,6 +126,15 @@ export default function Sidebar({
               </svg>
             </button>
           </div>
+          <button 
+            className={styles.logoutButton}
+            onClick={() => {
+              console.log('Logout clicked');
+            }}
+            title="Logout"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </div>
       <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>

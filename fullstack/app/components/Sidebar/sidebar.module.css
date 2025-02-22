@@ -89,7 +89,7 @@
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border);
+    border: none;
     color: var(--text-primary);
     transition: all 0.2s;
     position: relative;
@@ -97,7 +97,7 @@
   
   .controlButton:hover {
     background: rgba(255, 255, 255, 0.05);
-    border-color: var(--dark-pink);
+    transform: translateX(2px);
   }
   
   .controlButton.active {
@@ -106,7 +106,6 @@
         var(--dark-purple) 0%,
         var(--dark-pink) 100%
     );
-    border-color: var(--dark-pink);
   }
   
   .controlButton svg {
@@ -238,6 +237,36 @@
   .menuItem.active {
     background: rgba(255, 255, 255, 0.1);
     opacity: 1;
+  }
+  
+  .logoutButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      135deg,
+      rgba(139, 0, 0, 0.4) 0%,
+      rgba(80, 0, 0, 0.4) 100%
+    );
+    border: none;
+    color: #ff6b6b;
+    transition: all 0.3s ease;
+    margin-top: auto;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .logoutButton:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(220, 0, 0, 0.8) 0%,
+      rgba(139, 0, 0, 0.8) 100%
+    );
+    color: #ffffff;
+    transform: translateX(2px);
   }
   
   
