@@ -220,7 +220,7 @@ export default function ResetPasswordPage() {
         </div>
         <Button
           variant="outline"
-          className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+          className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
           onClick={handleSubmit}
           disabled={loading || (isPasswordTouched && validationErrors.length > 0)}
         >

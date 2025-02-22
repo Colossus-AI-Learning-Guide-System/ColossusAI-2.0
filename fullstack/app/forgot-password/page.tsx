@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
 
       {success ? (
         <div className="text-center space-y-4">
-          <div className="text-green-600 font-medium">{successMessage}</div>
+          <div className="text-green-500 font-medium border border-green-500 bg-green-100 p-3 rounded-lg text-center">{successMessage}</div>
           <p className="text-sm text-muted-foreground">
             Didn't receive the email?{" "}
             <button
@@ -219,12 +219,12 @@ export default function ForgotPasswordPage() {
             </div>
             <Button
               variant="outline"
-              className="w-full h-11 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 bg-white"
+              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
               onClick={handleSubmit}
               disabled={loading || timeRemaining > 0}
             >
               <RiLockFill size={24} />
-              <span>{loading ? "Sending..." : "Send reset instructions"}</span>
+              <span>{loading ? "Sending..." : "Send"}</span>
             </Button>
           </form>
 

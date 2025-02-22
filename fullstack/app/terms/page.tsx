@@ -4,9 +4,9 @@ import Link from "next/link";
 
 const Terms = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Terms & Conditions</h1>
-      <div className="prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none">
+    <div className="container mx-auto max-w-3xl px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Terms & Conditions</h1>
+      <div className="space-y-6 text-muted-foreground">
         <h2 className="text-xl font-semibold mt-6 mb-4">1. Acceptance of Terms</h2>
         <p>By accessing and using Colossus.AI, you agree to be bound by these Terms and Conditions.</p>
 
