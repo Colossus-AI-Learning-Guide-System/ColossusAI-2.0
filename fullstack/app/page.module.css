@@ -3,21 +3,25 @@
   height: 100vh;
   overflow-x: auto; /* Change from 'hidden' to 'auto' to allow horizontal scroll */
   margin-left: 50px; /* Add space for menu bar */
+  background: transparent;
 }
 
 .mainContent {
   flex: 1;
   display: flex;
   gap: 1px;
-  background: var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
 }
 
 .roadmapSection,
 .contentSection,
 .chatSection {
   flex: 1;
-  background: var(--background);
-  min-width: 400px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  min-width: 300px;
   display: flex;
   flex-direction: column;
 }
@@ -34,14 +38,15 @@
   display: flex;
   gap: 10px;
   padding: 4px;
-  background: var(--accent);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 30px;
+  border: 1px solid var(--border);
 }
 
 .chatInput input {
   flex: 1;
   padding: 8px 12px;
-  background: var(--background);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border);
   border-radius: 20px;
   color: var(--text-primary);
@@ -49,14 +54,14 @@
 
 .chatInput button {
   padding: 8px 16px;
-  background: var(--accent);
+  background: var(--dark-purple);
   border: 1px solid var(--border);
   border-radius: 4px;
   color: var(--text-primary);
 }
 
 .chatInput button:hover {
-  background: var(--border);
+  background: var(--dark-pink);
 }
 
 /* .arrowButton {

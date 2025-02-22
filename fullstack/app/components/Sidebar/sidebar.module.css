@@ -1,7 +1,12 @@
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--background);
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.95) 0%,
+        rgba(3, 0, 10, 0.9) 100%
+    );
     border-right: 1px solid var(--border);
+    backdrop-filter: blur(10px);
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -17,8 +22,13 @@
     top: 0;
     bottom: 0;
     width: 50px;
-    background: var(--accent);
+    background: linear-gradient(
+        to bottom,
+        var(--darker-black) 0%,
+        var(--darker-purple) 100%
+    );
     border-right: 1px solid var(--border);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
     z-index: 10;
     display: flex;
     flex-direction: column;
@@ -78,27 +88,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent);
+    background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border);
     color: var(--text-primary);
     transition: all 0.2s;
     position: relative;
   }
   
+  .controlButton:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--dark-pink);
+  }
+  
   .controlButton.active {
-    background: var(--border);
-    border-color: var(--text-primary);
-    color: var(--text-primary);
+    background: linear-gradient(
+        135deg,
+        var(--dark-purple) 0%,
+        var(--dark-pink) 100%
+    );
+    border-color: var(--dark-pink);
   }
   
   .controlButton svg {
     width: 20px;
     height: 20px;
-  }
-  
-  .controlButton:hover {
-    background: var(--border);
-    transform: translateX(2px);
   }
   
   .controlButton:active {
@@ -130,15 +143,25 @@
   
   .addButton {
     padding: 8px 12px;
-    background: var(--accent);
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(26, 0, 51, 0.4) 100%
+    );
     border: 1px solid var(--border);
     border-radius: 20px;
     color: var(--text-primary);
     text-align: left;
+    transition: all 0.3s ease;
   }
   
   .addButton:hover {
-    background: var(--border);
+    background: linear-gradient(
+        90deg,
+        var(--dark-purple) 0%,
+        var(--dark-pink) 100%
+    );
+    border-color: var(--dark-pink);
   }
   
   .documentList {
@@ -154,14 +177,17 @@
     gap: 0.5rem;
     padding: 0.5rem;
     border-radius: 15px;
-    background: var(--accent);
+    background: rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.3s ease;
     position: relative;
+    border: 1px solid transparent;
   }
   
   .documentItem:hover {
-    background: var(--border);
+    background: rgba(0, 0, 0, 0.5);
+    border-color: var(--border);
+    transform: translateX(2px);
   }
   
   .pdfIcon {
@@ -195,6 +221,23 @@
   .deleteButton:hover {
     opacity: 1;
     background: var(--border);
+  }
+  
+  .menuItem {
+    background: transparent;
+    color: #ffffff;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+  }
+  
+  .menuItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    opacity: 1;
+  }
+  
+  .menuItem.active {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
   }
   
   
