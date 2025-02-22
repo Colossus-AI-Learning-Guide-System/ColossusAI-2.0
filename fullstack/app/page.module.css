@@ -1,7 +1,7 @@
 .dashboard {
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  overflow-x: auto; /* Change from 'hidden' to 'auto' to allow horizontal scroll */
   margin-left: 50px; /* Add space for menu bar */
 }
 
@@ -83,6 +83,7 @@
 }
 
 .roadmapSection {
+  flex: 0 0 800px; /* Increased fixed width to 800px */
   animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
