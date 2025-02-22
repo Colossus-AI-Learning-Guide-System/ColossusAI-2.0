@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
+import Image from 'next/image'
 
 interface SidebarProps {
   onToggleRoadmap: () => void;
@@ -138,7 +139,16 @@ export default function Sidebar({
         </div>
       </div>
       <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-        <div className={styles.logo}>Colossus.Ai</div>
+        <div className={styles.logo}>
+          <Image 
+            src="/favicon.ico"
+            width={24}
+            height={24}
+            alt="Colossus AI Logo"
+            className={styles.logoImage}
+          />
+          Colossus.Ai
+        </div>
         <div className={styles.section}>
           <h2>Recent</h2>
           <div className={styles.recentContent}>{/* Add recent items here */}</div>
