@@ -26,7 +26,7 @@ const RateUs = () => {
       name: name.trim(),
       stars: rating,
       feedback,
-      date: new Date().toLocaleDateString()
+      date: new Date().toISOString().split('T')[0]
     };
 
     setSavedRatings([newRating, ...savedRatings]);

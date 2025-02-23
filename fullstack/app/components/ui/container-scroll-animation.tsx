@@ -14,10 +14,12 @@ export const ContainerScroll = ({
     target: containerRef,
   });
   const [isMobile, setIsMobile] = React.useState(false);
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
+      setIsLoaded(true);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -27,6 +29,7 @@ export const ContainerScroll = ({
   }, []);
 
   const scaleDimensions = () => {
+    if (!isLoaded) return [1.05, 1]; // Default to desktop size during SSR
     return isMobile ? [0.7, 0.9] : [1.05, 1];
   };
 
