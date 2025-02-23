@@ -5,10 +5,71 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Linkedin } from 'lucide-react';
 import { teamMembers } from './team-data';
+import { HeroParallax } from '../components/blocks/hero-parallax';
+
+// Define the images for the parallax effect
+const parallaxImages = [
+  {
+    title: "AI Learning",
+    link: "#",
+    thumbnail: "/about/ms.png"
+  },
+  {
+    title: "Knowledge Graphs",
+    link: "#",
+    thumbnail: "/about/Landing.jpg"
+  },
+  {
+    title: "Smart Search",
+    link: "#",
+    thumbnail: "/about/followus.png"
+  },
+  {
+    title: "Visual Learning",
+    link: "#",
+    thumbnail: "/about/Marketing1.png"
+  },
+  {
+    title: "AI Assistant",
+    link: "#",
+    thumbnail: "/about/Landing.jpg"
+  },
+  {
+    title: "Interactive Learning",
+    link: "#",
+    thumbnail: "/about/Chatpage.png"
+  },
+  {
+    title: "Knowledge Maps",
+    link: "#",
+    thumbnail: "/about/usecase.png"
+  },
+  {
+    title: "Smart Navigation",
+    link: "#",
+    thumbnail: "/about/presentation.png"
+  },
+  {
+    title: "Intelligent Search",
+    link: "#",
+    thumbnail: "/about/ms.png"
+  },
+  {
+    title: "Learning Assistant",
+    link: "#",
+    thumbnail: "/about/Landing.jpg"
+  },
+];
 
 const About = () => {
   return (
     <PageLayout>
+      {/* Parallax Section */}
+      <div className="relative">
+        <HeroParallax products={parallaxImages} />
+      </div>
+
+      {/* Team Section */}
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-4 text-white">Team Colossus - SE42</h1>
         <p className="text-xl text-center mb-12 text-gray-300">Meet our talented team of developers and designers</p>
