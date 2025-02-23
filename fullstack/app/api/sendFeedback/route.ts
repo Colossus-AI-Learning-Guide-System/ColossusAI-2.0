@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 export async function POST(request: Request) {
   try {
@@ -9,26 +9,26 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!name || !email || !subject || !message) {
       return NextResponse.json(
-        { success: false, message: 'All fields are required.' },
+        { success: false, message: "All fields are required." },
         { status: 400 }
       );
     }
 
     // Create a transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      name: 'gmail.com', // Add this line
+      name: "gmail.com", // Add this line
     });
 
     // Email options
     const mailOptions = {
       from: {
         name: name,
-        address: email
+        address: email,
       },
       sender: email,
       to: process.env.EMAIL_USER,
@@ -47,22 +47,25 @@ export async function POST(request: Request) {
         </div>
       `,
       headers: {
-        'Sender': email,
-        'From': email,
-        'Reply-To': email
-      }
+        Sender: email,
+        From: email,
+        "Reply-To": email,
+      },
     };
 
     await transporter.sendMail(mailOptions);
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Message sent successfully!' 
+
+    return NextResponse.json({
+      success: true,
+      message: "Message sent successfully!",
     });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
     return NextResponse.json(
-      { success: false, message: 'Failed to send message. Please try again later.' },
+      {
+        success: false,
+        message: "Failed to send message. Please try again later.",
+      },
       { status: 500 }
     );
   }

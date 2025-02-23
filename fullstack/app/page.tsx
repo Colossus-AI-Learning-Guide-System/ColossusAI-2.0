@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HeroScrollDemo } from "./components/block/code-demo";
@@ -122,18 +122,14 @@ const features: Feature[] = [
   },
 ];
 
-function Footer({ 
-  isModalOpen, 
-  toggleModal, 
-  isTermsModalOpen,
+function Footer({
+  toggleModal,
   toggleTermsModal,
-  currentYear 
-}: { 
-  isModalOpen: boolean; 
-  toggleModal: () => void; 
-  isTermsModalOpen: boolean;
+  currentYear,
+}: {
+  toggleModal: () => void;
   toggleTermsModal: () => void;
-  currentYear: number 
+  currentYear: number;
 }) {
   return (
     <footer className="relative z-10 bg-black/50 backdrop-blur-lg border-t border-white/10 py-12">
@@ -142,11 +138,18 @@ function Footer({
           {/* Company Info */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Colossus.AI Logo" width={32} height={32} className="rounded-full" />
+              <Image
+                src="/logo.png"
+                alt="Colossus.AI Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
               <span className="font-bold text-xl">Colossus.AI</span>
             </Link>
             <p className="text-gray-400 text-sm">
-              Transforming learning experiences through intelligent visualization.
+              Transforming learning experiences through intelligent
+              visualization.
             </p>
           </div>
 
@@ -174,7 +177,10 @@ function Footer({
             <h3 className="font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/help-center" className="text-gray-400 hover:text-[#FF4A8D] transition-colors">
+                <Link
+                  href="/help-center"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
                   Help Center
                 </Link>
               </li>
@@ -195,7 +201,10 @@ function Footer({
                 </button>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-400 hover:text-[#FF4A8D] transition-colors">
+                <Link
+                  href="/faq"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
                   FAQ
                 </Link>
               </li>
@@ -206,7 +215,9 @@ function Footer({
           <div>
             <h3 className="font-semibold mb-4">Connect With Us</h3>
             <div className="space-y-4">
-              <p className="text-gray-400 text-sm">Stay updated with our latest features and releases.</p>
+              <p className="text-gray-400 text-sm">
+                Stay updated with our latest features and releases.
+              </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="https://www.facebook.com/colossusai"
@@ -271,7 +282,9 @@ function Footer({
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-8 pt-8 flex justify-center items-center">
-          <p className="text-gray-400 text-base">© {currentYear} Colossus.AI. All rights reserved.</p>
+          <p className="text-gray-400 text-base">
+            © {currentYear} Colossus.AI. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
@@ -280,8 +293,8 @@ function Footer({
 
 export default function Home() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [isTermsModalOpen, setTermsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
@@ -289,11 +302,11 @@ export default function Home() {
   }, []);
 
   const toggleModal = () => {
-    setModalOpen((prev) => !prev);
+    setIsModalOpen((prev) => !prev);
   };
 
   const toggleTermsModal = () => {
-    setTermsModalOpen((prev) => !prev);
+    setIsTermsModalOpen((prev) => !prev);
   };
 
   useEffect(() => {
@@ -320,25 +333,50 @@ export default function Home() {
             >
               <XIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold mb-4 text-white">Terms & Conditions</h2>
-            
-            <h3 className="font-semibold mt-4 text-white">1. Acceptance of Terms</h3>
-            <p className="text-gray-300">By accessing and using Colossus.AI, you agree to be bound by these Terms and Conditions.</p>
+            <h2 className="text-xl font-bold mb-4 text-white">
+              Terms & Conditions
+            </h2>
+
+            <h3 className="font-semibold mt-4 text-white">
+              1. Acceptance of Terms
+            </h3>
+            <p className="text-gray-300">
+              By accessing and using Colossus.AI, you agree to be bound by these
+              Terms and Conditions.
+            </p>
 
             <h3 className="font-semibold mt-4 text-white">2. Use of Service</h3>
-            <p className="text-gray-300">You agree to use our service only for lawful purposes and in accordance with these Terms.</p>
+            <p className="text-gray-300">
+              You agree to use our service only for lawful purposes and in
+              accordance with these Terms.
+            </p>
 
             <h3 className="font-semibold mt-4 text-white">3. User Accounts</h3>
-            <p className="text-gray-300">You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account.</p>
+            <p className="text-gray-300">
+              You are responsible for maintaining the confidentiality of your
+              account credentials and for all activities under your account.
+            </p>
 
-            <h3 className="font-semibold mt-4 text-white">4. Intellectual Property</h3>
-            <p className="text-gray-300">All content, features, and functionality of Colossus.AI are owned by us and are protected by international copyright, trademark, and other intellectual property laws.</p>
+            <h3 className="font-semibold mt-4 text-white">
+              4. Intellectual Property
+            </h3>
+            <p className="text-gray-300">
+              All content, features, and functionality of Colossus.AI are owned
+              by us and are protected by international copyright, trademark, and
+              other intellectual property laws.
+            </p>
 
             <h3 className="font-semibold mt-4 text-white">5. Privacy</h3>
-            <p className="text-gray-300">Your use of Colossus.AI is also governed by our Privacy Policy. Please review our Privacy Policy.</p>
+            <p className="text-gray-300">
+              Your use of Colossus.AI is also governed by our Privacy Policy.
+              Please review our Privacy Policy.
+            </p>
 
             <h3 className="font-semibold mt-4 text-white">6. Modifications</h3>
-            <p className="text-gray-300">We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of modified terms.</p>
+            <p className="text-gray-300">
+              We reserve the right to modify these terms at any time. Continued
+              use of the service constitutes acceptance of modified terms.
+            </p>
 
             <button
               onClick={toggleTermsModal}
@@ -360,18 +398,30 @@ export default function Home() {
             >
               <XIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold mb-4 text-white">Privacy Policy</h2>
-            <p className="text-gray-300">Please read our privacy policy carefully.</p>
-            <h3 className="font-semibold mt-4 text-white">1. Information We Collect</h3>
-            <p className="text-gray-300">We collect information you provide directly to us when you:</p>
+            <h2 className="text-xl font-bold mb-4 text-white">
+              Privacy Policy
+            </h2>
+            <p className="text-gray-300">
+              Please read our privacy policy carefully.
+            </p>
+            <h3 className="font-semibold mt-4 text-white">
+              1. Information We Collect
+            </h3>
+            <p className="text-gray-300">
+              We collect information you provide directly to us when you:
+            </p>
             <ul className="list-disc pl-5 text-gray-300">
               <li>Create an account</li>
               <li>Use our services</li>
               <li>Contact us for support</li>
               <li>Subscribe to our communications</li>
             </ul>
-            <h3 className="font-semibold mt-4 text-white">2. How We Use Your Information</h3>
-            <p className="text-gray-300">We use the information we collect to:</p>
+            <h3 className="font-semibold mt-4 text-white">
+              2. How We Use Your Information
+            </h3>
+            <p className="text-gray-300">
+              We use the information we collect to:
+            </p>
             <ul className="list-disc pl-5 text-gray-300">
               <li>Provide, maintain, and improve our services</li>
               <li>Process your transactions</li>
@@ -379,9 +429,12 @@ export default function Home() {
               <li>Communicate with you about products, services, and events</li>
               <li>Protect against fraudulent or illegal activity</li>
             </ul>
-            <h3 className="font-semibold mt-4 text-white">3. Information Sharing</h3>
+            <h3 className="font-semibold mt-4 text-white">
+              3. Information Sharing
+            </h3>
             <p className="text-gray-300">
-              We do not sell or rent your personal information to third parties. We may share your information with:
+              We do not sell or rent your personal information to third parties.
+              We may share your information with:
             </p>
             <ul className="list-disc pl-5 text-gray-300">
               <li>Service providers who assist in our operations</li>
@@ -390,8 +443,9 @@ export default function Home() {
             </ul>
             <h3 className="font-semibold mt-4 text-white">4. Data Security</h3>
             <p className="text-gray-300">
-              We implement appropriate security measures to protect your personal information. However, no method of
-              transmission over the Internet is 100% secure.
+              We implement appropriate security measures to protect your
+              personal information. However, no method of transmission over the
+              Internet is 100% secure.
             </p>
             <h3 className="font-semibold mt-4 text-white">5. Your Rights</h3>
             <p className="text-gray-300">You have the right to:</p>
@@ -402,7 +456,10 @@ export default function Home() {
               <li>Opt-out of marketing communications</li>
             </ul>
             <h3 className="font-semibold mt-4 text-white">6. Contact Us</h3>
-            <p className="text-gray-300">If you have questions about this Privacy Policy, please contact us at:</p>
+            <p className="text-gray-300">
+              If you have questions about this Privacy Policy, please contact us
+              at:
+            </p>
             <p className="text-gray-300">Email: support@colossus.ai</p>
             <button
               onClick={toggleModal}
@@ -433,7 +490,11 @@ export default function Home() {
       />
 
       {/* Hero Section */}
-      <main className={`min-h-screen bg-transparent ${isModalOpen || isTermsModalOpen ? 'pointer-events-none' : ''}`}>
+      <main
+        className={`min-h-screen bg-transparent ${
+          isModalOpen || isTermsModalOpen ? "pointer-events-none" : ""
+        }`}
+      >
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-center min-h-screen pt-24 pb-16">
             <motion.div
@@ -559,11 +620,9 @@ export default function Home() {
         <TestimonialsDemo />
         <Faq3Demo />
       </main>
-      
-      <Footer 
-        isModalOpen={isModalOpen}
+
+      <Footer
         toggleModal={toggleModal}
-        isTermsModalOpen={isTermsModalOpen}
         toggleTermsModal={toggleTermsModal}
         currentYear={currentYear}
       />
