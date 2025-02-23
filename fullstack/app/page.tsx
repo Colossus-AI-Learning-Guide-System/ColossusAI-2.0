@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HeroScrollDemo } from "./components/block/code-demo";
@@ -386,6 +386,22 @@ export default function Home() {
               ))}
             </div>
           </motion.div>
+        </div>
+
+        {/* New YouTube Video Section */}
+        <div className="youtube-video flex flex-col items-center py-16">
+          <h2 className="text-4xl font-bold mb-4">Watch Our Video</h2>
+          <div className="overflow-hidden rounded-2xl shadow-2xl">
+            <iframe
+              width="854"
+              height="480"
+              src="https://www.youtube.com/embed/QggJzZdIYPI"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
 
         {/* Scroll Demo Section */}
