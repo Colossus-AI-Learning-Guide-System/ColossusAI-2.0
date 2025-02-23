@@ -19,7 +19,6 @@ import { Particles } from "./components/ui/particles";
 import { FeaturePopup } from "./components/ui/feature-popup";
 import { useState } from "react";
 import { TestimonialsDemo } from "./components/ui/testimonials.demo";
-import { PageTransition } from "./components/ui/page-transition";
 
 // Feature data structure
 interface Feature {
@@ -264,7 +263,6 @@ function Footer() {
 
 export default function Home() {
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
-  const [showTransition, setShowTransition] = useState(false);
 
   return (
     <>
