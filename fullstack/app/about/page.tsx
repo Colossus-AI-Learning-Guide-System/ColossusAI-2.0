@@ -1,11 +1,14 @@
 "use client";
 
+import React from 'react';
 import { PageLayout } from "../components/layout/page-layout";
 import Image from 'next/image';
 import Link from 'next/link';
 import { Linkedin } from 'lucide-react';
 import { teamMembers } from './team-data';
 import { HeroParallax } from '../components/blocks/hero-parallax';
+import { motion } from 'framer-motion';
+import { FeatureSteps } from "../components/ui/feature-section"
 
 // Define the images for the parallax effect
 const parallaxImages = [
@@ -61,6 +64,27 @@ const parallaxImages = [
   },
 ];
 
+const features = [
+  { 
+    step: 'Step 1', 
+    title: 'Understand the System and Develop Core Features',
+    content: ' Gain a clear understanding of how the Learning Guide System structures and processes documents.Implement document processing, roadmap generation, and interactive chatbot features.', 
+    image: '/about/presentation.png' 
+  },
+  { 
+    step: 'Step 2',
+    title: 'Enhance User Experience',
+    content: 'Improve UI/UX for smooth navigation and clear roadmap presentation.',
+    image: '/about/Chatpage.png'
+  },
+  { 
+    step: 'Step 3',
+    title: 'Test, Optimize, and Deploy',
+    content: 'Conduct testing to ensure accuracy, speed, and efficiency in generating learning paths. Launch the system and present it with real-world examples to demonstrate its value.',
+    image: '/about/us.jpg'
+  },
+]
+
 const About = () => {
   return (
     <PageLayout>
@@ -70,46 +94,110 @@ const About = () => {
       </div>
 
       {/* Team Section */}
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-center mb-4 text-white">Team Colossus - SE42</h1>
-        <p className="text-xl text-center mb-12 text-gray-300">Meet our talented team of developers and designers</p>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="container mx-auto px-4 py-8 relative"
+      >
+        {/* Background Gradient Effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-[#FF4A8D]/5 to-black/0 blur-3xl -z-10"></div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.map((member, index) => (
-            <div 
-              key={index}
-              className="relative group bg-black/30 backdrop-blur-lg rounded-xl p-6 border-2 border-white/20 transition-all duration-300 hover:bg-black/40"
-            >
-              {/* Image Container */}
-              <div className="relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-2 border-white/20">
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-              </div>
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] bg-clip-text text-transparent">
+            Team Colossus - SE42
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Meet our talented team of developers and designers who bring innovation and creativity to life
+          </p>
+        </motion.div>
+        
+        <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center max-w-[1000px] mx-auto">
+            {teamMembers.map((member, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.5,
+                  delay: index * 0.1,
+                  ease: "easeOut"
+                }}
+                whileHover={{ y: -10 }}
+                className={`w-[280px] ${
+                  index % 3 === 0 ? 'md:ml-auto' :
+                  index % 3 === 2 ? 'md:mr-auto' :
+                  'mx-auto'
+                }`}
+              >
+                <div className="relative bg-black/30 backdrop-blur-lg rounded-[30px] p-6 border-2 border-white/10 transition-all duration-500 hover:border-[#FF4A8D]/50 hover:bg-black/40">
+                  {/* Glow Effect */}
+                  <div className="absolute inset-0 rounded-[30px] bg-gradient-to-b from-[#FF4A8D]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
+                  
+                  {/* Image Container */}
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative w-36 h-36 mx-auto mb-6"
+                  >
+                    <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black/40 backdrop-blur-sm">
+                      <Image
+                        src={member.image}
+                        alt={member.name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110 rounded-[24px]"
+                      />
+                    </div>
+                    {/* Glow effect for image */}
+                    <div className="absolute inset-0 rounded-[24px] bg-gradient-to-b from-[#FF4A8D]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                  </motion.div>
 
-              {/* Content */}
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-white mb-2">{member.name}</h3>
-                <p className="text-gray-300 mb-6">{member.role}</p>
-                
-                {/* LinkedIn Button */}
-                <Link
-                  href={member.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0A66C2] text-white rounded-full hover:bg-[#084d93] transition-colors duration-300"
-                >
-                  <Linkedin className="w-4 h-4" />
-                  <span>LinkedIn</span>
-                </Link>
-              </div>
-            </div>
-          ))}
+                  {/* Content */}
+                  <div className="text-center relative z-10">
+                    <motion.h3 
+                      whileHover={{ scale: 1.05 }}
+                      className="text-lg font-bold text-white mb-2 bg-gradient-to-r from-white to-white bg-clip-text group-hover:text-transparent group-hover:from-[#FF9F4A] group-hover:to-[#FF4A8D] transition-all duration-500"
+                    >
+                      {member.name}
+                    </motion.h3>
+                    <p className="text-gray-300 mb-6 text-sm opacity-90 line-clamp-2">{member.role}</p>
+                    
+                    {/* LinkedIn Button */}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Link
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white rounded-[20px] font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#FF4A8D]/25 text-sm"
+                      >
+                        <Linkedin className="w-4 h-4" />
+                        <span>Connect</span>
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Add FeatureSteps component here */}
+      <FeatureSteps 
+        features={features}
+        title="Your Journey Starts Here"
+        autoPlayInterval={4000}
+        imageHeight="h-[500px]"
+      />
     </PageLayout>
   );
 }
