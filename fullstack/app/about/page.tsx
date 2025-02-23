@@ -8,6 +8,7 @@ import { Linkedin } from 'lucide-react';
 import { teamMembers } from './team-data';
 import { HeroParallax } from '../components/blocks/hero-parallax';
 import { motion } from 'framer-motion';
+import { FeatureSteps } from "../components/ui/feature-section"
 
 // Define the images for the parallax effect
 const parallaxImages = [
@@ -62,6 +63,27 @@ const parallaxImages = [
     thumbnail: "/about/Landing.jpg"
   },
 ];
+
+const features = [
+  { 
+    step: 'Step 1', 
+    title: 'Understand the System and Develop Core Features',
+    content: ' Gain a clear understanding of how the Learning Guide System structures and processes documents.Implement document processing, roadmap generation, and interactive chatbot features.', 
+    image: '/about/presentation.png' 
+  },
+  { 
+    step: 'Step 2',
+    title: 'Enhance User Experience',
+    content: 'Improve UI/UX for smooth navigation and clear roadmap presentation.',
+    image: '/about/Chatpage.png'
+  },
+  { 
+    step: 'Step 3',
+    title: 'Test, Optimize, and Deploy',
+    content: 'Conduct testing to ensure accuracy, speed, and efficiency in generating learning paths. Launch the system and present it with real-world examples to demonstrate its value.',
+    image: '/about/us.jpg'
+  },
+]
 
 const About = () => {
   return (
@@ -168,6 +190,14 @@ const About = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Add FeatureSteps component here */}
+      <FeatureSteps 
+        features={features}
+        title="Your Journey Starts Here"
+        autoPlayInterval={4000}
+        imageHeight="h-[500px]"
+      />
     </PageLayout>
   );
 }
