@@ -19,6 +19,7 @@ import { Particles } from "./components/ui/particles";
 import { FeaturePopup } from "./components/ui/feature-popup";
 import { useState } from "react";
 import { TestimonialsDemo } from "./components/ui/testimonials.demo";
+import { Faq3Demo } from "./components/blocks/faq3";
 
 // Feature data structure
 interface Feature {
@@ -393,6 +394,7 @@ export default function Home() {
 
         {/* Add the TestimonialsDemo component here */}
         <TestimonialsDemo />
+        <Faq3Demo />
       </main>
       <Footer />
     </>
