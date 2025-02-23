@@ -1,6 +1,7 @@
 .content {
     padding: 20px;
     height: 100%;
+    overflow-y: auto;
   }
   
   .content h2 {
@@ -9,15 +10,13 @@
   }
   
   .contentBody {
-    padding: 20px;
-    background: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    margin-top: 20px;
+    white-space: pre-wrap;
+    line-height: 1.6;
   }
   
   .contentBody p {
-    color: var(--text-secondary);
-    line-height: 1.5;
+    margin-bottom: 16px;
   }
   
   
