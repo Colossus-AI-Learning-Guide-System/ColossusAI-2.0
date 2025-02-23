@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { PageLayout } from "../components/layout/page-layout";
 import Image from 'next/image';
 import Link from 'next/link';
