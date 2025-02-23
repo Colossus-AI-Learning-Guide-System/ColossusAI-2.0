@@ -13,16 +13,16 @@ export const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/ruhan-nandalal-683387320/"
   },
   {
+    name: "Chiran Senarath",
+    role: "Back-end Developer | UI Designer-",
+    image: "/team/chiran.jpg",
+    linkedin: "https://www.linkedin.com/in/chiran-senarath-088524235/"
+  },
+  {
     name: "Tharana Bopearachchi",
     role: "Project Manager | Back-end Developer",
     image: "/team/tharana.jpg",
     linkedin: "https://www.linkedin.com/in/tharana-bopearachchi/"
-  },
-  {
-    name: "Chiran Senarath",
-    role: "Back-end Developer | UI Designer",
-    image: "/team/chiran.jpg",
-    linkedin: "https://www.linkedin.com/in/chiran-senarath-088524235/"
   },
   {
     name: "Sudesh Seneviratne",
