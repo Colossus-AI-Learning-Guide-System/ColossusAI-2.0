@@ -1,21 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HeroScrollDemo } from "./components/block/code-demo";
-import Link from "next/link";
 import { Navbar } from "./components/layout/navbar";
-import {
-  Facebook,
-  Youtube,
-  Instagram,
-  Linkedin,
-  Twitter,
-  MessageCircle,
-  Github,
-  XIcon,
-} from "lucide-react";
+
 import { TextEffect } from "./components/core/text-effect";
 import { Particles } from "./components/ui/particles";
 import { FeaturePopup } from "./components/ui/feature-popup";

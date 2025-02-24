@@ -218,7 +218,6 @@ const About = () => {
             features={features}
             title="Your Journey Starts Here"
             autoPlayInterval={4000}
-            imageHeight="h-[500px]"
           />
         </div>
       </PageLayout>

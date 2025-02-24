@@ -1,28 +1,11 @@
 "use client";
 import React from "react";
 import { ContainerScroll } from "../../components/ui/container-scroll-animation";
-// import { HeroVideoDialog } from "../../components/ui/hero-video-dialog";
+
 
 export function HeroScrollDemo() {
   return (
     <div className="flex flex-col overflow-hidden pb-[250px] pt-[250px]">
-      {/* Video Dialog Section */}
-      {/* <div className="relative mb-32 max-w-[1400px] mx-auto px-8">
-        <HeroVideoDialog
-          className="dark:hidden block"
-          animationStyle="from-center"
-          videoSrc="/Scroll Animation/Sample Graph.mp4"
-          thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
-          thumbnailAlt="Hero Video"
-        />
-        <HeroVideoDialog
-          className="hidden dark:block"
-          animationStyle="from-center"
-          videoSrc="/Scroll Animation/Sample Graph.mp4"
-          thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
-          thumbnailAlt="Hero Video"
-        />
-      </div> */}
 
       {/* Scroll Animation Section */}
       <ContainerScroll
