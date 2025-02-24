@@ -28,22 +28,22 @@ export function Navbar() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            {["Home", "Feedback", "Rateus", "Contactus", "About"].map(
-              (item) => (
-                <Link
-                  key={item}
-                  href={
-                    item === "Home"
-                      ? "/"
-                      : `/${item.toLowerCase().replace(/ & /g, "-")}`
-                  }
-                  className="relative text-white hover:text-white/80 transition-colors group text-lg"
-                >
-                  {item}
-                  <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-                </Link>
-              )
-            )}
+            {["Home", "Features", "Contactus", "About"].map((item) => (
+              <Link
+                key={item}
+                href={
+                  item === "Home"
+                    ? "/"
+                    : item === "Features"
+                    ? "/#features"
+                    : `/${item.toLowerCase().replace(/ /g, "-")}`
+                }
+                className="relative text-white hover:text-white/80 transition-colors group text-lg"
+              >
+                {item}
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+              </Link>
+            ))}
           </div>
         </div>
       </div>

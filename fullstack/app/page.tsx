@@ -526,7 +526,7 @@ export default function Home() {
         </div>
 
         {/* Features Section */}
-        <div className="container mx-auto px-4 py-24 relative z-10">
+        <div className="container mx-auto px-4 py-24" id="features">
           <div className="text-4xl md:text-5xl font-bold text-center mb-16">
             <TextEffect
               className="inline-flex bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]"
