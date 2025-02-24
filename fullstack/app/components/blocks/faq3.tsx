@@ -157,9 +157,7 @@ const Faq3 = ({
               className="w-full sm:w-auto px-6 py-3 text-lg bg-gradient-to-r from-[#FF4A8D] to-[#FF9F4A] text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               asChild
             >
-              <a href={supportButtonUrl} target="_blank">
-                {supportButtonText}
-              </a>
+              <a href={supportButtonUrl}>{supportButtonText}</a>
             </Button>
           </div>
         </div>
@@ -203,7 +201,7 @@ const demoData = {
   supportDescription:
     "Can't find the answer you're looking for? Our support team is here to help with any technical questions or concerns.",
   supportButtonText: "Contact Support",
-  supportButtonUrl: "https://shadcnblocks.com",
+  supportButtonUrl: "/contactus#contact-form",
 };
 
 const Faq3Demo = () => {
