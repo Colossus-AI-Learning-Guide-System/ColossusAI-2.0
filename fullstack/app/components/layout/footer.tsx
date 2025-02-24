@@ -62,6 +62,23 @@ export function Footer() {
               by us and are protected by international copyright, trademark, and
               other intellectual property laws.
             </p>
+            <h3 className="font-semibold mt-4 text-white">
+              5. Privacy
+            </h3>
+            <p className="text-gray-300">
+              Your use of Colossus-AI is also governed by our Privacy Policy. Please review our Privacy Policy.
+            </p>
+            
+            <h3 className="font-semibold mt-4 text-white">
+              6. Modifications
+            </h3>
+            <p className="text-gray-300">
+              We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of modified terms.
+            </p>
+            
+            <p className="text-gray-300 mt-4 italic">
+              Last updated: 2/24/2025
+            </p>
             <button
               onClick={toggleTermsModal}
               className="mt-4 bg-[#FF4A8D] text-white py-2 px-4 rounded hover:bg-[#FF6B9D] transition-colors"
@@ -112,6 +129,45 @@ export function Footer() {
               <li>Send you technical notices and support messages</li>
               <li>Communicate with you about products, services, and events</li>
             </ul>
+            <h3 className="font-semibold mt-4 text-white">
+              3. Information Sharing
+            </h3>
+            <p className="text-gray-300">
+              We do not sell or rent your personal information to third parties. We may share your information with:
+            </p>
+            <ul className="list-disc pl-5 text-gray-300">
+              <li>Service providers who assist in our operations</li>
+              <li>Professional advisers</li>
+              <li>Law enforcement when required by law</li>
+            </ul>
+            <h3 className="font-semibold mt-4 text-white">
+              4. Data Security
+            </h3>
+            <p className="text-gray-300">
+              We implement appropriate security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure.
+            </p>
+            <h3 className="font-semibold mt-4 text-white">
+              5. Your Rights
+            </h3>
+            <p className="text-gray-300">
+              You have the right to:
+            </p>
+            <ul className="list-disc pl-5 text-gray-300">
+              <li>Access your personal information</li>
+              <li>Correct inaccurate information</li>
+              <li>Request deletion of your information</li>
+              <li>Opt-out of marketing communications</li>
+            </ul>
+            <h3 className="font-semibold mt-4 text-white">
+              6. Contact Us
+            </h3>
+            <p className="text-gray-300">
+              If you have questions about this Privacy Policy, please contact us at:<br />
+              Email: colossus.ai.lk@gmail.com
+            </p>
+            <p className="text-gray-300 mt-4 italic">
+              Last updated: 2/24/2025
+            </p>
             <button
               onClick={toggleModal}
               className="mt-4 bg-[#FF4A8D] text-white py-2 px-4 rounded hover:bg-[#FF6B9D] transition-colors"
