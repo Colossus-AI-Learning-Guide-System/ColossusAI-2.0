@@ -275,6 +275,8 @@ export default function Home() {
       </main>
 
       <Footer />
+
+      <div className="text-center text-white mt-4 animate-pulse">AI-Powered Learning, Smarter Knowledge Navigation</div>
     </div>
   );
 }
