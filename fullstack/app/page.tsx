@@ -158,15 +158,21 @@ export default function Home() {
                 className="rounded-full"
               />
             </motion.div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-16 text-center">
-              <TextEffect per="word" preset="fade" className="text-white">
-                {`AI-Powered Learning,\nSmarter Knowledge Navigation`}
-              </TextEffect>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-8 text-center">
+              <motion.span className="text-white mb-2 block" animate={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ duration: 0.5 }}>
+                AI-Powered Learning,
+              </motion.span>
+              <motion.span className="text-white" animate={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ duration: 0.5 }}>
+                Smarter Knowledge Navigation
+              </motion.span>
             </h1>
+
+            {/* Mobile View */}
+            
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all mb-8"
+              className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all mb-2"
             >
               Try Colossus.AI →
             </motion.button>
@@ -175,15 +181,10 @@ export default function Home() {
 
         {/* Features Section */}
         <div className="container mx-auto px-4 py-24" id="features">
-          <div className="text-4xl md:text-5xl font-bold text-center mb-16">
-            <TextEffect
-              className="inline-flex bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]"
-              per="char"
-              preset="stagger"
-              reverseScroll={true}
-            >
+          <div className="text-4xl sm:text-5xl md:text-6xl font-bold mb-16 text-center">
+            <motion.span className="inline-flex bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF]" animate={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} transition={{ duration: 0.5 }}>
               Innovative Tools for Smarter Learning
-            </TextEffect>
+            </motion.span>
           </div>
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -276,7 +277,7 @@ export default function Home() {
 
       <Footer />
 
-      <div className="text-center text-white mt-4 animate-pulse">AI-Powered Learning, Smarter Knowledge Navigation</div>
+      <div className="text-center text-white mt-4 text-lg md:text-xl lg:text-2xl">AI-Powered Learning, Smarter Knowledge Navigation</div>
     </div>
   );
 }
