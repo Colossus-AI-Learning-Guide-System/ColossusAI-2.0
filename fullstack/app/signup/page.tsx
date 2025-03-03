@@ -120,6 +120,16 @@ export default function SignUpPage() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFormStatus({
+        type: 'error',
+        message: "Please enter a valid email address"
+      });
+      return;
+    }
+
     setLoading(true);
     setFormStatus(null);
 
@@ -159,15 +169,47 @@ export default function SignUpPage() {
       );
 
       if (signUpError) {
-        const errorMessage = (signUpError as { message?: string }).message;
-        setFormStatus({
-          type: 'error',
-          message: errorMessage || 'An unknown error occurred during sign up.'
-        });
-        if (errorMessage?.includes("already exists")) {
+        // Handle specific Supabase auth errors
+        if (signUpError instanceof Error) {
+          const errorMessage = signUpError.message;
+          
+          // Handle specific error cases
+          if (errorMessage.includes("already exists")) {
+            setFormStatus({
+              type: 'error',
+              message: "An account with this email already exists. Please sign in instead."
+            });
+          } else if (errorMessage.includes("invalid email")) {
+            setFormStatus({
+              type: 'error',
+              message: "The email address format is invalid. Please check and try again."
+            });
+          } else if (errorMessage.includes("weak password")) {
+            setFormStatus({
+              type: 'error',
+              message: "The password is too weak. Please ensure it meets all requirements."
+            });
+          } else {
+            setFormStatus({
+              type: 'error',
+              message: errorMessage || 'An error occurred during sign up. Please try again.'
+            });
+          }
+        } else {
+          setFormStatus({
+            type: 'error',
+            message: 'An unexpected error occurred. Please try again later.'
+          });
+        }
+        
+        // Check if signUpError has a message property before accessing it
+        const errorObj = signUpError as { message?: string };
+        if (errorObj.message && errorObj.message.includes("already exists")) {
           setPassword("");
         }
-        throw signUpError;
+        
+        setLoading(false);
+        return;
       }
 
       if (!data?.user) {
@@ -175,6 +217,7 @@ export default function SignUpPage() {
           type: 'error',
           message: "Account creation failed. Please try again."
         });
+        setLoading(false);
         return;
       }
 
@@ -186,11 +229,27 @@ export default function SignUpPage() {
     } catch (err: any) {
       console.error("Sign up error:", err);
       
+      // Handle AuthError, AuthApiError and other errors
+      let errorMessage = "An unexpected error occurred during sign up. Please try again later.";
+      
+      if (err instanceof Error) {
+        // Check for specific error types in the error name or message
+        if (err.name === "AuthError" || err.name === "AuthApiError") {
+          if (err.message.includes("invalid email")) {
+            errorMessage = "The email address format is invalid. Please check and try again.";
+          } else if (err.message.includes("already exists")) {
+            errorMessage = "An account with this email already exists. Please sign in instead.";
+          } else {
+            errorMessage = err.message;
+          }
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       setFormStatus({
         type: 'error',
-        message: err instanceof Error 
-          ? err.message 
-          : "An unexpected error occurred during sign up. Please try again later."
+        message: errorMessage
       });
     } finally {
       setLoading(false);
