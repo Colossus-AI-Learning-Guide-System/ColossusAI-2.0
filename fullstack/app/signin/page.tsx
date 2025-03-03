@@ -9,10 +9,12 @@ import {
   signInWithEmail,
   signInWithOAuth,
 } from "@/lib/supabase/auth";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useState } from "react";
+import { type ChangeEvent, type FormEvent, useId, useState } from "react";
+import { ValidationMessage } from "../components/validation";
 
 export default function SignInPage() {
   const id = useId();
@@ -20,51 +22,78 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(
-    searchParams.get("message")
-  );
   const [loading, setLoading] = useState(false);
-  const [showResendButton, setShowResendButton] = useState(false);
+  const [isRememberMe, setIsRememberMe] = useState(false);
+  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(
+    searchParams.get("message") 
+      ? { type: 'warning', message: searchParams.get("message")! }
+      : null
+  );
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({
+    email: false,
+    password: false,
+  });
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const handleBlur = (field: string) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+  };
+
+  const handleEmailSignIn = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
+    
+    // Mark all fields as touched
+    setTouchedFields({
+      email: true,
+      password: true,
+    });
+
+    // Validate all required fields
+    if (!email || !password) {
+      setFormStatus({
+        type: 'error',
+        message: "Please fill in all required fields"
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFormStatus({
+        type: 'error',
+        message: "Please enter a valid email address"
+      });
+      return;
+    }
+
+    setFormStatus(null);
     setLoading(true);
-    setShowResendButton(false);
 
     try {
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email.trim()) {
-        setError("Please enter your email address");
-        return; // Exit the function if email is empty
-      }
-      if (!emailRegex.test(email)) {
-        setError("Please enter a valid email address (e.g., example@domain.com)");
-        return; // Exit the function if email is invalid
-      }
-
-      // Validate password
-      if (!password.trim()) {
-        setError("Please enter your password");
-        return; // Exit the function if password is empty
-      }
-
       const { data, error } = await signInWithEmail(email, password);
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = error.message as string;
         
         if (errorMessage.includes("Email not confirmed")) {
-          setError("Your email address hasn't been verified. Please check your inbox and click the verification link.");
-          setShowResendButton(true);
+          setFormStatus({
+            type: 'warning',
+            message: "Your email address hasn't been verified. Please check your inbox and click the verification link."
+          });
+          return;
         } else if (errorMessage.includes("Invalid login credentials")) {
-          setError("The email or password you entered is incorrect. Please try again.");
+          setFormStatus({
+            type: 'error',
+            message: "The email or password you entered is incorrect. Please try again."
+          });
+          return;
         } else {
           throw error;
         }
-        return;
       }
 
       if (data?.session) {
@@ -72,17 +101,17 @@ export default function SignInPage() {
       }
     } catch (err: any) {
       console.error("Signin error:", err);
-      setError(
-        err.message || 
-        "We couldn't sign you in. Please check your credentials and try again."
-      );
+      setFormStatus({
+        type: 'error',
+        message: err.message || "We couldn't sign you in. Please check your credentials and try again."
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleOAuthSignIn = async (provider: "github" | "google") => {
-    setError(null);
+    setFormStatus(null);
     setLoading(true);
     
     try {
@@ -93,10 +122,10 @@ export default function SignInPage() {
         );
       }
     } catch (err: any) {
-      setError(
-        err.message || 
-        `We couldn't complete your ${provider} sign-in. Please try again later.`
-      );
+      setFormStatus({
+        type: 'error',
+        message: err.message || `We couldn't complete your ${provider} sign-in. Please try again later.`
+      });
     } finally {
       setLoading(false);
     }
@@ -104,17 +133,20 @@ export default function SignInPage() {
 
   const handleResendConfirmation = async () => {
     setLoading(true);
-    setError(null);
-    setMessage(null);
+    setFormStatus(null);
 
     try {
       const { error } = await resendConfirmationEmail(email);
       if (error) throw error;
-      setMessage(
-        "Confirmation email has been resent. Please check your inbox."
-      );
+      setFormStatus({
+        type: 'success',
+        message: "Confirmation email has been resent. Please check your inbox."
+      });
     } catch (err: any) {
-      setError(err.message || "Failed to resend confirmation email");
+      setFormStatus({
+        type: 'error',
+        message: err.message || "Failed to resend confirmation email"
+      });
     } finally {
       setLoading(false);
     }
@@ -151,7 +183,7 @@ export default function SignInPage() {
             </div>
           </div>
 
-          <div className="flex justify-center gap-4 text-gray-600">
+          <div className="flex justify-center gap-4">
             <button
               type="button"
               onClick={() => handleOAuthSignIn("google")}
@@ -199,55 +231,76 @@ export default function SignInPage() {
             </div>
           </div>
 
-          <form onSubmit={handleEmailSignIn} className="space-y-6">
-            {error && (
-              <div className="text-sm text-red-500 text-center">
-                {error}
-                {showResendButton && (
-                  <button
-                    type="button"
-                    onClick={handleResendConfirmation}
-                    className="ml-2 text-blue-500 hover:underline"
-                    disabled={loading}
-                  >
-                    Resend confirmation email
-                  </button>
-                )}
-              </div>
-            )}
-            {message && (
-              <div className="text-sm text-blue-500 text-center">{message}</div>
+          <form onSubmit={handleEmailSignIn} className="space-y-6" noValidate>
+            {formStatus && (
+              <ValidationMessage
+                type={formStatus.type}
+                message={formStatus.message}
+              />
             )}
             <div className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor={`${id}-email`} className="text-sm font-medium">Email</Label>
+                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
+                  Email<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-email`}
                   placeholder="Enter your email"
                   type="email"
-                  required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  onChange={handleEmailChange}
+                  onBlur={() => handleBlur('email')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.email && !email && "border-red-500"
+                  )}
                 />
+                {touchedFields.email && !email && (
+                  <ValidationMessage
+                    type="error"
+                    message="Email is required"
+                  />
+                )}
+                {touchedFields.email && email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && (
+                  <ValidationMessage
+                    type="error"
+                    message="Please enter a valid email address"
+                  />
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`${id}-password`} className="text-sm font-medium">Password</Label>
+                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
+                  Password<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-password`}
                   placeholder="Enter your password"
                   type="password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  onBlur={() => handleBlur('password')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.password && !password && "border-red-500"
+                  )}
                 />
+                {touchedFields.password && !password && (
+                  <ValidationMessage
+                    type="error"
+                    message="Password is required"
+                  />
+                )}
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Checkbox id={`${id}-remember`} className="rounded border-gray-300" />
+                <Checkbox 
+                  id={`${id}-remember`} 
+                  className="rounded border-gray-300"
+                  checked={isRememberMe}
+                  onCheckedChange={(checked) => setIsRememberMe(checked as boolean)}
+                />
                 <Label
                   htmlFor={`${id}-remember`}
                   className="text-sm text-gray-600"

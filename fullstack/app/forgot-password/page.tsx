@@ -1,13 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/signup/button";
-import { Input } from "@/components/ui/signup/input";
-import { Label } from "@/components/ui/signup/label";
+import { Button } from "@/components/ui/signin/button";
+import { Input } from "@/components/ui/signin/input";
+import { Label } from "@/components/ui/signin/label";
 import { sendPasswordResetEmail } from "@/lib/supabase/auth";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { RiLockFill } from "react-icons/ri";
+import { ValidationMessage } from "../components/validation";
 
 export default function ForgotPasswordPage() {
   const id = useId();
@@ -16,49 +17,52 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const lastRequestTime = useRef<number>(0);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const RATE_LIMIT_SECONDS = 60;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastRequestTime = useRef<number>(0);
 
-  // Add countdown timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (timeRemaining > 0) {
-      timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          const newTime = prev - 1;
-          if (newTime <= 0) {
-            setError(null); // Clear error when timer expires
-          }
-          return newTime;
-        });
-      }, 1000);
-    }
-
+    // Cleanup function to clear the interval
     return () => {
-      if (timer) {
-        clearInterval(timer);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [timeRemaining]);
+  }, []);
 
-  const handleRateLimit = (waitTime: number) => {
-    setError(`You can try again in ${waitTime} seconds`);
-    setLoading(false);
+  const startTimer = (duration: number) => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
-    // Start countdown
-    const interval = setInterval(() => {
-      setError((current) => {
-        if (!current) return null;
-        const timeLeft = parseInt(current.match(/\d+/)?.[0] || "0") - 1;
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          return null;
+    // Set initial time
+    setTimeRemaining(duration);
+
+    // Start new timer
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = prev - 1;
+        if (newTime <= 0) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          setError(null);
+          return 0;
         }
-        return `You can try again in ${timeLeft} seconds`;
+        setError(`You can try again in ${newTime} seconds`);
+        return newTime;
       });
     }, 1000);
+  };
+
+  const handleRateLimit = (waitTime: number) => {
+    setLoading(false);
+    startTimer(waitTime);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,103 +148,120 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-xl border bg-card p-6 shadow-lg">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-[44px] h-[44px] relative">
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            fill
-            className="object-contain"
-            priority
-          />
+    <div className="flex min-h-screen">
+      {/* Left section with gradient background */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B6B] via-[#FF3399] to-[#9933FF] p-12">
+        <div className="flex flex-col justify-center text-white max-w-xl">
+          <h1 className="text-4xl font-bold mb-4">Reset Password</h1>
+          <p className="text-lg opacity-90">Enter your email to receive password reset instructions</p>
         </div>
-        <div className="space-y-1.5 text-center">
-          <h1 className="text-lg font-semibold tracking-tight">
-            Reset your password
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your email address and we'll send you instructions to reset
-            your password.
-          </p>
-        </div>
+        {/* Decorative circles */}
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/4 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2"></div>
       </div>
 
-      {success ? (
-        <div className="text-center space-y-4">
-          <div className="text-green-500 font-medium border border-green-500 bg-green-100 p-3 rounded-lg text-center">{successMessage}</div>
-          <p className="text-sm text-muted-foreground">
-            Didn't receive the email?{" "}
-            <button
-              onClick={handleResendClick}
-              className={`text-primary underline hover:no-underline ${
-                timeRemaining > 0 ? 'cursor-not-allowed opacity-50' : ''
-              }`}
-              disabled={loading || timeRemaining > 0}
-            >
-              {renderResendButton()}
-            </button>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Remember your password?{" "}
-            <Link
-              href="/signin"
-              className="text-primary underline hover:no-underline"
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="text-sm text-red-500 text-center">
-                {error}
-                {timeRemaining > 0 && (
-                  <div className="mt-1 text-xs">
-                    You can try again in {timeRemaining} seconds
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="space-y-4">
+      {/* Right section with form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-[60px] h-[60px] relative mb-4">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="space-y-1.5 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">Forgot Password</h1>
+              <p className="text-sm text-gray-500">
+                Enter your email address and we'll send you instructions to reset your password.
+              </p>
+            </div>
+          </div>
+
+          {success ? (
+            <div className="text-center space-y-4">
+              <ValidationMessage
+                type="success"
+                message={successMessage || ""}
+              />
+              <p className="text-sm text-gray-600">
+                Didn't receive the email?{" "}
+                <button
+                  onClick={handleResendClick}
+                  className={cn(
+                    "text-purple-600 hover:text-purple-500 font-medium",
+                    timeRemaining > 0 && "cursor-not-allowed opacity-50"
+                  )}
+                  disabled={loading || timeRemaining > 0}
+                >
+                  {renderResendButton()}
+                </button>
+              </p>
+              <p className="text-sm text-gray-600">
+                Remember your password?{" "}
+                <Link
+                  href="/signin"
+                  className="text-purple-600 hover:text-purple-500 font-medium"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              {error && (
+                <ValidationMessage
+                  type="error"
+                  message={error}
+                />
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor={`${id}-email`}>Email</Label>
+                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
+                  Email<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-email`}
-                  placeholder="hi@yourcompany.com"
+                  placeholder="Enter your email"
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    error && "border-red-500"
+                  )}
                 />
+                {timeRemaining > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    You can try again in {timeRemaining} seconds
+                  </p>
+                )}
               </div>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
-              onClick={handleSubmit}
-              disabled={loading || timeRemaining > 0}
-            >
-              <RiLockFill size={24} />
-              <span>{loading ? "Sending..." : "Send"}</span>
-            </Button>
-          </form>
 
-          <div className="space-y-2 text-center text-sm">
-            <p className="text-muted-foreground">
-              Remember your password?{" "}
-              <Link
-                href="/signin"
-                className="text-primary underline hover:no-underline"
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
+                disabled={loading || timeRemaining > 0}
               >
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </>
-      )}
+                {loading ? "Sending instructions..." : "Send Reset Instructions"}
+              </Button>
+
+              <p className="text-center text-sm text-gray-600">
+                Remember your password?{" "}
+                <Link
+                  href="/signin"
+                  className="text-purple-600 hover:text-purple-500 font-medium"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/signin/checkbox";
 import { Button } from "@/components/ui/signup/button";
 import { Input } from "@/components/ui/signup/input";
 import { Label } from "@/components/ui/signup/label";
@@ -9,11 +8,15 @@ import {
   signInWithOAuth,
   signUpWithEmail,
 } from "@/lib/supabase/auth";
+import { cn } from "@/lib/utils";
 import { RiGithubFill } from "@remixicon/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { type ChangeEvent, type FormEvent, useId, useState } from "react";
+import { TermsModal } from "../components/PrivacyModal";
+import { TermsOfServiceModal } from "../components/TermsModal";
+import { ValidationList, ValidationMessage } from "../components/validation";
 
 export default function SignUpPage() {
   const id = useId();
@@ -22,131 +25,133 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showResendButton, setShowResendButton] = useState(false);
   const [isPasswordTouched, setIsPasswordTouched] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isEmailTouched, setIsEmailTouched] = useState(false);
+  const [isFullNameTouched, setIsFullNameTouched] = useState(false);
+  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null);
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({
+    fullName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+    terms: false
+  });
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
-  const handleResendConfirmation = async () => {
-    setLoading(true);
-    try {
-      const { error } = await resendConfirmationEmail(email);
-      if (error) throw error;
-      setSuccessMessage(
-        "Confirmation email has been resent. Please check your inbox."
-      );
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to resend confirmation email"
-      );
-    } finally {
-      setLoading(false);
-    }
+  // Password validation requirements
+  const passwordRequirements = [
+    "At least 8 characters long",
+    "Contains at least one uppercase letter",
+    "Contains at least one lowercase letter",
+    "Contains at least one number",
+    "Contains at least one special character",
+  ];
+
+  // Name validation requirements
+  const nameRequirements = [
+    "At least 2 characters long",
+    "Contains only letters and spaces",
+    "First and last name required",
+  ];
+
+  // State for tracking valid requirements
+  const [validPasswordRequirements, setValidPasswordRequirements] = useState<string[]>([]);
+  const [validNameRequirements, setValidNameRequirements] = useState<string[]>([]);
+
+  const handleBlur = (field: string) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
   };
 
-  const validatePassword = (password: string) => {
-    const errors = [];
-    if (password.length < 8) {
-      errors.push("At least 8 characters");
-    }
-    if (!/\d/.test(password)) {
-      errors.push("At least one number");
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push("At least one special character");
-    }
-    if (!/[A-Z]/.test(password)) {
-      errors.push("At least one uppercase letter");
-    }
-    return errors;
-  };
-
-  const validateFullName = (name: string) => {
-    const errors = [];
-    const nameParts = name.trim().split(/\s+/);
+  const handleFullNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFullName(value);
+    setIsFullNameTouched(true);
     
-    // Check for minimum two parts (first and last name)
-    if (nameParts.length < 2) {
-      errors.push("Please enter both your first and last name");
-    }
-
-    // Check for numbers and special characters
-    if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(name)) {
-      errors.push("Name should not contain numbers or special characters");
-    }
-
-    // Check each part length
-    if (nameParts.some(part => part.length < 2)) {
-      errors.push("Each name part should be at least 2 characters long");
-    }
-
-    return errors;
+    const valid: string[] = [];
+    if (value.length >= 2) valid.push("At least 2 characters long");
+    if (/^[A-Za-z\s]+$/.test(value)) valid.push("Contains only letters and spaces");
+    if (value.trim().split(/\s+/).length >= 2) valid.push("First and last name required");
+    
+    setValidNameRequirements(valid);
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    setIsPasswordTouched(true);
+    
+    const valid: string[] = [];
+    if (value.length >= 8) valid.push("At least 8 characters long");
+    if (/[A-Z]/.test(value)) valid.push("Contains at least one uppercase letter");
+    if (/[a-z]/.test(value)) valid.push("Contains at least one lowercase letter");
+    if (/[0-9]/.test(value)) valid.push("Contains at least one number");
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(value)) valid.push("Contains at least one special character");
+    
+    setValidPasswordRequirements(valid);
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    setIsEmailTouched(true);
+  };
+
+  const handleEmailSignUp = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
+    
+    // Mark all fields as touched
+    setTouchedFields({
+      fullName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+      terms: true
+    });
+
+    // Validate all required fields
+    if (!fullName || !email || !password || !confirmPassword || !isTermsAccepted) {
+      setFormStatus({
+        type: 'error',
+        message: "Please fill in all required fields"
+      });
+      return;
+    }
+
     setLoading(true);
-    setShowResendButton(false);
+    setFormStatus(null);
+
+    // Validation checks
+    if (validPasswordRequirements.length < passwordRequirements.length) {
+      setFormStatus({
+        type: 'error',
+        message: "Please ensure all password requirements are met"
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (validNameRequirements.length < nameRequirements.length) {
+      setFormStatus({
+        type: 'error',
+        message: "Please ensure all name requirements are met"
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFormStatus({
+        type: 'error',
+        message: "Passwords do not match"
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Validate full name
-      if (!fullName.trim()) {
-        setError("Please enter your full name");
-        return;
-      }
-
-      const nameParts = fullName.trim().split(/\s+/);
-      if (nameParts.length < 2) {
-        setError("Please enter both your first and last name");
-        return;
-      }
-
-      // Check for numbers and special characters in name
-      if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(fullName)) {
-        setError("Name should not contain numbers or special characters");
-        return;
-      }
-
-      // Validate email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email.trim()) {
-        setError("Please enter your email address");
-        return;
-      }
-      if (!emailRegex.test(email)) {
-        setError("Please enter a valid email address");
-        return;
-      }
-
-      // Validate password
-      if (!password.trim()) {
-        setError("Please enter your password");
-        return;
-      }
-
-      const passwordErrors = validatePassword(password);
-      if (passwordErrors.length > 0) {
-        setValidationErrors(passwordErrors);
-        return;
-      }
-
-      // Validate password confirmation
-      if (!confirmPassword.trim()) {
-        setError("Please confirm your password");
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError("The passwords you entered don't match. Please try again.");
-        return;
-      }
-
-      // Attempt to sign up
       const { data, error: signUpError } = await signUpWithEmail(
         email,
         password,
@@ -155,61 +160,45 @@ export default function SignUpPage() {
 
       if (signUpError) {
         const errorMessage = (signUpError as { message?: string }).message;
+        setFormStatus({
+          type: 'error',
+          message: errorMessage || 'An unknown error occurred during sign up.'
+        });
         if (errorMessage?.includes("already exists")) {
-          setShowResendButton(true);
-          setError(errorMessage);
           setPassword("");
-          return;
         }
-        // Fallback for when message is not available
-        setError(errorMessage || 'An unknown error occurred during sign up.');
         throw signUpError;
       }
 
       if (!data?.user) {
-        setError("Account creation failed. Please try again.");
+        setFormStatus({
+          type: 'error',
+          message: "Account creation failed. Please try again."
+        });
         return;
       }
 
-      // Success
-      setSuccess(true);
-      setSuccessMessage(
-        "Please check your email for a confirmation link to complete your registration."
-      );
+      setFormStatus({
+        type: 'success',
+        message: "Please check your email for a confirmation link to complete your registration."
+      });
 
     } catch (err: any) {
-      const errorDetails = {
-        type: 'SIGNUP_ERROR',
-        message: err.message || 'Unknown error occurred',
-        code: err.code || 'UNKNOWN',
-        details: err.details || {},
-        context: {
-          email,
-          hasPassword: !!password,
-          hasFullName: !!fullName,
-        },
-        timestamp: new Date().toISOString()
-      };
-
-      console.error("Sign up error:", errorDetails);
+      console.error("Sign up error:", err);
       
-      const userMessage = err instanceof Error 
-        ? err.message 
-        : "An unexpected error occurred during sign up. Please try again later.";
-      
-      setError(userMessage);
-      
-      if (userMessage.includes("already exists")) {
-        setPassword("");
-        setShowResendButton(true);
-      }
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error 
+          ? err.message 
+          : "An unexpected error occurred during sign up. Please try again later."
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleOAuthSignUp = async (provider: "github" | "google") => {
-    setError(null);
+    setFormStatus(null);
     setLoading(true);
 
     try {
@@ -224,11 +213,33 @@ export default function SignUpPage() {
       }
     } catch (err) {
       console.error("OAuth error:", err);
-      setError(
-        err instanceof Error
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error
           ? err.message
           : `Failed to sign up with ${provider}`
-      );
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    setLoading(true);
+    try {
+      const { error } = await resendConfirmationEmail(email);
+      if (error) throw error;
+      setFormStatus({
+        type: 'success',
+        message: "Confirmation email has been resent. Please check your inbox."
+      });
+    } catch (err) {
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error
+          ? err.message
+          : "Failed to resend confirmation email"
+      });
     } finally {
       setLoading(false);
     }
@@ -268,10 +279,14 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          {/* OAuth Buttons - Placed before the form for better visibility */}
+          {/* OAuth Buttons */}
           <div className="space-y-4">
-          <div className="flex justify-center gap-4 text-gray-600">
-              <Button variant="outline">
+            <div className="flex justify-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => handleOAuthSignUp("google")}
+                className="w-full flex items-center justify-center gap-2"
+              >
                 <svg viewBox="0 0 24 24" width="24" height="24" className="mr-2">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -280,7 +295,11 @@ export default function SignUpPage() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => handleOAuthSignUp("github")}
+                className="w-full flex items-center justify-center gap-2"
+              >
                 <RiGithubFill
                   className="me-3"
                   size={16}
@@ -300,105 +319,179 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <form onSubmit={handleEmailSignUp} className="space-y-6">
-            {error && (
-              <div className="text-sm text-red-500 text-center">
-                {error}
-                {showResendButton && (
-                  <button
-                    type="button"
-                    onClick={handleResendConfirmation}
-                    className="ml-2 text-blue-500 hover:underline"
-                    disabled={loading}
-                  >
-                    Resend confirmation email
-                  </button>
-                )}
-              </div>
-            )}
-            {successMessage && (
-              <div className="text-sm text-green-500 text-center bg-green-50 p-3 rounded-lg">
-                {successMessage}
-              </div>
+          <form onSubmit={handleEmailSignUp} className="space-y-6" noValidate>
+            {formStatus && (
+              <ValidationMessage
+                type={formStatus.type}
+                message={formStatus.message}
+              />
             )}
 
             <div className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor={`${id}-fullname`} className="text-sm font-medium">Full Name</Label>
+                <Label htmlFor={`${id}-fullname`} className="text-sm font-medium">
+                  Full Name<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-fullname`}
                   placeholder="John Doe"
                   type="text"
-                  required
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  onChange={handleFullNameChange}
+                  onBlur={() => handleBlur('fullName')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.fullName && !fullName && "border-red-500"
+                  )}
                 />
+                {touchedFields.fullName && !fullName && (
+                  <ValidationMessage
+                    type="error"
+                    message="Full name is required"
+                  />
+                )}
+                {isFullNameTouched && fullName && (
+                  <ValidationList
+                    items={nameRequirements}
+                    validItems={validNameRequirements}
+                  />
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor={`${id}-email`} className="text-sm font-medium">Email</Label>
+                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
+                  Email<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-email`}
                   placeholder="you@example.com"
                   type="email"
-                  required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  onChange={handleEmailChange}
+                  onBlur={() => handleBlur('email')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.email && !email && "border-red-500"
+                  )}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-password`} className="text-sm font-medium">Password</Label>
-                <Input
-                  id={`${id}-password`}
-                  placeholder="Create a password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setIsPasswordTouched(true);
-                    setValidationErrors(validatePassword(e.target.value));
-                  }}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                />
-                {isPasswordTouched && validationErrors.length > 0 && (
-                  <ul className="mt-2 text-sm text-red-500 space-y-1">
-                    {validationErrors.map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
+                {touchedFields.email && !email && (
+                  <ValidationMessage
+                    type="error"
+                    message="Email is required"
+                  />
+                )}
+                {isEmailTouched && email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && (
+                  <ValidationMessage
+                    type="error"
+                    message="Please enter a valid email address"
+                  />
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor={`${id}-confirm-password`} className="text-sm font-medium">Confirm Password</Label>
+                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
+                  Password<span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id={`${id}-password`}
+                  placeholder="Create a password"
+                  type="password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  onBlur={() => handleBlur('password')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.password && !password && "border-red-500"
+                  )}
+                />
+                {touchedFields.password && !password && (
+                  <ValidationMessage
+                    type="error"
+                    message="Password is required"
+                  />
+                )}
+                {isPasswordTouched && password && (
+                  <ValidationList
+                    items={passwordRequirements}
+                    validItems={validPasswordRequirements}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor={`${id}-confirm-password`} className="text-sm font-medium">
+                  Confirm Password<span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id={`${id}-confirm-password`}
                   placeholder="Confirm your password"
                   type="password"
-                  required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  onBlur={() => handleBlur('confirmPassword')}
+                  className={cn(
+                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    touchedFields.confirmPassword && !confirmPassword && "border-red-500"
+                  )}
                 />
+                {touchedFields.confirmPassword && !confirmPassword && (
+                  <ValidationMessage
+                    type="error"
+                    message="Please confirm your password"
+                  />
+                )}
+                {confirmPassword && password !== confirmPassword && (
+                  <ValidationMessage
+                    type="error"
+                    message="Passwords do not match"
+                  />
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Checkbox id={`${id}-terms`} className="rounded border-gray-300" required />
-              <Label htmlFor={`${id}-terms`} className="text-sm text-gray-600">
-                I agree to the{" "}
-                <Link href="/terms" className="text-purple-600 hover:text-purple-500">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-purple-600 hover:text-purple-500">
-                  Privacy Policy
-                </Link>
-              </Label>
+            <div className="space-y-2">
+              <div className="flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id={`${id}-terms`}
+                    name={`${id}-terms`}
+                    type="checkbox"
+                    checked={isTermsAccepted}
+                    onChange={(e) => {
+                      setIsTermsAccepted(e.target.checked);
+                      setTouchedFields(prev => ({ ...prev, terms: true }));
+                    }}
+                    className="w-4 h-4 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor={`${id}-terms`} className="text-gray-700">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsTermsModalOpen(true)}
+                      className="text-purple-600 hover:underline"
+                    >
+                      Terms of Service
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsPrivacyModalOpen(true)}
+                      className="text-purple-600 hover:underline"
+                    >
+                      Privacy Policy
+                    </button>
+                  </label>
+                </div>
+              </div>
+              {touchedFields.terms && !isTermsAccepted && (
+                <div className="bg-red-50 text-red-500 text-sm p-2 rounded-md flex items-start">
+                  <span className="mr-2">⚠️</span>
+                  <span>You must accept the Terms of Service and Privacy Policy</span>
+                </div>
+              )}
             </div>
 
             <Button 
@@ -418,6 +511,16 @@ export default function SignUpPage() {
           </form>
         </div>
       </div>
+
+      {/* Modals */}
+      <TermsOfServiceModal 
+        isOpen={isTermsModalOpen} 
+        onClose={() => setIsTermsModalOpen(false)} 
+      />
+      <TermsModal 
+        isOpen={isPrivacyModalOpen} 
+        onClose={() => setIsPrivacyModalOpen(false)} 
+      />
     </div>
   );
 }
