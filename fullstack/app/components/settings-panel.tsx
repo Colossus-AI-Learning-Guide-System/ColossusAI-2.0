@@ -3,345 +3,341 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { X } from "lucide-react"
-import { useImageUpload } from "../hooks/use-image-upload"
-import { PlanUpgradeDialog } from "../components/plan-upgrade-dialog"
-import { AddCardDialog } from "../components/add-card-dialog"
-import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { X, Camera, Check } from "lucide-react"
+import { Switch } from "@/app/components/ui/switch"
+import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { Progress } from "@/app/components/ui/progress"
 
-// Validation functions
-const validateName = (name: string) => {
-  // Allow letters, spaces, hyphens, and apostrophes
-  return /^[A-Za-zÀ-ÿ\s'-]+$/.test(name) || name === ""
-}
-const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-
-type ActivePanel = "general" | "upgradePlan" | "addCard"
+type SettingsTab = "general" | "upgrade" | "memory" | "security"
 
 interface SettingsPanelProps {
-  fullName?: string
-  setFullName?: (value: string) => void
-  username?: string
-  setUsername?: (value: string) => void
-  email?: string
-  setEmail?: (value: string) => void
-  cardData?: any
-  setCardData?: (value: any) => void
-  currentPlan?: string
-  setCurrentPlan?: (value: string) => void
-  cardAdded?: boolean
-  setCardAdded?: (value: boolean) => void
-  defaultPanel?: "general" | "upgradePlan" | "addCard"
+  isOpen: boolean
+  onClose: () => void
 }
 
-export function SettingsPanel({
-  fullName = "",
-  setFullName = () => {},
-  username = "",
-  setUsername = () => {},
-  email = "",
-  setEmail = () => {},
-  cardData = null,
-  setCardData = () => {},
-  currentPlan = "free",
-  setCurrentPlan = () => {},
-  cardAdded = false,
-  setCardAdded = () => {},
-  defaultPanel = "general",
-}: SettingsPanelProps) {
+export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  // State for modal and active panel
-  const isModalParam = searchParams.get("modal") === "true"
-  const [isOpen, setIsOpen] = useState(isModalParam)
-  const [activePanel, setActivePanel] = useState<ActivePanel>("general")
-  const { previewUrl, fileInputRef, handleThumbnailClick, handleFileChange } = useImageUpload()
-
-  // State for validation
-  const [errors, setErrors] = useState({
-    fullName: "",
-    email: "",
+  const [activeTab, setActiveTab] = useState<SettingsTab>("general")
+  const [memoryEnabled, setMemoryEnabled] = useState(true)
+  const [storageUsed, setStorageUsed] = useState(45) // percentage
+  const [formData, setFormData] = useState({
+    fullName: "John Doe",
+    username: "johndoe",
+    email: "john@example.com",
   })
-  const [isFormValid, setIsFormValid] = useState(false)
 
-  // Sync modal state with URL
+  // Update URL when tab changes
   useEffect(() => {
-    setIsOpen(searchParams.get("modal") === "true")
-  }, [searchParams])
+    if (isOpen) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("settings", activeTab)
+      router.push(`?${params.toString()}`, { scroll: false })
+    }
+  }, [activeTab, isOpen, router, searchParams])
 
-  // Sync active panel with URL path
+  // Set active tab from URL when opening
   useEffect(() => {
-    if (pathname === "/settings") setActivePanel("general")
-    if (pathname === "/upgradeplan") setActivePanel("upgradePlan")
-    if (pathname === "/addcard") setActivePanel("addCard")
-  }, [pathname])
-
-  // Validate a single field
-  const validateField = (name: string, value: string) => {
-    switch (name) {
-      case "fullName":
-        return value.length < 2 ? "Full Name must be at least 2 characters" : 
-               !validateName(value) ? "Invalid characters in name" : ""
-      case "email":
-        return value ? (validateEmail(value) ? "" : "Invalid Email") : "Email is required"
-      default:
-        return ""
-    }
-  }
-
-  // Handle onBlur (when user finishes typing in a field)
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: validateField(name, value),
-    }))
-  }
-
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validate all fields
-    const newErrors = {
-      fullName: validateField("fullName", fullName),
-      email: validateField("email", email),
-    }
-    setErrors(newErrors)
-
-    // Check if form is valid
-    const isValid = fullName.length >= 2 && email.length > 0 && Object.values(newErrors).every((error) => !error)
-    setIsFormValid(isValid)
-
-    if (isValid) {
-      // Save to localStorage
-      const userData = {
-        fullName,
-        username,
-        email,
+    if (isOpen) {
+      const tab = searchParams.get("settings")
+      if (tab && ["general", "upgrade", "memory", "security"].includes(tab)) {
+        setActiveTab(tab as SettingsTab)
+      } else {
+        setActiveTab("general")
       }
-      localStorage.setItem('userData', JSON.stringify(userData))
-      
-      // Show success message or feedback instead of closing modal
-      // You could add a state for showing a success message
-      setIsFormValid(false) // Reset form state
-      setTimeout(() => setIsFormValid(true), 100) // Re-enable the button after a brief delay
-      
-      // Optional: Show a toast or success message
-      alert('Changes saved successfully!') // Replace with your preferred notification method
     }
-  }
+  }, [isOpen, searchParams])
 
-  // Add this effect to update form validity when fields change
-  useEffect(() => {
-    const newErrors = {
-      fullName: validateField("fullName", fullName),
-      email: validateField("email", email),
-    }
-    const isValid = fullName.length >= 2 && email.length > 0 && Object.values(newErrors).every((error) => !error)
-    setIsFormValid(isValid)
-  }, [fullName, email])
+  if (!isOpen) return null
 
-  // Add this effect to load saved data
-  useEffect(() => {
-    const savedUserData = localStorage.getItem('userData')
-    if (savedUserData) {
-      const { fullName, username, email } = JSON.parse(savedUserData)
-      setFullName?.(fullName || '')
-      setUsername?.(username || '')
-      setEmail?.(email || '')
-    }
-  }, [setFullName, setUsername, setEmail])
-
-  // Handle adding a card
-  const handleAddCard = (newCardData: any) => {
-    setCardData(newCardData)
-    setCardAdded(true)
-    setActivePanel("upgradePlan")
-    router.replace("/upgradeplan?modal=true")
-  }
-
-  // Handle upgrading the plan
-  const handleUpgradePlan = (plan: string) => {
-    console.log(`Upgrading to ${plan} plan`)
-    setCurrentPlan(plan)
-    setIsOpen(false)
-  }
-
-  // Handle panel changes
-  const handlePanelChange = (panel: ActivePanel) => {
-    let newPath = ""
-    switch (panel) {
-      case "general":
-        newPath = "/settings"
-        break
-      case "upgradePlan":
-        newPath = "/upgradeplan"
-        break
-      case "addCard":
-        newPath = "/addcard"
-        break
-      default:
-        newPath = "/settings"
-    }
-    router.push(`${newPath}?modal=true`)
-    setActivePanel(panel)
-  }
-
-  // Handle modal close and navigate back to dashboard
-  const handleCloseModal = () => {
-    setIsOpen(false)
-    router.push("/")
-  }
-
-  // Render content based on active panel
-  const renderContent = () => {
-    switch (activePanel) {
-      case "general":
-        return (
-          <>
-            <h2 className="text-2xl font-bold mb-4">Settings panel</h2>
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200">
-                  {previewUrl ? (
-                    <img src={previewUrl || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                  )}
-                </div>
-                <button
-                  onClick={handleThumbnailClick}
-                  className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-2"
-                  aria-label="Change profile picture"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                </button>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-              </div>
-            </div>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Your full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  onBlur={handleBlur}
-                />
-                {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-              </div>
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="Your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={handleBlur}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button type="submit" disabled={!isFormValid}>
-                  Save Changes
-                </Button>
-              </div>
-            </form>
-          </>
-        )
-      case "upgradePlan":
-        return (
-          <PlanUpgradeDialog
-            isCardAdded={cardAdded}
-            onAddCard={() => handlePanelChange("addCard")}
-            onUpgrade={handleUpgradePlan}
-            currentPlan={currentPlan}
-          />
-        )
-      case "addCard":
-        return <AddCardDialog onAddCard={handleAddCard} initialData={cardData} />
-      default:
-        return null
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   return (
-    <>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[800px] h-[600px] relative flex">
-            {/* Left panel buttons */}
-            <div className="w-64 bg-gray-100 p-4">
-              <Button
-                variant={activePanel === "general" ? "default" : "ghost"}
-                className="w-full justify-start mb-2"
-                onClick={() => handlePanelChange("general")}
-              >
-                General
-              </Button>
-              <Button
-                variant={activePanel === "upgradePlan" ? "default" : "ghost"}
-                className="w-full justify-start mb-2"
-                onClick={() => handlePanelChange("upgradePlan")}
-              >
-                Upgrade Plan
-              </Button>
-              <Button
-                variant={activePanel === "addCard" ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => handlePanelChange("addCard")}
-              >
-                Add Card
-              </Button>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="flex w-full max-w-4xl overflow-hidden rounded-lg bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-xl">
+        {/* Navigation sidebar */}
+        <div className="w-64 border-r border-blue-700/50 p-4">
+          <nav className="flex flex-col space-y-2">
+            <button
+              onClick={() => setActiveTab("general")}
+              className={`rounded-lg p-4 text-left transition ${
+                activeTab === "general" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+              }`}
+            >
+              Genaral
+            </button>
+            <button
+              onClick={() => setActiveTab("upgrade")}
+              className={`rounded-lg p-4 text-left transition ${
+                activeTab === "upgrade" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+              }`}
+            >
+              Upgrade Plan
+            </button>
+            <button
+              onClick={() => setActiveTab("memory")}
+              className={`rounded-lg p-4 text-left transition ${
+                activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+              }`}
+            >
+              Memory
+            </button>
+            <button
+              onClick={() => setActiveTab("security")}
+              className={`rounded-lg p-4 text-left transition ${
+                activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+              }`}
+            >
+              Security
+            </button>
+          </nav>
+        </div>
 
-            {/* Right panel content */}
-            <div className="flex-1 p-6 relative overflow-y-auto">
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                aria-label="Close"
-              >
-                <X size={24} />
-              </button>
-              {renderContent()}
-            </div>
+        {/* Content area */}
+        <div className="flex flex-1 flex-col">
+          <div className="flex items-center justify-between border-b border-blue-700/50 p-6">
+            <h2 className="text-2xl font-bold">
+              {activeTab === "general" && "Settings"}
+              {activeTab === "upgrade" && "Change your Plan"}
+              {activeTab === "memory" && "Data Controll"}
+              {activeTab === "security" && "Security"}
+            </h2>
+            <button onClick={onClose} className="rounded-full p-1 hover:bg-blue-700/50">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-auto p-6">
+            {activeTab === "general" && (
+              <div className="flex flex-col space-y-6">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
+                      <span>No image</span>
+                    </div>
+                    <button className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black">
+                      <Camera className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block">Full Name</label>
+                    <Input
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block">Username</label>
+                    <Input
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block">Email</label>
+                    <Input
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "upgrade" && (
+              <div className="flex flex-col space-y-6">
+                <div>
+                  <p className="text-lg">Current Plan - FREE</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Free Plan */}
+                  <div className="rounded-lg border-2 border-white/30 bg-blue-950/50 p-4 flex flex-col">
+                    <h3 className="text-xl font-bold text-center mb-2">Free</h3>
+                    <div className="text-center border-b border-white/20 pb-2 mb-4">
+                      <span className="text-3xl font-bold">$0.00</span>
+                      <p className="text-sm text-white/70">monthly</p>
+                    </div>
+                    <ul className="space-y-2 flex-1">
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Limited Access
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        2- Documents Limit
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Upto 10MB Storage
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        RoadMap Genaration
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Pro Plan */}
+                  <div className="rounded-lg border-2 border-purple-500 bg-blue-950/50 p-4 flex flex-col relative">
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 px-4 py-1 rounded-full text-sm font-bold">
+                      Most Popular
+                    </div>
+                    <h3 className="text-xl font-bold text-center mb-2">Pro</h3>
+                    <div className="text-center border-b border-white/20 pb-2 mb-4">
+                      <span className="text-3xl font-bold">$9.99</span>
+                      <p className="text-sm text-white/70">monthly</p>
+                    </div>
+                    <ul className="space-y-2 flex-1">
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Additional Access
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        10- Documents Limit
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Upto 100 MB Storage
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Document History
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        RoadMap Generation
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Enterprise Plan */}
+                  <div className="rounded-lg border-2 border-white/30 bg-blue-950/50 p-4 flex flex-col">
+                    <h3 className="text-xl font-bold text-center mb-2">Enterprise</h3>
+                    <div className="text-center border-b border-white/20 pb-2 mb-4">
+                      <span className="text-3xl font-bold">$14.99</span>
+                      <p className="text-sm text-white/70">monthly</p>
+                    </div>
+                    <ul className="space-y-2 flex-1">
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Additional Access
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        30- Documents Limit
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Upto 500 MB Storage
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        Document History
+                      </li>
+                      <li className="flex items-center">
+                        <Check className="h-4 w-4 mr-2 text-purple-400" />
+                        RoadMap Generation
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "memory" && (
+              <div className="flex flex-col space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl">Memory</h3>
+                  <Switch
+                    checked={memoryEnabled}
+                    onCheckedChange={setMemoryEnabled}
+                    className="data-[state=checked]:bg-green-500"
+                  />
+                </div>
+
+                <p className="text-sm">
+                  Colossus.AI will save your Added file data upto your Plan storage
+                  <br />
+                  By turn off the Memory will not save the uploading file data.
+                </p>
+
+                <div className="space-y-2">
+                  <h3 className="text-lg">Your current Plan storage</h3>
+                  <div className="relative h-8 w-full overflow-hidden rounded-lg border border-white/20">
+                    <Progress
+                      value={storageUsed}
+                      className="h-full bg-blue-900"
+                      indicatorClassName="bg-gradient-to-r from-blue-600 to-purple-600"
+                    />
+                  </div>
+                  <div className="text-right">5.5 MB Free</div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span>Clear the uploaded Data</span>
+                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "security" && (
+              <div className="flex flex-col space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl">Change passsword</h3>
+                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+                    Change
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl">Log out from All Devices</h3>
+                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
+                    Logout
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl">Delete Accounts</h3>
+                  <Button variant="destructive" className="bg-red-500 hover:bg-red-600">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-blue-700/50 p-6">
+            {activeTab === "upgrade" ? (
+              <Button className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                Proceed to Payment
+              </Button>
+            ) : (
+              <Button className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                Save Changes
+              </Button>
+            )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   )
 }
 
