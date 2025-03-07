@@ -1,10 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
+import * as ToastPrimitives from "@radix-ui/react-toast"
 
-import type { ToastActionElement, ToastProps } from "@/app/components/ui/toast"
+type ToastProps = React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & {
+  variant?: "default" | "destructive"
+}
+
+type ToastActionElement = React.ReactElement
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
