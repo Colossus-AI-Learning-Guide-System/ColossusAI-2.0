@@ -13,39 +13,43 @@ interface ValidationListProps {
 
 export function ValidationMessage({ type, message }: ValidationMessageProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 p-3 rounded-lg text-sm",
-        type === 'error' && "bg-red-50 text-red-700",
-        type === 'success' && "bg-green-50 text-green-700",
-        type === 'warning' && "bg-yellow-50 text-yellow-700"
+    <div className="h-0 text-xs">
+      {message && (
+        <div
+          className={cn(
+            "flex items-center gap-1",
+            type === 'error' && "text-red-500",
+            type === 'success' && "text-green-500",
+            type === 'warning' && "text-yellow-500"
+          )}
+        >
+          {type === 'error' && <XCircle className="h-3 w-3" />}
+          {type === 'success' && <CheckCircle2 className="h-3 w-3" />}
+          {type === 'warning' && <AlertCircle className="h-3 w-3" />}
+          <span>{message}</span>
+        </div>
       )}
-    >
-      {type === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
-      {type === 'success' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-      {type === 'warning' && <AlertCircle className="h-4 w-4 text-yellow-500" />}
-      <span>{message}</span>
     </div>
   );
 }
 
 export function ValidationList({ items, validItems }: ValidationListProps) {
   return (
-    <div className="mt-2 space-y-1">
+    <div className="min-h-[100px] text-xs space-y-1">
       {items.map((item, index) => {
         const isValid = validItems.includes(item);
         return (
           <div
             key={index}
             className={cn(
-              "flex items-center gap-2 text-sm",
-              isValid ? "text-green-600" : "text-gray-500"
+              "flex items-center gap-1",
+              isValid ? "text-green-500" : "text-gray-400"
             )}
           >
             {isValid ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-3 w-3" />
             ) : (
-              <div className="h-4 w-4 rounded-full border border-gray-300" />
+              <div className="h-3 w-3 rounded-full border border-gray-300" />
             )}
             <span>{item}</span>
           </div>

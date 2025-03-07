@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useId, useState } from "react";
 import { TermsModal } from "../components/PrivacyModal";
 import { TermsOfServiceModal } from "../components/TermsModal";
-import { ValidationList, ValidationMessage } from "../components/validation";
+import { ValidationMessage } from "../components/validation";
 
 export default function SignUpPage() {
   const id = useId();
@@ -113,10 +113,6 @@ export default function SignUpPage() {
 
     // Validate all required fields
     if (!fullName || !email || !password || !confirmPassword || !isTermsAccepted) {
-      setFormStatus({
-        type: 'error',
-        message: "Please fill in all required fields"
-      });
       return;
     }
 
@@ -304,6 +300,34 @@ export default function SignUpPage() {
     }
   };
 
+  // Helper function to show only the first failing password requirement
+  const getFailingRequirementMessage = () => {
+    if (!password) return null;
+    
+    if (password.length < 8) {
+      return "Password must be at least 8 characters.";
+    }
+    if (!/\d/.test(password)) {
+      return "Password must include at least one number.";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must include at least one special character.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must include at least one uppercase letter.";
+    }
+    return null;
+  };
+
+  // Helper function for most relevant email validation message
+  const getEmailValidationMessage = () => {
+    if (!email) return null;
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      return "Please enter a valid email address.";
+    }
+    return null;
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* Left section with gradient background */}
@@ -386,125 +410,128 @@ export default function SignUpPage() {
               />
             )}
 
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-fullname`} className="text-sm font-medium">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor={`${id}-fullname`} className="text-xs font-medium">
                   Full Name<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-fullname`}
-                  placeholder="John Doe"
-                  type="text"
-                  value={fullName}
-                  onChange={handleFullNameChange}
-                  onBlur={() => handleBlur('fullName')}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.fullName && !fullName && "border-red-500"
-                  )}
-                />
-                {touchedFields.fullName && !fullName && (
-                  <ValidationMessage
-                    type="error"
-                    message="Full name is required"
+                <div className="relative">
+                  <Input
+                    id={`${id}-fullname`}
+                    placeholder="John Doe"
+                    type="text"
+                    value={fullName}
+                    onChange={handleFullNameChange}
+                    onBlur={() => handleBlur('fullName')}
+                    className={cn(
+                      "h-9 text-sm",
+                      touchedFields.fullName && !fullName && "border-red-500"
+                    )}
                   />
-                )}
-                {isFullNameTouched && fullName && (
-                  <ValidationList
-                    items={nameRequirements}
-                    validItems={validNameRequirements}
-                  />
-                )}
+                  <div className="min-h-[20px] mt-1">
+                    {touchedFields.fullName && !fullName && (
+                      <p className="text-xs text-red-500">
+                        Full name is required
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
+
+              <div>
+                <Label htmlFor={`${id}-email`} className="text-xs font-medium">
                   Email<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-email`}
-                  placeholder="you@example.com"
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={() => handleBlur('email')}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.email && !email && "border-red-500"
-                  )}
-                />
-                {touchedFields.email && !email && (
-                  <ValidationMessage
-                    type="error"
-                    message="Email is required"
+                <div className="relative">
+                  <Input
+                    id={`${id}-email`}
+                    placeholder="you@example.com"
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={() => handleBlur('email')}
+                    className={cn(
+                      "h-9 text-sm",
+                      touchedFields.email && !email && "border-red-500"
+                    )}
                   />
-                )}
-                {isEmailTouched && email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && (
-                  <ValidationMessage
-                    type="error"
-                    message="Please enter a valid email address"
-                  />
-                )}
+                  <div className="min-h-[20px] mt-1">
+                    {touchedFields.email && !email && (
+                      <p className="text-xs text-red-500">
+                        Email is required
+                      </p>
+                    )}
+                    {touchedFields.email && email && getEmailValidationMessage() && (
+                      <p className="text-xs text-red-500">
+                        {getEmailValidationMessage()}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
+              <div>
+                <Label htmlFor={`${id}-password`} className="text-xs font-medium">
                   Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-password`}
-                  placeholder="Create a password"
-                  type="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onBlur={() => handleBlur('password')}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.password && !password && "border-red-500"
-                  )}
-                />
-                {touchedFields.password && !password && (
-                  <ValidationMessage
-                    type="error"
-                    message="Password is required"
+                <div className="relative">
+                  <Input
+                    id={`${id}-password`}
+                    placeholder="Create a password"
+                    type="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onBlur={() => handleBlur('password')}
+                    className={cn(
+                      "h-9 text-sm",
+                      touchedFields.password && !password && "border-red-500"
+                    )}
                   />
-                )}
-                {isPasswordTouched && password && (
-                  <ValidationList
-                    items={passwordRequirements}
-                    validItems={validPasswordRequirements}
-                  />
-                )}
+                  <div className="min-h-[20px] mt-1">
+                    {touchedFields.password && !password && (
+                      <p className="text-xs text-red-500">
+                        Password is required
+                      </p>
+                    )}
+                    {touchedFields.password && password && getFailingRequirementMessage() && (
+                      <p className="text-xs text-red-500">
+                        {getFailingRequirementMessage()}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`${id}-confirm-password`} className="text-sm font-medium">
+              <div>
+                <Label htmlFor={`${id}-confirm-password`} className="text-xs font-medium">
                   Confirm Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-confirm-password`}
-                  placeholder="Confirm your password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onBlur={() => handleBlur('confirmPassword')}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.confirmPassword && !confirmPassword && "border-red-500"
-                  )}
-                />
-                {touchedFields.confirmPassword && !confirmPassword && (
-                  <ValidationMessage
-                    type="error"
-                    message="Please confirm your password"
+                <div className="relative">
+                  <Input
+                    id={`${id}-confirm-password`}
+                    placeholder="Confirm your password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={() => handleBlur('confirmPassword')}
+                    className={cn(
+                      "h-9 text-sm",
+                      touchedFields.confirmPassword && !confirmPassword && "border-red-500"
+                    )}
                   />
-                )}
-                {confirmPassword && password !== confirmPassword && (
-                  <ValidationMessage
-                    type="error"
-                    message="Passwords do not match"
-                  />
-                )}
+                  <div className="min-h-[20px] mt-1">
+                    {touchedFields.confirmPassword && !confirmPassword && (
+                      <p className="text-xs text-red-500">
+                        Please confirm your password
+                      </p>
+                    )}
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-red-500">
+                        Passwords do not match
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -546,9 +573,11 @@ export default function SignUpPage() {
                 </div>
               </div>
               {touchedFields.terms && !isTermsAccepted && (
-                <div className="bg-red-50 text-red-500 text-sm p-2 rounded-md flex items-start">
-                  <span className="mr-2">⚠️</span>
-                  <span>You must accept the Terms of Service and Privacy Policy</span>
+                <div className="min-h-[20px] mt-1">
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>You must accept the Terms of Service and Privacy Policy</span>
+                  </p>
                 </div>
               )}
             </div>

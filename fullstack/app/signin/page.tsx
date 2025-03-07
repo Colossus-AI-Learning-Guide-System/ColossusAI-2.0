@@ -52,15 +52,6 @@ export default function SignInPage() {
       password: true,
     });
 
-    // Validate all required fields
-    if (!email || !password) {
-      setFormStatus({
-        type: 'error',
-        message: "Please fill in all required fields"
-      });
-      return;
-    }
-
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {

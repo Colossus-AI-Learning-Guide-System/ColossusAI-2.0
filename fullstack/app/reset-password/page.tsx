@@ -130,39 +130,55 @@ export default function ResetPasswordPage() {
     }
   };
 
+  // Helper function to show only the first failing password requirement
+  const getFailingRequirementMessage = () => {
+    if (!password) return null;
+    
+    if (password.length < 8) {
+      return "Password must be at least 8 characters.";
+    }
+    if (!/\d/.test(password)) {
+      return "Password must include at least one number.";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must include at least one special character.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must include at least one uppercase letter.";
+    }
+    return null;
+  };
+
   // Helper function to show password requirements with validation status
-  const renderPasswordRequirements = () => (
-    <div className="text-xs space-y-2 mt-2">
-      <p className="text-gray-500">Password requirements:</p>
-      <ul className="space-y-1">
-        {[
-          { text: "At least 8 characters", test: (p: string) => p.length >= 8 },
-          { text: "At least one number", test: (p: string) => /\d/.test(p) },
-          { text: "At least one special character (!@#$%^&*)", test: (p: string) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
-          { text: "At least one uppercase letter", test: (p: string) => /[A-Z]/.test(p) }
-        ].map((req, index) => (
-          <li 
-            key={index}
-            className={cn(
-              "flex items-center gap-2",
-              isPasswordTouched 
-                ? req.test(password)
-                  ? "text-green-600"
-                  : "text-red-500"
-                : "text-gray-500"
-            )}
-          >
-            {isPasswordTouched && (
-              <span>
-                {req.test(password) ? "✓" : "×"}
-              </span>
-            )}
-            {req.text}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const renderPasswordRequirements = () => {
+    // Only show requirements if password is touched and there are validation errors
+    if (!isPasswordTouched || validationErrors.length === 0) return null;
+
+    return (
+      <div className="text-xs text-red-500 flex items-center gap-3 mt-1">
+        <span>Password requirements:</span>
+        <div className="flex items-center gap-3">
+          {[
+            { text: "8+ chars", test: (p: string) => p.length >= 8 },
+            { text: "1 number", test: (p: string) => /\d/.test(p) },
+            { text: "1 special char", test: (p: string) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
+            { text: "1 uppercase", test: (p: string) => /[A-Z]/.test(p) }
+          ].map((req, index) => (
+            <div 
+              key={index}
+              className={cn(
+                "flex items-center gap-1",
+                req.test(password) ? "text-green-500" : "text-red-500"
+              )}
+            >
+              <span>{req.test(password) ? "✓" : "×"}</span>
+              <span>{req.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -207,43 +223,60 @@ export default function ResetPasswordPage() {
             )}
 
             <div className="space-y-5">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor={`${id}-password`} className="text-sm font-medium">
                   New Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-password`}
-                  placeholder="Enter your new password"
-                  type="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onFocus={() => setIsPasswordTouched(true)}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    validationErrors.length > 0 && isPasswordTouched && "border-red-500"
-                  )}
-                />
-                {renderPasswordRequirements()}
+                <div className="relative">
+                  <Input
+                    id={`${id}-password`}
+                    placeholder="Enter your new password"
+                    type="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onFocus={() => setIsPasswordTouched(true)}
+                    className={cn(
+                      "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                      validationErrors.length > 0 && isPasswordTouched && "border-red-500"
+                    )}
+                  />
+                  <div className="min-h-[20px] mt-1">
+                    {isPasswordTouched && password && getFailingRequirementMessage() && (
+                      <p className="text-xs text-red-500">
+                        {getFailingRequirementMessage()}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor={`${id}-confirm-password`} className="text-sm font-medium">
                   Confirm New Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`${id}-confirm-password`}
-                  placeholder="Confirm your new password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    setError(null);
-                  }}
-                  className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    error && error.includes("match") && "border-red-500"
-                  )}
-                />
+                <div className="relative">
+                  <Input
+                    id={`${id}-confirm-password`}
+                    placeholder="Confirm your new password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setError(null);
+                    }}
+                    className={cn(
+                      "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                      error && error.includes("match") && "border-red-500"
+                    )}
+                  />
+                  <div className="min-h-[20px] mt-1">
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-xs text-red-500">
+                        Please re-enter your password for confirmation.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
