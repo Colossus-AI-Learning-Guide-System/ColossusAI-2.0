@@ -13,6 +13,8 @@ export default function SettingsPage() {
 
   return (
     <SettingsPanel
+      isOpen={true}
+      onClose={() => {}}
       fullName={fullName}
       setFullName={setFullName}
       username={username}

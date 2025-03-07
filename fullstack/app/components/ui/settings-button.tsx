@@ -11,7 +11,7 @@ const mockUserData = {
   subscription: "free", // User is on free tier
   featureFlags: {
     securitySettings: true,
-    memoryManagement: false, // Memory feature is not yet available
+    memoryManagement: true, // Memory feature is not yet available
   },
 }
 

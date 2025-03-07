@@ -13,18 +13,9 @@ export default function UpgradePlanPage() {
 
   return (
     <SettingsPanel
-      fullName={fullName}
-      setFullName={setFullName}
-      username={username}
-      setUsername={setUsername}
-      email={email}
-      setEmail={setEmail}
-      cardData={cardData}
-      setCardData={setCardData}
-      currentPlan={currentPlan}
-      setCurrentPlan={setCurrentPlan}
-      cardAdded={cardAdded}
-      setCardAdded={setCardAdded}
+      isOpen={true}
+      onClose={() => {}}
+      userSubscription={currentPlan}
       defaultPanel="upgradePlan"
     />
   )

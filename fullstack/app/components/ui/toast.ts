@@ -36,6 +36,4 @@ export function showToast(title: string, description?: string, variant?: "defaul
         document.body.removeChild(toast)
       }, 300)
     }, 3000)
-  }
-  
-  
+}  

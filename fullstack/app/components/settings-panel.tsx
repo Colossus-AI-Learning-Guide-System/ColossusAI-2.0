@@ -7,9 +7,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { X, Camera, Check } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
 import { supabase } from "../utils/supabaseClient"
+import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
+import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
+import Image from "next/image"
+import { Button } from "@/app/components/ui/button"
 
 type SettingsTab = "general" | "upgrade" | "memory" | "security"
-type PlanType = "free" | "pro" | "enterprise" | null
+export type PlanType = "free" | "pro" | "enterprise" | null
 
 interface SettingsPanelProps {
   isOpen: boolean
@@ -20,14 +24,41 @@ interface SettingsPanelProps {
     securitySettings: boolean
     memoryManagement: boolean
   }
+  fullName?: string
+  setFullName?: (value: string) => void
+  username?: string
+  setUsername?: (value: string) => void
+  email?: string
+  setEmail?: (value: string) => void
+  cardData?: any
+  setCardData?: (value: any) => void
+  currentPlan?: string
+  setCurrentPlan?: (value: string) => void
+  cardAdded?: boolean
+  setCardAdded?: (value: boolean) => void
+  defaultPanel?: string
 }
 
+// Update the default props for featureFlags
 export function SettingsPanel({
   isOpen,
   onClose,
   userPermissions = [],
   userSubscription = "free",
-  featureFlags = { securitySettings: true, memoryManagement: true },
+  featureFlags = { securitySettings: true, memoryManagement: true }, // Ensure memoryManagement is true by default
+  fullName,
+  setFullName,
+  username,
+  setUsername,
+  email,
+  setEmail,
+  cardData,
+  setCardData,
+  currentPlan,
+  setCurrentPlan,
+  cardAdded,
+  setCardAdded,
+  defaultPanel,
 }: SettingsPanelProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -35,7 +66,7 @@ export function SettingsPanel({
   const [memoryEnabled, setMemoryEnabled] = useState(true)
   const [storageUsed, setStorageUsed] = useState(45) // percentage
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>(null)
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>("free")
   const [isLoading, setIsLoading] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -48,6 +79,13 @@ export function SettingsPanel({
     fullName: "",
     username: "",
     email: "",
+  })
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [storageStats, setStorageStats] = useState<StorageStats>({
+    usedStorage: 0,
+    maxStorage: STORAGE_LIMITS.free,
+    isMemoryEnabled: false,
   })
 
   // Update URL when tab changes
@@ -120,6 +158,29 @@ export function SettingsPanel({
 
     if (isOpen && activeTab === "general") {
       fetchUserData()
+    }
+  }, [isOpen, activeTab])
+
+  useEffect(() => {
+    async function fetchAvatar() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (user) {
+          const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
+
+          if (data?.avatar_url) {
+            setAvatarUrl(data.avatar_url)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching avatar:", error)
+      }
+    }
+
+    if (isOpen && activeTab === "general") {
+      fetchAvatar()
     }
   }, [isOpen, activeTab])
 
@@ -259,28 +320,36 @@ export function SettingsPanel({
       } = await supabase.auth.getUser()
 
       if (user) {
-        const fileExt = file.name.split(".").pop()
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`
+        // First, upload to local storage
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+          const dataUrl = event.target?.result as string
+          setAvatarUrl(dataUrl) // Update UI immediately
 
-        const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file)
+          // Then upload to Supabase
+          const fileExt = file.name.split(".").pop()
+          const fileName = `${user.id}-${Date.now()}.${fileExt}`
 
-        if (uploadError) throw uploadError
+          const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file)
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("avatars").getPublicUrl(fileName)
+          if (uploadError) throw uploadError
 
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ avatar_url: publicUrl })
-          .eq("id", user.id)
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("avatars").getPublicUrl(fileName)
 
-        if (updateError) throw updateError
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({ avatar_url: publicUrl })
+            .eq("id", user.id)
 
-        showToast("Photo uploaded", "Your profile photo has been updated successfully.")
-      } else {
-        // For demo purposes, show success anyway
-        showToast("Demo mode", "In a real app, your photo would be uploaded now.")
+          if (updateError) throw updateError
+
+          setAvatarUrl(publicUrl)
+          showToast("Photo uploaded", "Your profile photo has been updated successfully.")
+        }
+
+        reader.readAsDataURL(file)
       }
     } catch (error) {
       console.error("Error uploading photo:", error)
@@ -290,9 +359,52 @@ export function SettingsPanel({
     }
   }
 
+  useEffect(() => {
+    async function fetchStorageStats() {
+      if (activeTab === "memory") {
+        const stats = await getStorageStats()
+        setStorageStats(stats)
+      }
+    }
+
+    fetchStorageStats()
+  }, [activeTab])
+
+  const handleMemoryToggle = async (enabled: boolean) => {
+    setIsLoading(true)
+    try {
+      const success = await toggleMemory(enabled)
+      if (success) {
+        setStorageStats((prev) => ({ ...prev, isMemoryEnabled: enabled }))
+        showToast("Memory settings updated", `File storage has been ${enabled ? "enabled" : "disabled"}.`)
+      }
+    } catch (error) {
+      console.error("Error toggling memory:", error)
+      showToast("Update failed", "Could not update memory settings.", "destructive")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleClearData = async () => {
+    setIsLoading(true)
+    try {
+      const success = await clearUserData()
+      if (success) {
+        setStorageStats((prev) => ({ ...prev, usedStorage: 0 }))
+        showToast("Data cleared", "All uploaded files have been removed.")
+      }
+    } catch (error) {
+      console.error("Error clearing data:", error)
+      showToast("Clear failed", "Could not clear uploaded data.", "destructive")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   if (!isOpen) return null
 
-  return (
+        return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="flex w-full max-w-4xl h-[600px] overflow-hidden rounded-lg bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-xl">
         {/* Navigation sidebar */}
@@ -319,7 +431,6 @@ export function SettingsPanel({
               className={`rounded-lg p-4 text-left transition ${
                 activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
-              disabled={!featureFlags.memoryManagement}
             >
               Memory
             </button>
@@ -328,7 +439,6 @@ export function SettingsPanel({
               className={`rounded-lg p-4 text-left transition ${
                 activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
-              disabled={!featureFlags.securitySettings}
             >
               Security
             </button>
@@ -353,16 +463,26 @@ export function SettingsPanel({
             {activeTab === "general" && (
               <div className="flex flex-col space-y-6">
                 <div className="flex justify-center">
-                  <div className="relative">
+              <div className="relative">
                     <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
-                      <span>No image</span>
-                    </div>
-                    <button
+                      {avatarUrl ? (
+                        <Image
+                          src={avatarUrl || "/placeholder.svg"}
+                          alt="Profile"
+                          width={96}
+                          height={96}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span>No image</span>
+                  )}
+                </div>
+                <button
                       onClick={handlePhotoUpload}
                       className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black"
                     >
                       <Camera className="h-4 w-4" />
-                    </button>
+                </button>
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -370,34 +490,34 @@ export function SettingsPanel({
                       accept="image/*"
                       onChange={handleFileChange}
                     />
-                  </div>
-                </div>
+              </div>
+            </div>
 
                 <div className="space-y-4">
-                  <div>
+              <div>
                     <label className="mb-2 block">Full Name</label>
-                    <Input
-                      name="fullName"
+                <Input
+                  name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
                     {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
-                  </div>
-                  <div>
+              </div>
+              <div>
                     <label className="mb-2 block">Username</label>
-                    <Input
+                <Input
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
                     {formErrors.username && <p className="mt-1 text-sm text-red-400">{formErrors.username}</p>}
-                  </div>
-                  <div>
+              </div>
+              <div>
                     <label className="mb-2 block">Email</label>
-                    <Input
-                      name="email"
+                <Input
+                  name="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
@@ -523,19 +643,22 @@ export function SettingsPanel({
               <div className="flex flex-col space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl">Memory</h3>
-                  <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 data-[state=checked]:bg-green-500">
+                  <div
+                    className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 data-[state=checked]:bg-green-500 cursor-pointer"
+                    onClick={() => handleMemoryToggle(!storageStats.isMemoryEnabled)}
+                  >
                     <span
-                      className={`pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-[22px]`}
-                      data-state={memoryEnabled ? "checked" : "unchecked"}
-                      onClick={() => setMemoryEnabled(!memoryEnabled)}
+                      className={`pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow-lg ring-0 transition-transform ${
+                        storageStats.isMemoryEnabled ? "translate-x-[22px]" : ""
+                      }`}
                     />
                   </div>
                 </div>
 
                 <p className="text-sm">
-                  Colossus.AI will save your Added file data upto your Plan storage
+                  Colossus.AI will save your Added file data up to your Plan storage
                   <br />
-                  By turn off the Memory will not save the uploading file data.
+                  By turning off the Memory, new file uploads will not be saved.
                 </p>
 
                 <div className="space-y-2">
@@ -544,16 +667,26 @@ export function SettingsPanel({
                     <div className="h-full w-full bg-blue-900">
                       <div
                         className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all"
-                        style={{ width: `${storageUsed}%` }}
+                        style={{ width: `${(storageStats.usedStorage / storageStats.maxStorage) * 100}%` }}
                       />
                     </div>
                   </div>
-                  <div className="text-right">5.5 MB Free</div>
+                  <div className="flex justify-between text-sm">
+                    <span>{(storageStats.usedStorage / (1024 * 1024)).toFixed(1)}MB used</span>
+                    <span>{(storageStats.maxStorage / (1024 * 1024)).toFixed(0)}MB total</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span>Clear the uploaded Data</span>
-                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Clear</button>
+              <Button
+                    variant="outline"
+                    className="bg-white text-black hover:bg-gray-200"
+                    onClick={handleClearData}
+                    disabled={isLoading || storageStats.usedStorage === 0}
+                  >
+                    {isLoading ? "Clearing..." : "Clear"}
+              </Button>
                 </div>
               </div>
             )}
