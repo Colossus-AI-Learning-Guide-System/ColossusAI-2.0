@@ -181,20 +181,74 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen w-full">
       {/* Left section with gradient background */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B6B] via-[#FF3399] to-[#9933FF] p-12">
-        <div className="flex flex-col justify-center text-white max-w-xl">
-          <h1 className="text-4xl font-bold mb-4">Reset Password</h1>
-          <p className="text-lg opacity-90">Create a new password for your account</p>
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-800 via-purple-700 to-blue-600 p-4 lg:p-8 overflow-hidden">
+        <div className="flex flex-col justify-between text-white max-w-xl w-full h-full">
+          <div>
+            <h1 className="text-8xl font-bold tracking-tight text-white/90 mt-8">Reset Password</h1>
+          </div>
         </div>
+        
+        {/* Instruction content positioned to avoid logo overlap */}
+        <div className="absolute top-1/2 right-14 max-w-md space-y-6 text-white/80">
+          <h2 className="text-2xl font-semibold">Create a New Password</h2>
+          <div className="space-y-4">
+            <p className="text-lg">Tips for a strong, secure password:</p>
+            <ul className="space-y-2">
+              <li className="flex items-center">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mr-3 text-sm">🔒</span>
+                <span>Use at least 8 characters</span>
+              </li>
+              <li className="flex items-center">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mr-3 text-sm">🔒</span>
+                <span>Include uppercase and lowercase letters</span>
+              </li>
+              <li className="flex items-center">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mr-3 text-sm">🔒</span>
+                <span>Add numbers and special characters</span>
+              </li>
+              <li className="flex items-center">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mr-3 text-sm">🔒</span>
+                <span>Avoid using personal information</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Large wheel logo positioned to show only half */}
+        <div className="absolute -left-64 bottom-0 w-[500px] h-[500px]">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain logo-rotate"
+          />
+        </div>
+        
         {/* Decorative circles */}
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/4 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-16 lg:w-32 h-16 lg:h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/4 right-0 w-12 lg:w-24 h-12 lg:h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        
+        {/* Add logo rotation animation */}
+        <style jsx global>{`
+          .logo-rotate {
+            animation: rotate 10s linear infinite;
+          }
+          
+          @keyframes rotate {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </div>
 
       {/* Right section with form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6">
         <div className="w-full max-w-md space-y-8">
           <div className="flex flex-col items-center gap-2">
             <div className="w-[60px] h-[60px] relative mb-4">
@@ -236,8 +290,8 @@ export default function ResetPasswordPage() {
                     onChange={handlePasswordChange}
                     onFocus={() => setIsPasswordTouched(true)}
                     className={cn(
-                      "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                      validationErrors.length > 0 && isPasswordTouched && "border-red-500"
+                      "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
+                      validationErrors.length > 0 && isPasswordTouched && "border-red-500 focus:border-red-500 focus:ring-red-200"
                     )}
                   />
                   <div className="min-h-[20px] mt-1">
@@ -265,8 +319,8 @@ export default function ResetPasswordPage() {
                       setError(null);
                     }}
                     className={cn(
-                      "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                      error && error.includes("match") && "border-red-500"
+                      "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
+                      error && error.includes("match") && "border-red-500 focus:border-red-500 focus:ring-red-200"
                     )}
                   />
                   <div className="min-h-[20px] mt-1">
@@ -282,18 +336,15 @@ export default function ResetPasswordPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
+              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl"
               disabled={loading || (isPasswordTouched && validationErrors.length > 0)}
             >
               {loading ? "Resetting password..." : "Reset Password"}
             </Button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="signin-link text-center">
               Remember your password?{" "}
-              <Link
-                href="/signin"
-                className="text-purple-600 hover:text-purple-500 font-medium"
-              >
+              <Link href="/signin">
                 Sign in
               </Link>
             </p>

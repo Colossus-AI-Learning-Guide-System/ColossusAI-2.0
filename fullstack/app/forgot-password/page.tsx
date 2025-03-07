@@ -148,20 +148,74 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen w-full">
       {/* Left section with gradient background */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B6B] via-[#FF3399] to-[#9933FF] p-12">
-        <div className="flex flex-col justify-center text-white max-w-xl">
-          <h1 className="text-4xl font-bold mb-4">Reset Password</h1>
-          <p className="text-lg opacity-90">Enter your email to receive password reset instructions</p>
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-800 via-purple-700 to-blue-600 p-4 lg:p-8 overflow-hidden">
+        <div className="flex flex-col justify-between text-white max-w-xl w-full h-full">
+          <div>
+            <h1 className="text-8xl font-bold tracking-tight text-white/90 mt-8">Forgot Password</h1>
+          </div>
         </div>
+        
+        {/* Instruction content positioned to avoid logo overlap */}
+        <div className="absolute top-1/2 right-14 max-w-md space-y-6 text-white/80">
+          <h2 className="text-2xl font-semibold">Password Recovery</h2>
+          <div className="space-y-4">
+            <p className="text-lg">Follow these simple steps to reset your password:</p>
+            <ul className="space-y-2">
+              <li className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Enter your email address</span>
+              </li>
+              <li className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Check your inbox for a reset link</span>
+              </li>
+              <li className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Create a new secure password</span>
+              </li>
+              <li className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Log in with your new credentials</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Large wheel logo positioned to show only half */}
+        <div className="absolute -left-64 bottom-0 w-[500px] h-[500px]">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain logo-rotate"
+          />
+        </div>
+        
         {/* Decorative circles */}
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/4 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-16 lg:w-32 h-16 lg:h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/4 right-0 w-12 lg:w-24 h-12 lg:h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        
+        {/* Add logo rotation animation */}
+        <style jsx global>{`
+          .logo-rotate {
+            animation: rotate 10s linear infinite;
+          }
+          
+          @keyframes rotate {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </div>
 
       {/* Right section with form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6">
         <div className="w-full max-w-md space-y-8">
           <div className="flex flex-col items-center gap-2">
             <div className="w-[60px] h-[60px] relative mb-4">
@@ -182,30 +236,37 @@ export default function ForgotPasswordPage() {
           </div>
 
           {success ? (
-            <div className="text-center space-y-4">
-              <ValidationMessage
-                type="success"
-                message={successMessage || ""}
-              />
-              <p className="text-sm text-gray-600">
-                Didn't receive the email?{" "}
+            <div className="text-center bg-white/60 backdrop-blur-sm p-6 rounded-3xl border-2 border-purple-100 shadow-sm space-y-6">
+              <div className="flex justify-center mb-2">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <h2 className="text-xl font-medium text-gray-800">Check Your Email</h2>
+              <p className="text-sm text-gray-600 max-w-sm mx-auto">
+                {successMessage || "We've sent password reset instructions to your email."}
+              </p>
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-sm text-gray-700 mb-4">
+                  Didn't receive the email?
+                </p>
                 <button
                   onClick={handleResendClick}
                   className={cn(
-                    "text-purple-600 hover:text-purple-500 font-medium",
+                    "w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white font-medium rounded-3xl transition-colors",
                     timeRemaining > 0 && "cursor-not-allowed opacity-50"
                   )}
                   disabled={loading || timeRemaining > 0}
                 >
                   {renderResendButton()}
                 </button>
-              </p>
-              <p className="text-sm text-gray-600">
+              </div>
+              <p className="signin-link text-center mt-4">
                 Remember your password?{" "}
-                <Link
-                  href="/signin"
-                  className="text-purple-600 hover:text-purple-500 font-medium"
-                >
+                <Link href="/signin">
                   Sign in
                 </Link>
               </p>
@@ -230,8 +291,8 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    error && "border-red-500"
+                    "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
+                    error && "border-red-500 focus:border-red-500 focus:ring-red-200"
                   )}
                 />
                 {timeRemaining > 0 && (
@@ -243,18 +304,15 @@ export default function ForgotPasswordPage() {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
+                className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl"
                 disabled={loading || timeRemaining > 0}
               >
                 {loading ? "Sending instructions..." : "Send Reset Instructions"}
               </Button>
 
-              <p className="text-center text-sm text-gray-600">
+              <p className="signin-link text-center">
                 Remember your password?{" "}
-                <Link
-                  href="/signin"
-                  className="text-purple-600 hover:text-purple-500 font-medium"
-                >
+                <Link href="/signin">
                   Sign in
                 </Link>
               </p>

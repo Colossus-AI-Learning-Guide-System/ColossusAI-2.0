@@ -144,20 +144,73 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen w-full">
       {/* Left section with gradient background */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#FF6B6B] via-[#FF3399] to-[#9933FF] p-12">
-        <div className="flex flex-col justify-center text-white max-w-xl">
-          <h1 className="text-4xl font-bold mb-4">WELCOME</h1>
-          <p className="text-lg opacity-90">Sign in to continue your journey with ColossusAI</p>
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-800 via-purple-700 to-blue-600 p-4 lg:p-8 overflow-hidden">
+        <div className="flex flex-col justify-between text-white max-w-xl w-full h-full">
+          <div>
+            <h1 className="text-8xl font-bold tracking-tight text-white/90 mt-8">Sign-in</h1>
+          </div>
         </div>
+        
+        {/* Instruction content positioned to avoid logo overlap */}
+        <div className="absolute top-1/2 right-14 max-w-md space-y-6 text-white/80">
+          <h2 className="text-2xl font-semibold">Welcome Back</h2>
+          <div className="space-y-4">
+            <p className="text-lg">Unlock the power of Colossus AI:</p>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Transform unstructured documents into clear, AI-powered study roadmaps</span>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Extract key insights and organize them efficiently</span>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>                <span>Access step-by-step learning plans for focused studying</span>
+              </li>
+              <li className="flex items-start">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span>Collaborate with AI to enhance your learning journey</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Large wheel logo positioned to show only half */}
+        <div className="absolute -left-64 bottom-0 w-[500px] h-[500px]">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            fill
+            className="object-contain logo-rotate"
+          />
+        </div>
+        
         {/* Decorative circles */}
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/4 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-16 lg:w-32 h-16 lg:h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/4 right-0 w-12 lg:w-24 h-12 lg:h-24 bg-white/10 rounded-full translate-x-1/2"></div>
+        
+        {/* Add logo rotation animation */}
+        <style jsx global>{`
+          .logo-rotate {
+            animation: rotate 10s linear infinite;
+          }
+          
+          @keyframes rotate {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </div>
 
       {/* Right section with sign in form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6">
         <div className="w-full max-w-md space-y-8">
           <div className="flex flex-col items-center gap-2">
             <div className="w-[60px] h-[60px] relative mb-4">
@@ -170,7 +223,7 @@ export default function SignInPage() {
               />
             </div>
             <div className="space-y-1.5 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">Welcome back</h1>
             </div>
           </div>
 
@@ -178,7 +231,7 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => handleOAuthSignIn("google")}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 border-2 border-gray-300"
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path
@@ -204,7 +257,7 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => handleOAuthSignIn("github")}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 border-2 border-gray-300"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
@@ -242,8 +295,8 @@ export default function SignInPage() {
                   onChange={handleEmailChange}
                   onBlur={() => handleBlur('email')}
                   className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.email && !email && "border-red-500"
+                    "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
+                    touchedFields.email && !email && "border-red-500 focus:border-red-500 focus:ring-red-200"
                   )}
                 />
                 {touchedFields.email && !email && (
@@ -271,8 +324,8 @@ export default function SignInPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => handleBlur('password')}
                   className={cn(
-                    "h-11 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
-                    touchedFields.password && !password && "border-red-500"
+                    "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
+                    touchedFields.password && !password && "border-red-500 focus:border-red-500 focus:ring-red-200"
                   )}
                 />
                 {touchedFields.password && !password && (
@@ -288,7 +341,7 @@ export default function SignInPage() {
               <div className="flex items-center gap-2">
                 <Checkbox 
                   id={`${id}-remember`} 
-                  className="rounded border-gray-300"
+                  className="rounded border-2 border-[#b066ff] text-purple-600 focus:ring-2 focus:ring-purple-300"
                   checked={isRememberMe}
                   onCheckedChange={(checked) => setIsRememberMe(checked as boolean)}
                 />
@@ -301,7 +354,7 @@ export default function SignInPage() {
               </div>
               <Link
                 href="/forgot-password"
-                className="text-sm text-purple-600 hover:text-purple-500"
+                className="text-sm text-purple-600 hover:text-purple-500 font-medium"
               >
                 Forgot Password?
               </Link>
@@ -309,18 +362,15 @@ export default function SignInPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-lg"
+              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="signin-link text-center">
               Don't have an account?{" "}
-              <Link
-                href="/signup"
-                className="text-purple-600 hover:text-purple-500 font-medium"
-              >
+              <Link href="/signup">
                 Sign up
               </Link>
             </p>
