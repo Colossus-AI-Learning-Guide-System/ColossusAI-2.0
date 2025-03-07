@@ -2,31 +2,52 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { X, Camera, Check } from "lucide-react"
-import { Switch } from "@/app/components/ui/switch"
-import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
-import { Progress } from "@/app/components/ui/progress"
+import { supabase } from "../utils/supabaseClient"
 
 type SettingsTab = "general" | "upgrade" | "memory" | "security"
+type PlanType = "free" | "pro" | "enterprise" | null
 
 interface SettingsPanelProps {
   isOpen: boolean
   onClose: () => void
+  userPermissions?: string[]
+  userSubscription?: string
+  featureFlags?: {
+    securitySettings: boolean
+    memoryManagement: boolean
+  }
 }
 
-export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  isOpen,
+  onClose,
+  userPermissions = [],
+  userSubscription = "free",
+  featureFlags = { securitySettings: true, memoryManagement: true },
+}: SettingsPanelProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<SettingsTab>("general")
   const [memoryEnabled, setMemoryEnabled] = useState(true)
   const [storageUsed, setStorageUsed] = useState(45) // percentage
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
   const [formData, setFormData] = useState({
-    fullName: "John Doe",
-    username: "johndoe",
-    email: "john@example.com",
+    fullName: "",
+    username: "",
+    email: "",
+  })
+
+  const [formErrors, setFormErrors] = useState({
+    fullName: "",
+    username: "",
+    email: "",
   })
 
   // Update URL when tab changes
@@ -50,16 +71,230 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
   }, [isOpen, searchParams])
 
-  if (!isOpen) return null
+  // Fetch user data from Supabase
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        setIsLoading(true)
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+          if (data) {
+            setFormData({
+              fullName: data.full_name || "",
+              username: data.username || "",
+              email: data.email || user.email || "",
+            })
+          } else {
+            // If no profile exists yet, just use the email from auth
+            setFormData((prev) => ({
+              ...prev,
+              email: user.email || "",
+            }))
+          }
+        } else {
+          // For demo purposes, set some placeholder data
+          setFormData({
+            fullName: "Demo User",
+            username: "demouser",
+            email: "demo@example.com",
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+        // For demo purposes, set some placeholder data
+        setFormData({
+          fullName: "Demo User",
+          username: "demouser",
+          email: "demo@example.com",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (isOpen && activeTab === "general") {
+      fetchUserData()
+    }
+  }, [isOpen, activeTab])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Clear error when user types
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors((prev) => ({ ...prev, [name]: "" }))
+    }
   }
+
+  const validateForm = () => {
+    let isValid = true
+    const errors = { fullName: "", username: "", email: "" }
+
+    // Validate full name
+    if (!formData.fullName.trim()) {
+      errors.fullName = "Full name is required"
+      isValid = false
+    } else if (formData.fullName.length < 2) {
+      errors.fullName = "Full name must be at least 2 characters"
+      isValid = false
+    }
+
+    // Validate username
+    if (!formData.username.trim()) {
+      errors.username = "Username is required"
+      isValid = false
+    } else if (formData.username.length < 3) {
+      errors.username = "Username must be at least 3 characters"
+      isValid = false
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      errors.username = "Username can only contain letters, numbers, and underscores"
+      isValid = false
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      errors.email = "Email is required"
+      isValid = false
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Please enter a valid email address"
+      isValid = false
+    }
+
+    setFormErrors(errors)
+    return isValid
+  }
+
+  // Simple toast function
+  const showToast = (title: string, description?: string, variant?: "default" | "destructive") => {
+    console.log(`[Toast - ${variant || "default"}] ${title}${description ? ": " + description : ""}`)
+
+    // Create a temporary toast element
+    const toast = document.createElement("div")
+    toast.className = `fixed bottom-4 right-4 p-4 rounded-md shadow-lg z-50 ${
+      variant === "destructive" ? "bg-red-600" : "bg-green-600"
+    } text-white max-w-md transition-all duration-300 transform translate-y-2 opacity-0`
+
+    const titleEl = document.createElement("h3")
+    titleEl.className = "font-bold"
+    titleEl.textContent = title
+    toast.appendChild(titleEl)
+
+    if (description) {
+      const descEl = document.createElement("p")
+      descEl.className = "text-sm mt-1"
+      descEl.textContent = description
+      toast.appendChild(descEl)
+    }
+
+    document.body.appendChild(toast)
+
+    // Animate in
+    setTimeout(() => {
+      toast.classList.remove("translate-y-2", "opacity-0")
+    }, 10)
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0")
+      setTimeout(() => {
+        document.body.removeChild(toast)
+      }, 300)
+    }, 3000)
+  }
+
+  const handleSaveChanges = async () => {
+    if (activeTab === "general") {
+      if (!validateForm()) return
+
+      try {
+        setIsLoading(true)
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          const { error } = await supabase.from("profiles").upsert({
+            id: user.id,
+            full_name: formData.fullName,
+            username: formData.username,
+            email: formData.email,
+            updated_at: new Date().toISOString(),
+          })
+
+          if (error) throw error
+
+          showToast("Profile updated", "Your profile information has been updated successfully.")
+        } else {
+          // For demo purposes, show success anyway
+          showToast("Demo mode", "In a real app, your profile would be updated now.")
+        }
+      } catch (error) {
+        console.error("Error updating profile:", error)
+        showToast("Update failed", "There was a problem updating your profile.", "destructive")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
+  const handlePhotoUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsLoading(true)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        const fileExt = file.name.split(".").pop()
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`
+
+        const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file)
+
+        if (uploadError) throw uploadError
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("avatars").getPublicUrl(fileName)
+
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ avatar_url: publicUrl })
+          .eq("id", user.id)
+
+        if (updateError) throw updateError
+
+        showToast("Photo uploaded", "Your profile photo has been updated successfully.")
+      } else {
+        // For demo purposes, show success anyway
+        showToast("Demo mode", "In a real app, your photo would be uploaded now.")
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error)
+      showToast("Upload failed", "There was a problem uploading your photo.", "destructive")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="flex w-full max-w-4xl overflow-hidden rounded-lg bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-xl">
+      <div className="flex w-full max-w-4xl h-[600px] overflow-hidden rounded-lg bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-xl">
         {/* Navigation sidebar */}
         <div className="w-64 border-r border-blue-700/50 p-4">
           <nav className="flex flex-col space-y-2">
@@ -84,6 +319,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               className={`rounded-lg p-4 text-left transition ${
                 activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
+              disabled={!featureFlags.memoryManagement}
             >
               Memory
             </button>
@@ -92,6 +328,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               className={`rounded-lg p-4 text-left transition ${
                 activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
+              disabled={!featureFlags.securitySettings}
             >
               Security
             </button>
@@ -120,9 +357,19 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
                       <span>No image</span>
                     </div>
-                    <button className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black">
+                    <button
+                      onClick={handlePhotoUpload}
+                      className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black"
+                    >
                       <Camera className="h-4 w-4" />
                     </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
                   </div>
                 </div>
 
@@ -135,6 +382,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
+                    {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
                   </div>
                   <div>
                     <label className="mb-2 block">Username</label>
@@ -144,6 +392,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
+                    {formErrors.username && <p className="mt-1 text-sm text-red-400">{formErrors.username}</p>}
                   </div>
                   <div>
                     <label className="mb-2 block">Email</label>
@@ -153,6 +402,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       onChange={handleInputChange}
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
+                    {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
                   </div>
                 </div>
               </div>
@@ -166,7 +416,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
                 <div className="grid grid-cols-3 gap-4">
                   {/* Free Plan */}
-                  <div className="rounded-lg border-2 border-white/30 bg-blue-950/50 p-4 flex flex-col">
+                  <div
+                    className={`rounded-lg border-2 ${selectedPlan === "free" ? "border-white" : "border-white/30"} bg-blue-950/50 p-4 flex flex-col cursor-pointer transition-all`}
+                    onClick={() => setSelectedPlan("free")}
+                  >
                     <h3 className="text-xl font-bold text-center mb-2">Free</h3>
                     <div className="text-center border-b border-white/20 pb-2 mb-4">
                       <span className="text-3xl font-bold">$0.00</span>
@@ -193,11 +446,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   </div>
 
                   {/* Pro Plan */}
-                  <div className="rounded-lg border-2 border-purple-500 bg-blue-950/50 p-4 flex flex-col relative">
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 px-4 py-1 rounded-full text-sm font-bold">
+                  <div
+                    className={`rounded-lg border-2 ${selectedPlan === "pro" ? "border-white" : "border-purple-500"} bg-blue-950/50 p-4 flex flex-col relative cursor-pointer transition-all`}
+                    onClick={() => setSelectedPlan("pro")}
+                  >
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap">
                       Most Popular
                     </div>
-                    <h3 className="text-xl font-bold text-center mb-2">Pro</h3>
+                    <h3 className="text-xl font-bold text-center mb-2 mt-2">Pro</h3>
                     <div className="text-center border-b border-white/20 pb-2 mb-4">
                       <span className="text-3xl font-bold">$9.99</span>
                       <p className="text-sm text-white/70">monthly</p>
@@ -227,7 +483,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   </div>
 
                   {/* Enterprise Plan */}
-                  <div className="rounded-lg border-2 border-white/30 bg-blue-950/50 p-4 flex flex-col">
+                  <div
+                    className={`rounded-lg border-2 ${selectedPlan === "enterprise" ? "border-white" : "border-white/30"} bg-blue-950/50 p-4 flex flex-col cursor-pointer transition-all`}
+                    onClick={() => setSelectedPlan("enterprise")}
+                  >
                     <h3 className="text-xl font-bold text-center mb-2">Enterprise</h3>
                     <div className="text-center border-b border-white/20 pb-2 mb-4">
                       <span className="text-3xl font-bold">$14.99</span>
@@ -264,11 +523,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               <div className="flex flex-col space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl">Memory</h3>
-                  <Switch
-                    checked={memoryEnabled}
-                    onCheckedChange={setMemoryEnabled}
-                    className="data-[state=checked]:bg-green-500"
-                  />
+                  <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 data-[state=checked]:bg-green-500">
+                    <span
+                      className={`pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-[22px]`}
+                      data-state={memoryEnabled ? "checked" : "unchecked"}
+                      onClick={() => setMemoryEnabled(!memoryEnabled)}
+                    />
+                  </div>
                 </div>
 
                 <p className="text-sm">
@@ -280,20 +541,19 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 <div className="space-y-2">
                   <h3 className="text-lg">Your current Plan storage</h3>
                   <div className="relative h-8 w-full overflow-hidden rounded-lg border border-white/20">
-                    <Progress
-                      value={storageUsed}
-                      className="h-full bg-blue-900"
-                      indicatorClassName="bg-gradient-to-r from-blue-600 to-purple-600"
-                    />
+                    <div className="h-full w-full bg-blue-900">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all"
+                        style={{ width: `${storageUsed}%` }}
+                      />
+                    </div>
                   </div>
                   <div className="text-right">5.5 MB Free</div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span>Clear the uploaded Data</span>
-                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-                    Clear
-                  </Button>
+                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Clear</button>
                 </div>
               </div>
             )}
@@ -302,23 +562,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               <div className="flex flex-col space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl">Change passsword</h3>
-                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-                    Change
-                  </Button>
+                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Change</button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl">Log out from All Devices</h3>
-                  <Button variant="outline" className="bg-white text-black hover:bg-gray-200">
-                    Logout
-                  </Button>
+                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Logout</button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl">Delete Accounts</h3>
-                  <Button variant="destructive" className="bg-red-500 hover:bg-red-600">
-                    Delete
-                  </Button>
+                  <button className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600">Delete</button>
                 </div>
               </div>
             )}
@@ -326,13 +580,32 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div className="border-t border-blue-700/50 p-6">
             {activeTab === "upgrade" ? (
-              <Button className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+              <button
+                className={`w-full h-12 rounded-md ${
+                  ["pro", "enterprise"].includes(selectedPlan as string)
+                    ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                    : "bg-gray-500 cursor-not-allowed"
+                } text-white`}
+                disabled={!["pro", "enterprise"].includes(selectedPlan as string)}
+                onClick={() => {
+                  if (["pro", "enterprise"].includes(selectedPlan as string)) {
+                    // Handle payment process
+                    showToast("Proceeding to payment", `You selected the ${selectedPlan?.toUpperCase()} plan.`)
+                  }
+                }}
+              >
                 Proceed to Payment
-              </Button>
+              </button>
             ) : (
-              <Button className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                Save Changes
-              </Button>
+              <button
+                className={`w-full h-12 rounded-md bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white ${
+                  isLoading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+                onClick={handleSaveChanges}
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </button>
             )}
           </div>
         </div>
