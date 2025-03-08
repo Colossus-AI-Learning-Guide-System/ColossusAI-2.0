@@ -1,28 +1,38 @@
 "use client"
 
-import React from 'react';
-import * as ToastPrimitives from "@radix-ui/react-toast"
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "./toast"
 import { useToast } from "./use-toast"
 
-const Toaster: React.FC = () => {
+export function Toaster() {
   const { toasts } = useToast()
 
   return (
-    <ToastPrimitives.Provider>
-      {toasts.map(({ id, title, description, action, ...props }) => (
-        <ToastPrimitives.Root key={id} {...props}>
-          <div className="grid gap-1">
-            {title && <ToastPrimitives.Title>{title}</ToastPrimitives.Title>}
-            {description && <ToastPrimitives.Description>{description}</ToastPrimitives.Description>}
-          </div>
-          {action}
-          <ToastPrimitives.Close />
-        </ToastPrimitives.Root>
-      ))}
-      <ToastPrimitives.Viewport />
-    </ToastPrimitives.Provider>
+    <ToastProvider>
+      {toasts.map(function ({ id, title, description, action, ...props }) {
+        return (
+          <Toast key={id} {...props}>
+            <div className="grid gap-1">
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && (
+                <ToastDescription>{description}</ToastDescription>
+              )}
+            </div>
+            {action}
+            <ToastClose />
+          </Toast>
+        )
+      })}
+      <ToastViewport />
+    </ToastProvider>
   )
 }
 
-export default Toaster;
+export default Toaster
 
