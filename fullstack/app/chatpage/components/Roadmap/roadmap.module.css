@@ -1,0 +1,40 @@
+.roadmap {
+    padding: 20px;
+    height: 100%;
+  }
+  
+  .roadmap h2 {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+  }
+  
+  .roadmapItems {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .roadmapItem {
+    text-align: left;
+    padding: 15px;
+    background: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    transition: background-color 0.2s;
+  }
+  
+  .roadmapItem:hover {
+    background: var(--border);
+  }
+  
+  .roadmapItem h3 {
+    margin-bottom: 5px;
+    color: var(--text-primary);
+  }
+  
+  .roadmapItem p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  
+  

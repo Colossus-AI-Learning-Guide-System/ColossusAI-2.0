@@ -1,0 +1,22 @@
+.content {
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .content h2 {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+  }
+  
+  .contentBody {
+    margin-top: 20px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  
+  .contentBody p {
+    margin-bottom: 16px;
+  }
+  
+  
