@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef } from "react"
@@ -14,6 +13,11 @@ import Sidebar from "./components/Sidebar/page"
 import Content from "./components/Content/page"
 
 type NodeContent = {
+  title: string;
+  content: string;
+}
+
+interface ResponseData {
   title: string;
   content: string;
 }
@@ -85,11 +89,11 @@ export default function Dashboard() {
       }
       
       setUploadedFiles(prev => [...prev, ...fileNames])
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload files'
       console.error('Error uploading files:', error)
-      setErrorMessage(error.message || "Failed to upload files")
+      setErrorMessage(errorMessage)
       setShowError(true)
-      setTimeout(() => setShowError(false), 3000)
     } finally {
       setIsLoading(false)
     }
@@ -138,18 +142,18 @@ export default function Dashboard() {
       generateGraphFromResponse(data)
       
       setShowRoadmap(true)
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process query'
       console.error('Error querying:', error)
-      setErrorMessage(error.message || "Failed to process query")
+      setErrorMessage(errorMessage)
       setShowError(true)
-      setTimeout(() => setShowError(false), 3000)
     } finally {
       setIsLoading(false)
     }
   }
 
   // Function to generate graph from API response
-  const generateGraphFromResponse = (responseData: any[]) => {
+  const generateGraphFromResponse = (responseData: ResponseData[]) => {
     // Create a new nodecontent object
     const newNodeContents: { [key: string]: NodeContent } = {}
     
@@ -225,7 +229,7 @@ export default function Dashboard() {
     setShowContent(!showContent)
   }
 
-  const onNodeClick = (event: any, node: Node) => {
+  const onNodeClick = (event: React.MouseEvent, node: Node) => {
     const content = nodeContents[node.id]
     if (content) {
       setCurrentContent(content)
