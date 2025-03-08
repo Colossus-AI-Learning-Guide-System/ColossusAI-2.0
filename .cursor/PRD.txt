@@ -1,0 +1,96 @@
+Colossus.Ai is a Roadmap Visualization Tool that serves as a comprehensive Learning Guide System. It
+processes documentation materials to generate a Visualization Knowledge Graph, which delivers
+accurate and relevant information based on user queries.
+This application addresses the growing complexity of accessing structured information in fields li
+education and other domains. By simplifying the retrieval of relevant information, it empowers users to
+navigate complex documentation in an easier and more convenient manner.
+The primary purpose of the Knowledge Graph System is to simplify the process of extracting useful
+insights from complex and structured materials. The tool achieves this by presenting the information as
+a visual roadmap, making it intuitive and accessible to users.
+Key Objectives:
+1. Relevance: Ensuring that the generated information aligns closely with user queries.
+2. Simplicity and Intuitiveness: Offering an easy-to-use and visually appealing user interface.
+3. Accuracy: Maintaining high standards of precision in the generated knowledge graph.
+Problem
+The growing integration of AI tools in education has brought about significant challenges in ensuri
+the accuracy, clarity, and accessibility of information. Current AI-powered educational resources often
+struggle to deliver reliable and understandable assistance, leaving users—students, educators, and
+professionals—unsatisfied with the quality of their learning experienc
+Research highlights several key issues: the rapid adoption of AI tools like ChatGPT has led to concerns
+about academic integrity, with educators questioning whether such platforms encourage plagiarism or
+hinder genuine learning. Moreover, students frequently find themselves double-checking AI-generat
+content for relevance and clarity, as current systems often fail to provide sufficient depth or structu
+in their responses. The algorithms driving these platforms can also unintentionally amplify errors or
+create misleading assumptions, further diminishing trust in AI's ability to enhance learning.
+This gap in the current educational landscape highlights a pressing need for a system that goes beyond
+conventional AI tools. Users demand a platform that not only ensures content accuracy but also
+organizes and presents complex information in an intuitive and user-friendly way. Without such
+advancements, the potential of AI to revolutionize education remains untapped, leaving customers
+with limited solutions for navigating and understanding dense or intricate documentation.
+
+User Stories
+1. User Account
+a. As a user, I want to create an account so that I can use all the features.
+b. As a user, I want to log in to the account I created so that I can use the system without
+limitations.
+c. As a user, I want to be able to log in with multiple accounts so that I can use the system
+with various accounts.
+2. Document Management
+a. As a user, I want to add documents to the system so that I can start generating
+Knowledge Graphs.
+b. As a user, I want to be able to create directories/domains for different types of content,
+that I want to work with so that I can organize content and choose what domain I want
+to interact with.
+c. As a user, I want to search inserted documents so that I can choose what documents to
+generate graphs or read the content.
+d. As a user, I want to browse and view documents so that I can read the contents of them
+when I need.
+e. As a user, I want to be able to remove added documents so that I can have only the
+useful documents in the directory/domain.
+3. Querying
+a. As a user, I want to enter a query into the system so that I can define what I want t
+system to do.
+b. As a user, I want to enter my natural language interpretation as the query to the system
+so that I can express what I want without hesitation.
+c. As a user, I want to define the scale/start and end points of the knowledge graph so th
+I can get the intended information with ease.
+4. Knowledge Graph Generation and Interaction
+a. As a user, I want to be able to generate a Knowledge Graph with an entered query using
+the inserted documentation so that I can fulfil my intentio
+b. As a user, I want to be able to tap and expand generated graph nodes so that I can view
+the information of the specific nod
+c. As a user, I want to change the location of the nodes as I please so that I can place nodes
+in places that I see fit bette
+d. As a user, I want to see the connections between nodes so that I can understand the
+flow of the grap
+e. As a user, I want to be able to access previously generated knowledge Graphs so that I
+can view them whenever I want without generating them again.
+f. As a user, I want to share my generated graphs with other users so that they can view
+knowledge graphs without needing the documentation.
+5. Summary Generation and interaction
+a. As a user, i want to generate a summary of specified documentation so that I can get 
+understanding of what the documentation is about.
+b. As a user, I want to be able to search and access previously generated summaries so
+that I can view them without developing them again.
+Features In
+● Account Creation
+● Log in
+● Upload and add documents
+● Create and manage directories/domains for organising content.
+● Search functionality for inserted documents.
+● Document browsing and viewing
+● Document removal and maintaining
+● Query input
+● Define scale (start and end points) of gra
+● Generate Knowledge Graph
+● Expand nodes
+● Rearange nodes
+● Access previously added graphs
+● Share graphs
+● Generate summary
+● Search and access generated summaries
+Features Out
+● Real-time collaboration or multi-user editing
+● Offline access to the syste
+● Download Graphs and summary notes.
+● Multi-language support
