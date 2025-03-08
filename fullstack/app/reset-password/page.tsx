@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/signin/button";
-import { Input } from "@/components/ui/signin/input";
-import { Label } from "@/components/ui/signin/label";
+import { Button } from "@/app/components/ui/signin/button";
+import { Input } from "@/app/components/ui/signin/input";
+import { Label } from "@/app/components/ui/signin/label";
 import { resetPassword } from "@/lib/supabase/auth";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
     return null;
   };
 
-  // Helper function to show password requirements with validation status
+  // Used in conditional contexts for rendering password requirements
   const renderPasswordRequirements = () => {
     // Only show requirements if password is touched and there are validation errors
     if (!isPasswordTouched || validationErrors.length === 0) return null;
@@ -247,11 +247,11 @@ export default function ResetPasswordPage() {
         `}</style>
       </div>
 
-      {/* Right section with form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6">
-        <div className="w-full max-w-md space-y-8">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-[60px] h-[60px] relative mb-4">
+      {/* Right section with form - UPDATED TO DARK THEME */}
+      <div className="w-full lg:w-1/2 form-container dark-theme">
+        <div className="auth-container">
+          <div className="auth-header">
+            <div className="auth-logo">
               <Image
                 src="/logo.png"
                 alt="Logo"
@@ -289,10 +289,8 @@ export default function ResetPasswordPage() {
                     value={password}
                     onChange={handlePasswordChange}
                     onFocus={() => setIsPasswordTouched(true)}
-                    className={cn(
-                      "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                      validationErrors.length > 0 && isPasswordTouched && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                    )}
+                    className="h-11 rounded-3xl"
+                    error={validationErrors.length > 0 && isPasswordTouched}
                   />
                   <div className="min-h-[20px] mt-1">
                     {isPasswordTouched && password && getFailingRequirementMessage() && (
@@ -318,10 +316,8 @@ export default function ResetPasswordPage() {
                       setConfirmPassword(e.target.value);
                       setError(null);
                     }}
-                    className={cn(
-                      "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                      error && error.includes("match") && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                    )}
+                    className="h-11 rounded-3xl"
+                    error={!!(error && error.includes("match")) || !!(confirmPassword && password !== confirmPassword)}
                   />
                   <div className="min-h-[20px] mt-1">
                     {confirmPassword && password !== confirmPassword && (

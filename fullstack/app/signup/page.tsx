@@ -1,33 +1,32 @@
 "use client";
 
-import { Button } from "@/components/ui/signup/button";
-import { Input } from "@/components/ui/signup/input";
-import { Label } from "@/components/ui/signup/label";
+import { Button } from "@/app/components/ui/signup/button";
+import { Input } from "@/app/components/ui/signup/input";
+import { Label } from "@/app/components/ui/signup/label";
 import {
   resendConfirmationEmail,
   signInWithOAuth,
   signUpWithEmail,
 } from "@/lib/supabase/auth";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ChangeEvent, type FormEvent, useId, useState } from "react";
+import { type ChangeEvent, useId, useState } from "react";
 import { TermsModal } from "../components/PrivacyModal";
 import { TermsOfServiceModal } from "../components/TermsModal";
 import { ValidationMessage } from "../components/validation";
 
 export default function SignUpPage() {
   const id = useId();
-  const router = useRouter();
+  const _router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isPasswordTouched, setIsPasswordTouched] = useState(false);
-  const [isEmailTouched, setIsEmailTouched] = useState(false);
-  const [isFullNameTouched, setIsFullNameTouched] = useState(false);
+  const [_isPasswordTouched, setIsPasswordTouched] = useState(false);
+  const [_isEmailTouched, setIsEmailTouched] = useState(false);
+  const [_isFullNameTouched, setIsFullNameTouched] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null);
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({
@@ -98,10 +97,10 @@ export default function SignUpPage() {
     setIsEmailTouched(true);
   };
 
-  const handleEmailSignUp = async (e: FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mark all fields as touched
+    // Set all fields as touched to trigger validation outlines
     setTouchedFields({
       fullName: true,
       email: true,
@@ -109,142 +108,59 @@ export default function SignUpPage() {
       confirmPassword: true,
       terms: true
     });
-
-    // Validate all required fields
-    if (!fullName || !email || !password || !confirmPassword || !isTermsAccepted) {
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setFormStatus({
-        type: 'error',
-        message: "Please enter a valid email address"
-      });
-      return;
-    }
-
-    setLoading(true);
-    setFormStatus(null);
-
-    // Validation checks
-    if (validPasswordRequirements.length < passwordRequirements.length) {
-      setFormStatus({
-        type: 'error',
-        message: "Please ensure all password requirements are met"
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (validNameRequirements.length < nameRequirements.length) {
-      setFormStatus({
-        type: 'error',
-        message: "Please ensure all name requirements are met"
-      });
-      setLoading(false);
-      return;
-    }
-
+    
+    // Check passwords match
     if (password !== confirmPassword) {
       setFormStatus({
         type: 'error',
         message: "Passwords do not match"
       });
-      setLoading(false);
       return;
     }
+    
+    // Check for empty required fields only at the form level
+    // Field-specific validations (like invalid email format) will show at field level
+    let formIsValid = true;
+    
+    // Check if the form is valid (this will NOT set any global error messages)
+    if (!fullName || !email || !password || !isTermsAccepted || getNameValidationMessage() || getEmailValidationMessage() || getFailingRequirementMessage()) {
+      formIsValid = false;
+    }
+    
+    // If the form is not valid, return without setting a global error message
+    // (field-level messages will be shown)
+    if (!formIsValid) {
+      return;
+    }
+    
+    // If we reached here, the form is valid, proceed with signup
+    setLoading(true);
+    setFormStatus(null);
 
     try {
-      const { data, error: signUpError } = await signUpWithEmail(
+      const { error: signUpError } = await signUpWithEmail(
         email,
         password,
         fullName
       );
 
       if (signUpError) {
-        // Handle specific Supabase auth errors
-        if (signUpError instanceof Error) {
-          const errorMessage = signUpError.message;
-          
-          // Handle specific error cases
-          if (errorMessage.includes("already exists")) {
-            setFormStatus({
-              type: 'error',
-              message: "An account with this email already exists. Please sign in instead."
-            });
-          } else if (errorMessage.includes("invalid email")) {
-            setFormStatus({
-              type: 'error',
-              message: "The email address format is invalid. Please check and try again."
-            });
-          } else if (errorMessage.includes("weak password")) {
-            setFormStatus({
-              type: 'error',
-              message: "The password is too weak. Please ensure it meets all requirements."
-            });
-          } else {
-            setFormStatus({
-              type: 'error',
-              message: errorMessage || 'An error occurred during sign up. Please try again.'
-            });
-          }
-        } else {
-          setFormStatus({
-            type: 'error',
-            message: 'An unexpected error occurred. Please try again later.'
-          });
-        }
-        
-        // Check if signUpError has a message property before accessing it
-        const errorObj = signUpError as { message?: string };
-        if (errorObj.message && errorObj.message.includes("already exists")) {
-          setPassword("");
-        }
-        
-        setLoading(false);
-        return;
-      }
-
-      if (!data?.user) {
-        setFormStatus({
-          type: 'error',
-          message: "Account creation failed. Please try again."
-        });
-        setLoading(false);
-        return;
+        throw new Error(
+          typeof signUpError === "object" && signUpError !== null
+            ? (signUpError as { message?: string }).message || "Failed to sign up"
+            : "Failed to sign up"
+        );
       }
 
       setFormStatus({
         type: 'success',
-        message: "Please check your email for a confirmation link to complete your registration."
+        message: "Registration successful! Please check your email for a confirmation link.",
       });
-
-    } catch (err: any) {
+    } catch (err) {
       console.error("Sign up error:", err);
-      
-      // Handle AuthError, AuthApiError and other errors
-      let errorMessage = "An unexpected error occurred during sign up. Please try again later.";
-      
-      if (err instanceof Error) {
-        // Check for specific error types in the error name or message
-        if (err.name === "AuthError" || err.name === "AuthApiError") {
-          if (err.message.includes("invalid email")) {
-            errorMessage = "The email address format is invalid. Please check and try again.";
-          } else if (err.message.includes("already exists")) {
-            errorMessage = "An account with this email already exists. Please sign in instead.";
-          } else {
-            errorMessage = err.message;
-          }
-        } else {
-          errorMessage = err.message;
-        }
-      }
-      
       setFormStatus({
         type: 'error',
-        message: errorMessage
+        message: err instanceof Error ? err.message : String(err),
       });
     } finally {
       setLoading(false);
@@ -327,6 +243,17 @@ export default function SignUpPage() {
     return null;
   };
 
+  // Function to get specific name validation error message
+  const getNameValidationMessage = () => {
+    if (!fullName) return "Full name is required";
+    
+    if (fullName.length < 2) return "Name must be at least 2 characters long";
+    if (!/^[A-Za-z\s]+$/.test(fullName)) return "Name must contain only letters and spaces";
+    if (fullName.trim().split(/\s+/).length < 2) return "Please provide both first and last name";
+    
+    return "";
+  };
+
   return (
     <div className="flex min-h-screen w-full">
       {/* Left section with gradient background */}
@@ -395,7 +322,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Right section with sign up form */}
-      <div className="w-full lg:w-1/2 form-container">
+      <div className="w-full lg:w-1/2 form-container dark-theme">
         <div className="auth-container">
           <div className="auth-header">
             <div className="auth-logo">
@@ -413,44 +340,45 @@ export default function SignUpPage() {
           </div>
 
           {/* OAuth Buttons */}
-          <div className="space-y-1.5">
-            <div className="flex justify-center gap-3">
-              <Button 
-                variant="outline" 
+          <div className="space-y-4">
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
                 onClick={() => handleOAuthSignUp("google")}
-                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 border-2 border-gray-300"
+                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
               >
-                <svg viewBox="0 0 24 24" width="20" height="20" className="mr-1">
+                <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
                 <span className="text-sm font-medium">Google</span>
-              </Button>
-              <Button 
-                variant="outline"
+              </button>
+              
+              <button
+                type="button"
                 onClick={() => handleOAuthSignUp("github")}
-                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 border-2 border-gray-300"
+                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
               >
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="mr-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
                 </svg>
                 <span className="text-sm font-medium">GitHub</span>
-              </Button>
+              </button>
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-[#444444]"></div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-2 bg-white text-gray-500">Enter your details to create your account</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 text-gray-400 bg-[#121212]">Or continue with email</span>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleEmailSignUp} className="auth-form" noValidate>
+          <form onSubmit={handleEmailSignUp} className="space-y-3 mt-3" noValidate>
             {formStatus && (
               <div className="min-h-validation">
                 <ValidationMessage
@@ -459,36 +387,31 @@ export default function SignUpPage() {
                 />
               </div>
             )}
-
-            <div className="form-spacing-tight">
-              <div className="input-group">
-                <Label htmlFor={`${id}-fullname`} className="text-xs font-medium">
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor={`${id}-fullName`} className="text-sm font-medium">
                   Full Name<span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id={`${id}-fullname`}
+                  id={`${id}-fullName`}
                   placeholder="Enter your full name"
-                  type="text"
                   value={fullName}
                   onChange={handleFullNameChange}
                   onBlur={() => handleBlur('fullName')}
-                  className={cn(
-                    "w-full h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                    touchedFields.fullName && !fullName && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                  )}
-                  autoFocus
+                  required
+                  error={touchedFields.fullName && !!getNameValidationMessage()}
                 />
-                <div className="min-h-validation">
-                  {touchedFields.fullName && !fullName ? (
-                    <p className="text-xs text-red-500">
-                      Full name is required
-                    </p>
-                  ) : <span></span>}
-                </div>
+                {touchedFields.fullName && !!getNameValidationMessage() && (
+                  <div className="min-h-validation">
+                    <ValidationMessage
+                      type="error"
+                      message={getNameValidationMessage()}
+                    />
+                  </div>
+                )}
               </div>
-
-              <div className="input-group">
-                <Label htmlFor={`${id}-email`} className="text-xs font-medium">
+              <div className="space-y-1">
+                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
                   Email<span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -498,141 +421,123 @@ export default function SignUpPage() {
                   value={email}
                   onChange={handleEmailChange}
                   onBlur={() => handleBlur('email')}
-                  className={cn(
-                    "w-full h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                    touchedFields.email && (!email || getEmailValidationMessage()) && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                  )}
+                  required
+                  error={touchedFields.email && !!getEmailValidationMessage()}
                 />
-                <div className="min-h-validation">
-                  {touchedFields.email && !email ? (
-                    <p className="text-xs text-red-500">
-                      Email is required
-                    </p>
-                  ) : touchedFields.email && email && getEmailValidationMessage() ? (
-                    <p className="text-xs text-red-500">
-                      {getEmailValidationMessage()}
-                    </p>
-                  ) : <span></span>}
-                </div>
+                {touchedFields.email && !!getEmailValidationMessage() && (
+                  <div className="min-h-validation">
+                    <ValidationMessage
+                      type="error"
+                      message={getEmailValidationMessage() || ""}
+                    />
+                  </div>
+                )}
               </div>
-
-              <div className="input-group">
-                <Label htmlFor={`${id}-password`} className="text-xs font-medium">
+              <div className="space-y-1">
+                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
                   Password<span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id={`${id}-password`}
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   type="password"
                   value={password}
                   onChange={handlePasswordChange}
                   onBlur={() => handleBlur('password')}
-                  className={cn(
-                    "w-full h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                    touchedFields.password && (!password || getFailingRequirementMessage()) && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                  )}
+                  required
+                  error={touchedFields.password && !!getFailingRequirementMessage()}
                 />
-                <div className="min-h-validation">
-                  {touchedFields.password && !password ? (
-                    <p className="text-xs text-red-500">
-                      Password is required
-                    </p>
-                  ) : touchedFields.password && password && getFailingRequirementMessage() ? (
-                    <p className="text-xs text-red-500">
-                      {getFailingRequirementMessage()}
-                    </p>
-                  ) : <span></span>}
-                </div>
+                {touchedFields.password && password && getFailingRequirementMessage() && (
+                  <div className="min-h-validation">
+                    <ValidationMessage
+                      type="error"
+                      message={getFailingRequirementMessage() || ""}
+                    />
+                  </div>
+                )}
               </div>
-
-              <div className="input-group">
-                <Label htmlFor={`${id}-confirm-password`} className="text-xs font-medium">
+              <div className="space-y-1">
+                <Label htmlFor={`${id}-confirmPassword`} className="text-sm font-medium">
                   Confirm Password<span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id={`${id}-confirm-password`}
+                  id={`${id}-confirmPassword`}
                   placeholder="Confirm your password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => handleBlur('confirmPassword')}
-                  className={cn(
-                    "w-full h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                    touchedFields.confirmPassword && (!confirmPassword || (confirmPassword && password !== confirmPassword)) && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                  )}
+                  required
+                  error={touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword)}
                 />
-                <div className="min-h-validation">
-                  {touchedFields.confirmPassword && !confirmPassword ? (
-                    <p className="text-xs text-red-500">
-                      Please confirm your password
-                    </p>
-                  ) : confirmPassword && password !== confirmPassword ? (
-                    <p className="text-xs text-red-500">
-                      Passwords do not match
-                    </p>
-                  ) : <span></span>}
+                {touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword) && (
+                  <div className="min-h-validation">
+                    <ValidationMessage
+                      type="error"
+                      message="Passwords do not match"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-start">
+                  <div className="flex h-5 items-center">
+                    <input
+                      id={`${id}-terms`}
+                      type="checkbox"
+                      checked={isTermsAccepted}
+                      onChange={(e) => setIsTermsAccepted(e.target.checked)}
+                      onBlur={() => {
+                        setTouchedFields((prev) => ({
+                          ...prev,
+                          terms: true,
+                        }));
+                      }}
+                      className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="ml-2">
+                    <label htmlFor={`${id}-terms`} className="text-sm text-gray-500">
+                      I agree to the{" "}
+                      <button
+                        type="button"
+                        className="text-purple-600 font-medium hover:text-purple-500"
+                        onClick={() => setIsTermsModalOpen(true)}
+                      >
+                        Terms of Service
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        className="text-purple-600 font-medium hover:text-purple-500"
+                        onClick={() => setIsPrivacyModalOpen(true)}
+                      >
+                        Privacy Policy
+                      </button>
+                    </label>
+                  </div>
                 </div>
+                {touchedFields.terms && !isTermsAccepted && (
+                  <div className="min-h-validation">
+                    <ValidationMessage
+                      type="error"
+                      message="You must accept the terms and privacy policy"
+                    />
+                  </div>
+                )}
               </div>
             </div>
-
-            <div>
-              <div className="flex items-start">
-                <div className="flex items-center h-5">
-                  <input
-                    id={`${id}-terms`}
-                    name={`${id}-terms`}
-                    type="checkbox"
-                    checked={isTermsAccepted}
-                    onChange={(e) => {
-                      setIsTermsAccepted(e.target.checked);
-                      setTouchedFields(prev => ({ ...prev, terms: true }));
-                    }}
-                    className="w-4 h-4 border-2 border-[#b066ff] rounded text-purple-600 focus:ring-2 focus:ring-purple-300"
-                    required
-                  />
-                </div>
-                <div className="ml-2 text-xs">
-                  <label htmlFor={`${id}-terms`} className="text-gray-700">
-                    I agree to the{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsTermsModalOpen(true)}
-                      className="text-purple-600 hover:underline"
-                    >
-                      Terms of Service
-                    </button>{" "}
-                    and{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsPrivacyModalOpen(true)}
-                      className="text-purple-600 hover:underline"
-                    >
-                      Privacy Policy
-                    </button>
-                  </label>
-                </div>
-              </div>
-              <div className="min-h-validation">
-                {touchedFields.terms && !isTermsAccepted ? (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
-                    <span>⚠️</span>
-                    <span>You must accept the Terms of Service and Privacy Policy</span>
-                  </p>
-                ) : <span></span>}
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl"
+            <Button
+              type="submit"
+              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl mt-2 mb-2"
               disabled={loading}
             >
               {loading ? "Creating account..." : "Create account"}
             </Button>
-
-            <p className="signin-link text-center">
+            
+            <p className="text-center text-sm font-medium text-gray-700 mt-4">
               Already have an account?{" "}
-              <Link href="/signin">
+              <Link href="/signin" className="text-purple-600 hover:text-purple-500 font-medium">
                 Sign in
               </Link>
             </p>

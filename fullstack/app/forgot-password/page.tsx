@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/signin/button";
-import { Input } from "@/components/ui/signin/input";
-import { Label } from "@/components/ui/signin/label";
+import { Button } from "@/app/components/ui/signin/button";
+import { Input } from "@/app/components/ui/signin/input";
+import { Label } from "@/app/components/ui/signin/label";
 import { sendPasswordResetEmail } from "@/lib/supabase/auth";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -214,11 +214,11 @@ export default function ForgotPasswordPage() {
         `}</style>
       </div>
 
-      {/* Right section with form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6">
-        <div className="w-full max-w-md space-y-8">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-[60px] h-[60px] relative mb-4">
+      {/* Right section with form - UPDATED TO DARK THEME */}
+      <div className="w-full lg:w-1/2 form-container dark-theme">
+        <div className="auth-container">
+          <div className="auth-header">
+            <div className="auth-logo">
               <Image
                 src="/logo.png"
                 alt="Logo"
@@ -230,28 +230,28 @@ export default function ForgotPasswordPage() {
             <div className="space-y-1.5 text-center">
               <h1 className="text-2xl font-semibold tracking-tight">Forgot Password</h1>
               <p className="text-sm text-gray-500">
-                Enter your email address and we'll send you instructions to reset your password.
+                Enter your email address and we&apos;ll send you instructions to reset your password.
               </p>
             </div>
           </div>
 
           {success ? (
-            <div className="text-center bg-white/60 backdrop-blur-sm p-6 rounded-3xl border-2 border-purple-100 shadow-sm space-y-6">
+            <div className="text-center bg-[#1A1A1A] backdrop-blur-sm p-6 rounded-3xl border-2 border-[#333333] shadow-sm space-y-6">
               <div className="flex justify-center mb-2">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-[#182812] flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
                 </div>
               </div>
-              <h2 className="text-xl font-medium text-gray-800">Check Your Email</h2>
-              <p className="text-sm text-gray-600 max-w-sm mx-auto">
-                {successMessage || "We've sent password reset instructions to your email."}
+              <h2 className="text-xl font-medium text-white">Check Your Email</h2>
+              <p className="text-sm text-[#E0E0E0] max-w-sm mx-auto">
+                {successMessage || "We&apos;ve sent password reset instructions to your email."}
               </p>
-              <div className="pt-2 border-t border-gray-100">
-                <p className="text-sm text-gray-700 mb-4">
-                  Didn't receive the email?
+              <div className="pt-2 border-t border-[#333333]">
+                <p className="text-sm text-[#E0E0E0] mb-4">
+                  Didn&apos;t receive the email?
                 </p>
                 <button
                   onClick={handleResendClick}
@@ -290,10 +290,8 @@ export default function ForgotPasswordPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={cn(
-                    "h-11 rounded-3xl border-2 border-[#b066ff] focus:border-[#9933FF] focus:ring-2 focus:ring-purple-300 focus:shadow-sm",
-                    error && "border-red-500 focus:border-red-500 focus:ring-red-200"
-                  )}
+                  className="h-11 rounded-3xl"
+                  error={!!error}
                 />
                 {timeRemaining > 0 && (
                   <p className="text-xs text-gray-500 mt-1">

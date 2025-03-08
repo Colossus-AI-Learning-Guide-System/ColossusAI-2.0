@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/signin/button";
+import { Button } from "@/app/components/ui/signin/button";
 import {
     getCurrentSession,
     getCurrentUser,
