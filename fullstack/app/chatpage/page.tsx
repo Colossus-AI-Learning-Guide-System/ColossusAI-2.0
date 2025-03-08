@@ -9,8 +9,8 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import styles from "./page.module.css"
-import Sidebar from "./components/Sidebar/page"
-import Content from "./components/Content/page"
+import Sidebar from "./components/Sidebar/Sidebar"
+import Content from "./components/Content/Content"
 
 type NodeContent = {
   title: string;
