@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { X, Camera, Check } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
-import { supabase } from "../utils/supabaseClient"
+import { supabase } from "../lib/utils/supabaseClient"
 import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
 import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
 import Image from "next/image"
@@ -416,7 +416,7 @@ export function SettingsPanel({
                 activeTab === "general" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
-              Genaral
+              Profile
             </button>
             <button
               onClick={() => setActiveTab("upgrade")}

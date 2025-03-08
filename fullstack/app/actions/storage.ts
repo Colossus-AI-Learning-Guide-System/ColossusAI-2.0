@@ -1,6 +1,6 @@
 "use server"
 
-import { supabase } from "@/app/utils/supabaseClient"
+import { supabase } from "@/app/lib/utils/supabaseClient"
 import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
 import { PlanType } from "@/app/components/settings-panel"
 
