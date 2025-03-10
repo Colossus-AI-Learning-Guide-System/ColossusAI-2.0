@@ -1,0 +1,79 @@
+:root {
+    --deep-black: #030303;
+    --darker-black: #000000;
+    --dark-pink: #330033;
+    --dark-purple: #1a0033;
+    --darker-purple: #0c001a;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    
+    /* Enhanced gradients */
+    --main-gradient: linear-gradient(
+      135deg,
+      var(--darker-black) 0%,
+      var(--deep-black) 40%,
+      var(--dark-purple) 100%
+    );
+    
+    --accent-gradient: linear-gradient(
+      45deg,
+      var(--dark-pink) 0%,
+      var(--darker-purple) 100%
+    );
+    
+    --sidebar-gradient: linear-gradient(
+      180deg,
+      var(--darker-black) 0%,
+      var(--dark-purple) 100%
+    );
+    
+    --background: var(--deep-black);
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: rgba(255, 255, 255, 0.05);
+  }
+  
+  body {
+    background: var(--darker-black);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+  
+  /* Main background gradient */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--main-gradient);
+    z-index: -2;
+  }
+  
+  /* Accent gradient overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--accent-gradient);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  /* Add noise texture for depth */
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
