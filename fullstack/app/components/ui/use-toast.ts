@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useReducer, useCallback } from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & {
@@ -77,8 +77,7 @@ const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Side effects
       if (toastId) {
         if (toastTimeouts.has(toastId)) {
           clearTimeout(toastTimeouts.get(toastId))
@@ -117,67 +116,72 @@ const reducer = (state: State, action: Action): State => {
   }
 }
 
-const listeners: Array<(state: State) => void> = []
-
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
-}
+// Create a context for toast state
+const INITIAL_STATE: State = { toasts: [] }
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
-  const id = genId()
+// Shared state for toast across components
+const useToastStore = () => {
+  const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
+  
+  const toast = useCallback(({ ...props }: Toast) => {
+    const id = genId()
 
-  const update = (props: ToasterToast) =>
+    const update = (props: ToasterToast) =>
+      dispatch({
+        type: "UPDATE_TOAST",
+        toast: { ...props, id },
+      })
+    const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
     dispatch({
-      type: "UPDATE_TOAST",
-      toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
-
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open: boolean) => {
-        if (!open) dismiss()
+      type: "ADD_TOAST",
+      toast: {
+        ...props,
+        id,
+        open: true,
+        onOpenChange: (open: boolean) => {
+          if (!open) dismiss()
+        },
       },
-    },
-  })
+    })
 
-  return {
-    id: id,
-    dismiss,
-    update,
-  }
-}
-
-function useToast() {
-  const [state, setState] = useState<State>(memoryState)
-
-  useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
+    return {
+      id: id,
+      dismiss,
+      update,
     }
-  }, [state])
+  }, [])
+
+  const dismiss = useCallback((toastId?: string) => {
+    dispatch({ type: "DISMISS_TOAST", toastId })
+  }, [])
 
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss,
   }
 }
 
-export { useToast, toast }
+// Singleton pattern for toast state
+let store: ReturnType<typeof useToastStore> | undefined
+
+function useToast() {
+  const [mounted, setMounted] = useState(false)
+  const storeRef = useToastStore()
+
+  // Only use the store on the client
+  useEffect(() => {
+    if (!store) {
+      store = storeRef
+    }
+    setMounted(true)
+  }, [storeRef])
+
+  return mounted ? store! : storeRef
+}
+
+export { useToast, type Toast }
 

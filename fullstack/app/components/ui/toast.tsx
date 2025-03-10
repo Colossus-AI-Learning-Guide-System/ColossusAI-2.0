@@ -4,7 +4,6 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
-// Remove the premature type definitions
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
