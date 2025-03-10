@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
+
+import PageTransition from "./chatpage/components/PageTransition";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-inter",
 });
 
 // Force dynamic rendering for all pages
@@ -23,12 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} min-h-screen bg-background font-sans antialiased`}
+        className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
       >
-        <main className="flex min-h-screen flex-col items-center justify-center">
-          {children}
-        </main>
+        <div className="noise-overlay" />
+        <PageTransition>
+          <main className="flex min-h-screen flex-col items-center justify-center">
+            {children}
+          </main>
+        </PageTransition>
       </body>
     </html>
   );
-}
+} 

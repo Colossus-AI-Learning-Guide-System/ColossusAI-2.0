@@ -1,0 +1,206 @@
+.dashboard {
+  display: flex;
+  height: 100vh;
+  overflow-x: auto; /* Change from 'hidden' to 'auto' to allow horizontal scroll */
+  margin-left: 50px; /* Add space for menu bar */
+  background: transparent;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  gap: 20px; /* Increase gap between sections */
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  padding: 20px; /* Add padding to the main content */
+}
+
+.roadmapSection,
+.contentSection,
+.chatSection {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatSection {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.chatInput {
+  display: flex;
+  gap: 10px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+  border: 1px solid var(--border);
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-primary);
+}
+
+.chatInput button {
+  padding: 8px 16px;
+  background: var(--dark-purple);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.chatInput button:hover {
+  background: var(--dark-pink);
+}
+
+/* .arrowButton {
+  padding: 8px 12px;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-primary);
+} */
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px) scale(0.95);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(10px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.roadmapSection {
+  width: 100%;
+  height: 100vh; /* Make it full viewport height */
+  background: #1a1a1a;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  flex: 0 0 1000px;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentSection {
+  flex: 0 0 400px; /* Set fixed width for content section */
+  animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.chatArea {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+.welcomeContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.welcomeMessage {
+  display: flex;
+  justify-content: center;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.subheading {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  opacity: 0.2;
+}
+
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.errorMessage {
+  color: #ff4444;
+  text-align: center;
+  margin: 10px 0;
+  font-size: 14px;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+/* New styles for file upload and processing */
+.uploadArea {
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.uploadButton {
+  padding: 8px 16px;
+  background: var(--dark-purple);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.uploadButton:hover {
+  background: var(--dark-pink);
+}
+
+.fileList {
+  margin-top: 10px;
+  width: 100%;
+  max-height: 80px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.fileName {
+  padding: 4px 8px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.loadingIndicator {
+  text-align: center;
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+  color: var(--text-primary);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
