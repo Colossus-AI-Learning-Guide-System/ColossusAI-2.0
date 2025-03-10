@@ -1,10 +1,16 @@
-"use client"
+import { SettingsButton } from "@/app/components/ui/settings-button"
+
 
 import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import Image from 'next/image'
+import {
+  getCurrentSession,
+  getCurrentUser,
+  signOut,
+} from "@/lib/supabase/auth";
 
 interface SidebarProps {
   onToggleRoadmap: () => void;
@@ -62,6 +68,16 @@ export default function Sidebar({
     onToggleContent()
   }
 
+    const handleSignOut = async () => {
+      try {
+        const { error } = await signOut();
+        if (error) throw error;
+        router.push("/signin");
+      } catch (err) {
+        console.error("Sign out error:", err);
+      }
+    };
+
   return (
     <>
       <div className={styles.menuBar}>
@@ -109,7 +125,7 @@ export default function Sidebar({
           <div className={styles.bottomControls}>
             <button 
               className={styles.controlButton}
-              onClick={() => {/* Add settings functionality */}}
+              onClick={SettingsButton}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="3" />
@@ -129,9 +145,7 @@ export default function Sidebar({
           </div>
           <button 
             className={styles.logoutButton}
-            onClick={() => {
-              console.log('Logout clicked');
-            }}
+            onClick={handleSignOut}
             title="Logout"
           >
             <LogOut size={20} />

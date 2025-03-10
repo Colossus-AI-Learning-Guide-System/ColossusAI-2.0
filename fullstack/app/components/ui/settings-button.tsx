@@ -16,7 +16,7 @@ const mockUserData = {
 }
 
 export function SettingsButton() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(true)
 
   return (
     <>
