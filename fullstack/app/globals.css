@@ -2,15 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #000000;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #000000;
-    --foreground: #ffffff;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
@@ -18,4 +53,142 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  @apply min-h-screen overflow-hidden;
+}
+
+@layer utilities {
+  .min-h-validation {
+    min-height: 1rem;
+    @apply flex items-center mb-0;
+  }
+  
+  .auth-form {
+    @apply space-y-2 overflow-hidden max-h-[calc(100vh-170px)] lg:max-h-none;
+  }
+  
+  .auth-container {
+    @apply w-full max-w-md space-y-2 overflow-hidden;
+    padding-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  
+  .auth-header {
+    @apply flex flex-col items-center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .auth-logo {
+    @apply w-[40px] h-[40px] relative;
+  }
+  
+  .form-spacing-tight {
+    @apply space-y-1 overflow-y-hidden;
+  }
+
+  .input-group {
+    @apply space-y-0;
+  }
+
+  input {
+    @apply border-2 border-[#9933FF] rounded-3xl focus:outline-none focus:border-[#9933FF] focus:ring-1 focus:ring-[#9933FF] h-10 px-4;
+  }
+  
+  /* Error state for inputs - to match the landing page form */
+  input.error, 
+  input[aria-invalid="true"],
+  input[data-invalid="true"] {
+    @apply border-2 border-red-500 ring-red-500/20;
+  }
+  
+  /* Error state focus styles */
+  input.error:focus, 
+  input[aria-invalid="true"]:focus {
+    @apply border-red-500 ring-1 ring-red-500/20;
+  }
+  
+  /* Dark theme specific error styles */
+  .dark-theme input.error,
+  .dark-theme input[aria-invalid="true"] {
+    @apply border-2 border-red-500;
+  }
+  
+  .dark-theme input.error:focus,
+  .dark-theme input[aria-invalid="true"]:focus {
+    @apply border-red-500 ring-1 ring-red-500/20;
+  }
+  
+  .form-container {
+    @apply flex items-start pt-1 lg:items-center justify-center p-3 lg:p-4;
+  }
+  
+  .signin-link {
+    @apply text-sm font-medium mt-2 text-gray-700;
+  }
+  
+  .signin-link a {
+    @apply text-purple-600 font-semibold hover:text-purple-500;
+  }
+  
+  /* Dark theme classes for right side */
+  .dark-theme {
+    @apply bg-[#121212] text-white;
+  }
+  
+  .dark-theme .auth-container {
+    @apply border-[#333333];
+  }
+  
+  .dark-theme .auth-header {
+    @apply pb-3 mb-4;
+  }
+  
+  .dark-theme h1, 
+  .dark-theme h2 {
+    @apply text-white;
+  }
+  
+  .dark-theme p, 
+  .dark-theme label {
+    @apply text-[#E0E0E0];
+  }
+  
+  .dark-theme input {
+    @apply bg-[#2D2D2D] text-white border-[#444444] focus:border-[#b066ff] placeholder-gray-500;
+  }
+  
+  .dark-theme input:focus {
+    @apply ring-purple-400/30 shadow-[0_0_0_1px_rgba(176,102,255,0.3)];
+  }
+  
+  .dark-theme .signin-link {
+    @apply text-[#E0E0E0];
+  }
+  
+  .dark-theme .signin-link a {
+    @apply text-purple-400 hover:text-purple-300;
+  }
+  
+  .dark-theme .text-gray-500 {
+    @apply text-[#E0E0E0]/70;
+  }
+  
+  .dark-theme .text-gray-600, 
+  .dark-theme .text-gray-700 {
+    @apply text-[#E0E0E0];
+  }
+  
+  .dark-theme .border-gray-300 {
+    @apply border-[#444444];
+  }
+  
+  .dark-theme .text-red-500 {
+    @apply text-[#FF6B6B];
+  }
+
+  /* Divider styling in dark theme */
+  .dark-theme .divider-text {
+    background-color: #121212;
+    color: #E0E0E0;
+    font-weight: 500;
+  }
 }
