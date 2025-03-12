@@ -34,6 +34,7 @@ export default function Dashboard() {
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Function to handle file upload
@@ -245,15 +246,20 @@ export default function Dashboard() {
     }
   };
 
+  const handleSidebarToggle = (isExpanded: boolean) => {
+    setIsSidebarExpanded(isExpanded);
+  };
+
   return (
     <>
       <div className="noise-overlay" />
-      <main className={styles.dashboard}>
+      <main className={`${styles.dashboard} ${isSidebarExpanded ? styles.expanded : ''}`}>
         <Sidebar
           onToggleRoadmap={toggleRoadmap}
           isRoadmapVisible={showRoadmap}
           onToggleContent={toggleContent}
           isContentVisible={showContent}
+          onSidebarToggle={handleSidebarToggle}
         />
         <div className={styles.mainContent}>
           {showRoadmap && (

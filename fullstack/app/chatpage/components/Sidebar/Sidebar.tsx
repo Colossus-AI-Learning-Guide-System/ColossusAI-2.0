@@ -1,6 +1,4 @@
 import { SettingsButton } from "@/app/components/ui/settings-button"
-
-
 import { useState, useRef } from "react"
 import styles from "./sidebar.module.css"
 import { useRouter } from 'next/navigation'
@@ -17,16 +15,18 @@ interface SidebarProps {
   isRoadmapVisible: boolean;
   onToggleContent: () => void;
   isContentVisible: boolean;
+  onSidebarToggle?: (isExpanded: boolean) => void;
 }
 
 export default function Sidebar({ 
   onToggleRoadmap, 
   isRoadmapVisible,
   onToggleContent,
-  isContentVisible 
+  isContentVisible,
+  onSidebarToggle 
 }: SidebarProps) {
   const [documents, setDocuments] = useState<File[]>([])
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -47,7 +47,9 @@ export default function Sidebar({
   }
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed)
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    onSidebarToggle?.(!newState);
   }
 
   const goToHome = () => {
@@ -79,7 +81,7 @@ export default function Sidebar({
     };
 
   return (
-    <>
+    <div className={styles.sidebarContainer}>
       <div className={styles.menuBar}>
         <div className={styles.sidebarControls}>
           <div className={styles.mainControls}>
@@ -123,15 +125,7 @@ export default function Sidebar({
             </button>
           </div>
           <div className={styles.bottomControls}>
-            <button 
-              className={styles.controlButton}
-              onClick={SettingsButton}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </button>
+            <SettingsButton />
             <button 
               className={styles.controlButton}
               onClick={() => {/* Add help functionality */}}
@@ -142,14 +136,14 @@ export default function Sidebar({
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </button>
+            <button 
+              className={styles.logoutButton}
+              onClick={handleSignOut}
+              title="Logout"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
-          <button 
-            className={styles.logoutButton}
-            onClick={handleSignOut}
-            title="Logout"
-          >
-            <LogOut size={20} />
-          </button>
         </div>
       </div>
       <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -224,7 +218,7 @@ export default function Sidebar({
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

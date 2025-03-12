@@ -1,0 +1,126 @@
+.dashboard {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  margin-left: 50px;
+  background: transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  width: calc(100% - 50px);
+}
+
+.dashboard.expanded {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+}
+
+.mainContent {
+  display: flex;
+  min-width: max-content;
+  gap: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  padding: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100vh;
+  width: 100%;
+  transition: all 0.3s ease;
+  position: absolute;
+  left: 0;
+  justify-content: center;
+}
+
+.dashboard.expanded .mainContent {
+  left: calc(var(--sidebar-width) + 24px);
+  width: calc(100% - var(--sidebar-width) - 24px);
+  padding-left: 0;
+}
+
+/* Base styles for all sections */
+.roadmapSection,
+.contentSection,
+.chatSection {
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+/* Specific widths for each section */
+.roadmapSection {
+  width: 2000px;
+  position: relative;
+  z-index: 1;
+}
+
+.contentSection {
+  width: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Initial full-width chat section */
+.chatSection {
+  width: 800px;
+  flex: 0 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  min-width: 500px;
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+}
+
+/* Chat section when other sections are visible */
+.roadmapSection + .contentSection + .chatSection,
+.roadmapSection ~ .chatSection,
+.contentSection ~ .chatSection {
+  width: 600px;
+  flex: 0 0 600px;
+}
+
+/* Adjust chat section width when sidebar is expanded */
+.dashboard.expanded .chatSection {
+  width: 800px;
+}
+
+.dashboard.expanded .roadmapSection + .contentSection + .chatSection,
+.dashboard.expanded .roadmapSection ~ .chatSection,
+.dashboard.expanded .contentSection ~ .chatSection {
+  width: 600px;
+}
+
+/* Ensure proper spacing when all sections are visible */
+.mainContent:has(.roadmapSection):has(.contentSection):has(.chatSection) {
+  padding-right: 40px;
+  padding-left: 40px;
+  justify-content: center;
+}
+
+/* Center align chat area contents */
+.chatArea {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcomeContainer,
+.uploadArea,
+.chatInput {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+} 

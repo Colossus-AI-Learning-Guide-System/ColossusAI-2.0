@@ -1,281 +1,288 @@
+.sidebarContainer {
+  position: relative;
+  height: 100%;
+}
+
 .sidebar {
-    width: var(--sidebar-width);
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.95) 0%,
-        rgba(3, 0, 10, 0.9) 100%
-    );
-    border-right: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    position: relative;
-    transition: all 0.3s ease;
-    margin-left: 0;
-  }
-  
-  .menuBar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 50px;
-    background: linear-gradient(
-        to bottom,
-        var(--darker-black) 0%,
-        var(--darker-purple) 100%
-    );
-    border-right: 1px solid var(--border);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-  }
-  
-  .collapsed {
-    transform: translateX(-100%);
-    width: 0;
-    padding: 0;
-    margin: 0;
-    opacity: 0;
-  }
-  
-  .collapsed .logo,
-  .collapsed .section,
-  .collapsed .documentList,
-  .collapsed .addButton {
-    display: none;
-  }
-  
-  .sidebarControls {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 100%;
-  }
-  
-  .mainControls {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .bottomControls {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: auto;
-    padding-bottom: 20px;
-  }
-  
-  .sidebarControls::after {
-    content: '';
-    display: block;
-    width: 30px;
-    height: 1px;
-    background: var(--border);
-    margin: 10px auto;
-  }
-  
-  .controlButton {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: none;
-    color: var(--text-primary);
-    transition: all 0.2s;
-    position: relative;
-  }
-  
-  .controlButton:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(2px);
-  }
-  
-  .controlButton.active {
-    background: linear-gradient(
-        135deg,
-        var(--dark-purple) 0%,
-        var(--dark-pink) 100%
-    );
-  }
-  
-  .controlButton svg {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .controlButton:active {
-    transform: translateX(1px);
-  }
-  
-  .logo {
-    font-size: 20px;
-    font-weight: bold;
-    padding: 10px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .logoImage {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-  }
-  
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .section h2 {
-    font-size: 16px;
-    color: var(--text-secondary);
-  }
-  
-  .recentContent {
-    min-height: 220px;
-    border: 0px solid var(--border);
-    border-radius: 10px;
-  }
-  
-  .addButton {
-    padding: 8px 12px;
-    background: linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0.4) 0%,
-        rgba(26, 0, 51, 0.4) 100%
-    );
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text-primary);
-    text-align: left;
-    transition: all 0.3s ease;
-  }
-  
-  .addButton:hover {
-    background: linear-gradient(
-        90deg,
-        var(--dark-purple) 0%,
-        var(--dark-pink) 100%
-    );
-    border-color: var(--dark-pink);
-  }
-  
-  .documentList {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .documentItem {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border-radius: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    border: 1px solid transparent;
-  }
-  
-  .documentItem:hover {
-    background: rgba(0, 0, 0, 0.5);
-    border-color: var(--border);
-    transform: translateX(2px);
-  }
-  
-  .pdfIcon {
-    min-width: 24px;
-    color: var(--text-primary);
-  }
-  
-  .documentName {
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .deleteButton {
-    margin-left: auto;
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    color: var(--text-primary);
-    opacity: 0.5;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  
-  .deleteButton:hover {
-    opacity: 1;
-    background: var(--border);
-  }
-  
-  .menuItem {
-    background: transparent;
-    color: #ffffff;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-  }
-  
-  .menuItem:hover {
-    background: rgba(255, 255, 255, 0.05);
-    opacity: 1;
-  }
-  
-  .menuItem.active {
-    background: rgba(255, 255, 255, 0.1);
-    opacity: 1;
-  }
-  
-  .logoutButton {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(
+  position: fixed;
+  left: 50px;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(3, 0, 10, 0.9) 100%
+  );
+  border-right: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  transition: all 0.3s ease;
+  z-index: 5;
+}
+
+.menuBar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  background: linear-gradient(
+      to bottom,
+      var(--darker-black) 0%,
+      var(--darker-purple) 100%
+  );
+  border-right: 1px solid var(--border);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 10px;
+}
+
+.collapsed {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.collapsed .logo,
+.collapsed .section,
+.collapsed .documentList,
+.collapsed .addButton {
+  display: none;
+}
+
+.sidebarControls {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.mainControls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.bottomControls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: auto;
+  align-items: center;
+  padding-bottom: 8px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.sidebarControls::after {
+  display: none;
+}
+
+.controlButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.controlButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(2px);
+}
+
+.controlButton.active {
+  background: linear-gradient(
       135deg,
-      rgba(139, 0, 0, 0.4) 0%,
-      rgba(80, 0, 0, 0.4) 100%
-    );
-    border: none;
-    color: #ff6b6b;
-    transition: all 0.3s ease;
-    margin-top: auto;
-    cursor: pointer;
-    margin-bottom: 20px;
-  }
-  
-  .logoutButton:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(220, 0, 0, 0.8) 0%,
-      rgba(139, 0, 0, 0.8) 100%
-    );
-    color: #ffffff;
-    transform: translateX(2px);
-  }
+      var(--dark-purple) 0%,
+      var(--dark-pink) 100%
+  );
+}
+
+.controlButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.controlButton:active {
+  transform: translateX(1px);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoImage {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section h2 {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.recentContent {
+  min-height: 220px;
+  border: 0px solid var(--border);
+  border-radius: 10px;
+}
+
+.addButton {
+  padding: 8px 12px;
+  background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(26, 0, 51, 0.4) 100%
+  );
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-primary);
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.addButton:hover {
+  background: linear-gradient(
+      90deg,
+      var(--dark-purple) 0%,
+      var(--dark-pink) 100%
+  );
+  border-color: var(--dark-pink);
+}
+
+.documentList {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.documentItem:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: var(--border);
+  transform: translateX(2px);
+}
+
+.pdfIcon {
+  min-width: 24px;
+  color: var(--text-primary);
+}
+
+.documentName {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteButton {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-primary);
+  opacity: 0.5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.menuItem {
+  background: transparent;
+  color: #ffffff;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 1;
+}
+
+.menuItem.active {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.logoutButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 0, 0, 0.4) 0%,
+    rgba(80, 0, 0, 0.4) 100%
+  );
+  border: none;
+  color: #ff6b6b;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.logoutButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 0, 0, 0.8) 0%,
+    rgba(139, 0, 0, 0.8) 100%
+  );
+  color: #ffffff;
+  transform: translateX(2px);
+}
   
   
