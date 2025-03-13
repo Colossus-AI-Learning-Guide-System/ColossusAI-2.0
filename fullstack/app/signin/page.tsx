@@ -88,7 +88,7 @@ export default function SignInPage() {
       }
 
       if (data?.session) {
-        router.push("/dashboard");
+        router.push("/chatpage");
       }
     } catch (err: any) {
       console.error("Signin error:", err);
