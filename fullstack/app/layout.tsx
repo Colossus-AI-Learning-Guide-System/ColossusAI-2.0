@@ -3,7 +3,6 @@ import React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Toaster from "@/app/components/ui/toaster";
-import PageTransition from "./chatpage/components/PageTransition";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,11 +29,9 @@ export default function RootLayout({
         className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
       >
         <div className="noise-overlay" />
-        <PageTransition>
-          <main className="flex min-h-screen flex-col items-center justify-center">
-            {children}
-          </main>
-        </PageTransition>
+        <main className="min-h-screen">
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>

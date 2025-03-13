@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@amcharts/amcharts5": "^5.11.1",
     "@chakra-ui/react": "^3.9.0",
     "@clerk/nextjs": "^6.11.0",
     "@emotion/react": "^11.14.0",

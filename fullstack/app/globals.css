@@ -9,61 +9,81 @@
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
+
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
- 
+
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
- 
+
     --radius: 0.5rem;
     --sidebar-width: 280px;
+
+    /* Chatpage specific variables */
+    --border-color: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --background: #f9fafb;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --scrollbar-thumb: #e5e7eb;
+    --scrollbar-track: #ffffff;
   }
- 
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
- 
+
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
- 
+
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
+
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
+
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
- 
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
+
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
- 
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Chatpage specific variables - dark mode */
+    --border-color: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --background: #1f2937;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --scrollbar-thumb: #4b5563;
+    --scrollbar-track: #1f2937;
   }
 }
 
@@ -98,12 +118,12 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #1e3a8a; /* Dark blue color */
+  background-color: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Remove white background */
+  background: var(--scrollbar-track);
 }
 
 /* Noise overlay for visual effect */
@@ -119,31 +139,39 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+/* Override any centering for chatpage */
+.chatpage-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 @layer utilities {
   .min-h-validation {
     min-height: 1rem;
     @apply flex items-center mb-0;
   }
-  
+
   .auth-form {
     @apply space-y-2 overflow-hidden max-h-[calc(100vh-170px)] lg:max-h-none;
   }
-  
+
   .auth-container {
     @apply w-full max-w-md space-y-2 overflow-hidden;
     padding-top: 0;
     margin-bottom: 1.5rem;
   }
-  
+
   .auth-header {
     @apply flex flex-col items-center;
     margin-bottom: 0.5rem;
   }
-  
+
   .auth-logo {
     @apply w-[40px] h-[40px] relative;
   }
-  
+
   .form-spacing-tight {
     @apply space-y-1 overflow-y-hidden;
   }
@@ -155,95 +183,95 @@ input {
   input {
     @apply border-2 border-[#9933FF] rounded-3xl focus:outline-none focus:border-[#9933FF] focus:ring-1 focus:ring-[#9933FF] h-10 px-4;
   }
-  
+
   /* Error state for inputs - to match the landing page form */
-  input.error, 
+  input.error,
   input[aria-invalid="true"],
   input[data-invalid="true"] {
     @apply border-2 border-red-500 ring-red-500/20;
   }
-  
+
   /* Error state focus styles */
-  input.error:focus, 
+  input.error:focus,
   input[aria-invalid="true"]:focus {
     @apply border-red-500 ring-1 ring-red-500/20;
   }
-  
+
   /* Dark theme specific error styles */
   .dark-theme input.error,
   .dark-theme input[aria-invalid="true"] {
     @apply border-2 border-red-500;
   }
-  
+
   .dark-theme input.error:focus,
   .dark-theme input[aria-invalid="true"]:focus {
     @apply border-red-500 ring-1 ring-red-500/20;
   }
-  
+
   .form-container {
     @apply flex items-start pt-1 lg:items-center justify-center p-3 lg:p-4;
   }
-  
+
   .signin-link {
     @apply text-sm font-medium mt-2 text-gray-700;
   }
-  
+
   .signin-link a {
     @apply text-purple-600 font-semibold hover:text-purple-500;
   }
-  
+
   /* Dark theme classes for right side */
   .dark-theme {
     @apply bg-[#121212] text-white;
   }
-  
+
   .dark-theme .auth-container {
     @apply border-[#333333];
   }
-  
+
   .dark-theme .auth-header {
     @apply pb-3 mb-4;
   }
-  
-  .dark-theme h1, 
+
+  .dark-theme h1,
   .dark-theme h2 {
     @apply text-white;
   }
-  
-  .dark-theme p, 
+
+  .dark-theme p,
   .dark-theme label {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme input {
     @apply bg-[#2D2D2D] text-white border-[#444444] focus:border-[#b066ff] placeholder-gray-500;
   }
-  
+
   .dark-theme input:focus {
     @apply ring-purple-400/30 shadow-[0_0_0_1px_rgba(176,102,255,0.3)];
   }
-  
+
   .dark-theme .signin-link {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme .signin-link a {
     @apply text-purple-400 hover:text-purple-300;
   }
-  
+
   .dark-theme .text-gray-500 {
     @apply text-[#E0E0E0]/70;
   }
-  
-  .dark-theme .text-gray-600, 
+
+  .dark-theme .text-gray-600,
   .dark-theme .text-gray-700 {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme .border-gray-300 {
     @apply border-[#444444];
   }
-  
+
   .dark-theme .text-red-500 {
     @apply text-[#FF6B6B];
   }
@@ -251,7 +279,7 @@ input {
   /* Divider styling in dark theme */
   .dark-theme .divider-text {
     background-color: #121212;
-    color: #E0E0E0;
+    color: #e0e0e0;
     font-weight: 500;
   }
-} 
+}
