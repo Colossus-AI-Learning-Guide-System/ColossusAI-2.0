@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
+        className={`${inter.variable} min-h-screen bg-background font-sans antialiased overflow-x-hidden`}
       >
         <div className="noise-overlay" />
-        <main className="min-h-screen">
+        <main className="min-h-screen w-full overflow-x-visible p-0 m-0">
           {children}
         </main>
         <Toaster />

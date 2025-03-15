@@ -98,10 +98,10 @@ const ForceDirectedGraph = forwardRef((props, ref) => {
         categoryField: "name",
         childDataField: "children",
         centerStrength: 0.5,
-        minRadius: 40,
-        maxRadius: 60,
-        nodePadding: 20,
-        manyBodyStrength: -50
+        minRadius: 50,
+        maxRadius: 70,
+        nodePadding: 25,
+        manyBodyStrength: -60
       })
     );
 
@@ -117,7 +117,31 @@ const ForceDirectedGraph = forwardRef((props, ref) => {
   }, []);
 
   return (
-    <div id="chartdiv" style={{ width: '100%', height: '100%' }} />
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <div
+        id="chartdiv"
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0
+        }}
+      />
+    </div>
   );
 });
 

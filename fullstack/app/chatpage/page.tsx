@@ -16,11 +16,18 @@ const ForceDirectedGraph = dynamic(() => import('./components/ForceDirectedGraph
   ssr: false
 });
 
+// Sample PDF pages for demonstration
+const samplePdfPages = [
+  '/sample-pdf-page-1.png',
+  '/sample-pdf-page-2.png',
+  '/sample-pdf-page-3.png',
+];
+
 export default function ResearchPage() {
   // Reference to the graph component
   const graphRef = useRef<GraphRef>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // State for selected papers
   const [selectedPapers, setSelectedPapers] = useState([
     {
       authors: 'Yang — Wang',
@@ -38,44 +45,9 @@ export default function ResearchPage() {
     }
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [similarPapers, setSimilarPapers] = useState([
-    {
-      authors: 'Ginther — Kington',
-      year: '2012',
-      title: 'Are race, ethnicity, and medical school affiliation associated with NIH R01 type 1 award probability',
-      category: 'Academic Medicine',
-      relevance: '5.0'
-    },
-    {
-      authors: 'Moss-Racusin — Handelsman',
-      year: '2012',
-      title: 'Science faculty\'s subtle gender biases favor male students',
-      category: 'Proceedings of the National Academy of Sciences',
-      relevance: '4.7'
-    },
-    {
-      authors: 'Bakken — Wang',
-      year: '2006',
-      title: 'Viewing Clinical Research Career Development Through the Lens of Social Cognitive Career Theory',
-      category: 'Advances in Health Sciences Education',
-      relevance: '4.2'
-    },
-    {
-      authors: 'Valantine — Collins',
-      year: '2015',
-      title: 'National Institutes of Health addresses the science of diversity',
-      category: 'Proceedings of the National Academy of Sciences',
-      relevance: '4.9'
-    },
-    {
-      authors: 'Carnes — Sheridan',
-      year: '2015',
-      title: 'The effect of an intervention to break the gender bias habit for faculty at one institution: a cluster randomized, controlled trial',
-      category: 'Academic Medicine',
-      relevance: '3.4'
-    }
-  ]);
+  // State for PDF viewer
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pdfPages, setPdfPages] = useState(samplePdfPages);
 
   // Zoom control handlers
   const handleZoomIn = () => {
@@ -96,13 +68,26 @@ export default function ResearchPage() {
     }
   };
 
+  // PDF navigation handlers
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < pdfPages.length - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
-    <main className="chatpage-container">
+    <main className="chatpage-container" style={{ width: '100%' }}>
       <div className={styles['papers-container']}>
         {/* Selected Papers Panel */}
         <div className={styles.panel + ' ' + styles['selected-papers-panel']}>
           <div className={styles['panel-header']}>
-            <h2>5 selected papers</h2>
+            <h2>Selected papers</h2>
             <div className={styles['export-buttons']}>
               <button className={styles['export-btn']}>Export</button>
               <button className={styles['export-btn']}>.bib</button>
@@ -125,35 +110,10 @@ export default function ResearchPage() {
           </div>
         </div>
 
-        {/* Similar Work Panel */}
-        <div className={styles.panel + ' ' + styles['similar-work-panel']}>
-          <div className={styles['panel-header']}>
-            <h2>Similar Work</h2>
-            <div className={styles['filter-section']}>
-              <select className={styles['filter-dropdown']}>
-                <option>Relevance</option>
-              </select>
-            </div>
-          </div>
-          <div className={styles['papers-list']}>
-            {similarPapers.map((paper, index) => (
-              <div key={index} className={styles['paper-card']}>
-                <div className={styles['relevance-badge']}>{paper.relevance}</div>
-                <div className={styles['paper-header']}>
-                  <span className={styles.authors}>{paper.authors}</span>
-                  <span className={styles.year}>{paper.year}</span>
-                </div>
-                <h3 className={styles['paper-title']}>{paper.title}</h3>
-                <div className={styles['paper-category']}>{paper.category}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Graph Visualization Panel */}
         <div className={styles.panel + ' ' + styles['graph-panel']}>
           <div className={styles['panel-header']}>
-            <h2>Connections between your collection and 54 papers</h2>
+            <h2>Connections between papers</h2>
             <div className={styles['graph-controls']}>
               <div className={styles['view-toggles']}>
                 <button className={styles['view-toggle'] + ' ' + styles.active}>Network</button>
@@ -172,6 +132,60 @@ export default function ResearchPage() {
             <button className={styles['zoom-btn']} onClick={handleZoomOut}>Zoom Out</button>
             <button className={styles['zoom-btn']} onClick={handleFitAll}>Fit All</button>
             <button className={styles['zoom-btn']} onClick={handleZoomIn}>Zoom In</button>
+          </div>
+        </div>
+
+        {/* PDF Viewer Panel */}
+        <div className={styles.panel + ' ' + styles['pdf-viewer-panel']}>
+          <div className={styles['panel-header']}>
+            <h2>PDF Viewer</h2>
+          </div>
+          <div className={styles['pdf-container']}>
+            <div className={styles['pdf-page']}>
+              {/* In a real application, you would load actual PDF images from your backend */}
+              {/* For now, we'll use a placeholder */}
+              <div style={{ 
+                width: '100%', 
+                height: '700px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: '#f5f5f5',
+                color: '#666',
+                fontSize: '14px',
+                textAlign: 'center',
+                padding: '20px'
+              }}>
+                <div>
+                  <p>PDF Page {currentPage + 1} of {pdfPages.length}</p>
+                  <p style={{ marginTop: '10px' }}>
+                    In the actual application, this area will display images of PDF pages
+                    sent from the backend.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className={styles['pdf-controls']}>
+              <div className={styles['page-indicator']}>
+                Page {currentPage + 1} of {pdfPages.length}
+              </div>
+              <div className={styles['page-nav']}>
+                <button 
+                  className={styles['page-btn']} 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                >
+                  Previous
+                </button>
+                <button 
+                  className={styles['page-btn']} 
+                  onClick={handleNextPage}
+                  disabled={currentPage === pdfPages.length - 1}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

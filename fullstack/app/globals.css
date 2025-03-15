@@ -139,12 +139,43 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+/* Ensure html and body allow horizontal scrolling for chatpage */
+html,
+body {
+  overflow-x: auto;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
 /* Override any centering for chatpage */
 .chatpage-container {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  background-color: var(--background);
+}
+
+/* Horizontal scrollbar styling for chatpage */
+.chatpage-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.chatpage-container::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.chatpage-container::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
 }
 
 @layer utilities {
