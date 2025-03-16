@@ -1,15 +1,12 @@
 .papers-container {
   display: grid;
-  grid-template-columns: minmax(300px, 15%) minmax(800px, 55%) minmax(
-      500px,
-      30%
-    );
-  gap: 1px;
+  grid-template-columns: 350px 1fr 400px;
+  gap: 8px;
   height: 100vh;
-  background-color: var(--border-color);
+  background-color: var(--background);
   width: 100%;
-  min-width: 1601px; /* Minimum total width for horizontal scrolling */
-  margin-right: 0;
+  min-width: 1200px;
+  padding: 0.5rem;
 }
 
 .panel {
@@ -28,27 +25,40 @@
 }
 
 .graph-panel {
-  width: 100%;
-  min-width: 800px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 600px;
+  border-radius: 0.5rem;
+  margin-right: 1px;
+  margin-left: 1px;
+  background-color: white;
+  overflow: hidden;
 }
 
 .pdf-viewer-panel {
   width: 100%;
-  min-width: 500px;
+  min-width: 400px;
   flex-shrink: 0;
+  border-radius: 0.5rem;
+  margin-left: 1px;
+  background-color: white;
+  overflow: hidden;
 }
 
 .panel-header {
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  z-index: 10;
 }
 
 .panel-header h2 {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .export-buttons {
@@ -296,4 +306,178 @@
 .page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.chatbot-panel {
+  width: 100%;
+  min-width: 300px;
+  flex-shrink: 0;
+  background-color: white;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  margin-right: 1px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.message {
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user {
+  align-self: flex-end;
+  background-color: var(--accent-blue);
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+  margin-left: 2rem;
+}
+
+.assistant {
+  align-self: flex-start;
+  background-color: var(--secondary);
+  color: var(--text-primary);
+  border-bottom-left-radius: 0.25rem;
+  margin-right: 2rem;
+}
+
+.message-content {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.chat-input-container {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.chat-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  position: relative;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 0.75rem 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1.5rem;
+  font-size: 0.875rem;
+  background-color: var(--background);
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.send-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--accent-blue);
+  color: white;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.send-button:hover {
+  background-color: var(--accent-blue);
+  opacity: 0.9;
+}
+
+.file-upload {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--background);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-label:hover {
+  background-color: var(--border-color);
+}
+
+.file-selected {
+  background-color: var(--accent-blue);
+  color: white;
+}
+
+.file-selected:hover {
+  background-color: var(--accent-blue);
+  opacity: 0.9;
+}
+
+.file-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

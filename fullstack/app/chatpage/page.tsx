@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import styles from './page.module.css';
+import { PaperclipIcon, SendIcon } from 'lucide-react';
 
 // Define the interface for the graph ref
 interface GraphRef {
@@ -27,27 +28,56 @@ export default function ResearchPage() {
   // Reference to the graph component
   const graphRef = useRef<GraphRef>(null);
 
-  // State for selected papers
-  const [selectedPapers, setSelectedPapers] = useState([
-    {
-      authors: 'Yang — Wang',
-      year: '2011',
-      title: 'Scientific Productivity, Research Funding, Race and Ethnicity',
-      category: 'arXiv: Applications',
-      abstract: 'In a recent study by Ginther et al., the probability of receiving a U.S. National Institutes of Health (NIH) R01 award was related to the applicant\'s race/ethnicity...'
-    },
-    {
-      authors: 'Ginther — Schaffer',
-      year: '2016',
-      title: 'Gender, Race/Ethnicity, and National Institutes of Health R01 Research Awards: Is There Evidence of a Double Bind?',
-      category: 'Academic Medicine',
-      abstract: 'The authors examined the association between gender, race/ethnicity, and the probability of receiving a National Institutes of Health R01 award...'
-    }
+  // State for chat messages
+  const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
+    { role: 'assistant', content: 'Hello! I can help you analyze research papers. Upload a document or ask me a question.' }
   ]);
+  
+  // State for user input
+  const [userInput, setUserInput] = useState('');
+  
+  // State for file upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // State for PDF viewer
   const [currentPage, setCurrentPage] = useState(0);
   const [pdfPages, setPdfPages] = useState(samplePdfPages);
+
+  // Handle sending a message
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userInput.trim() && !selectedFile) return;
+    
+    // Add user message
+    const newMessages = [...messages, { role: 'user' as const, content: userInput }];
+    setMessages(newMessages);
+    
+    // Handle file if present
+    if (selectedFile) {
+      newMessages.push({ 
+        role: 'user' as const, 
+        content: `Uploaded file: ${selectedFile.name}` 
+      });
+      setSelectedFile(null);
+    }
+    
+    // Add assistant response (in a real app, this would come from an API)
+    setTimeout(() => {
+      setMessages([...newMessages, { 
+        role: 'assistant' as const, 
+        content: 'I received your message. How can I help you analyze this information?' 
+      }]);
+    }, 1000);
+    
+    setUserInput('');
+  };
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
 
   // Zoom control handlers
   const handleZoomIn = () => {
@@ -84,29 +114,55 @@ export default function ResearchPage() {
   return (
     <main className="chatpage-container" style={{ width: '100%' }}>
       <div className={styles['papers-container']}>
-        {/* Selected Papers Panel */}
-        <div className={styles.panel + ' ' + styles['selected-papers-panel']}>
+        {/* Chatbot Conversation Container */}
+        <div className={styles.panel + ' ' + styles['chatbot-panel']}>
           <div className={styles['panel-header']}>
-            <h2>Selected papers</h2>
-            <div className={styles['export-buttons']}>
-              <button className={styles['export-btn']}>Export</button>
-              <button className={styles['export-btn']}>.bib</button>
-              <button className={styles['export-btn']}>.ris</button>
-              <button className={styles['export-btn']}>.json</button>
-            </div>
+            <h2>AI Research Assistant</h2>
           </div>
-          <div className={styles['papers-list']}>
-            {selectedPapers.map((paper, index) => (
-              <div key={index} className={styles['paper-card']}>
-                <div className={styles['paper-header']}>
-                  <span className={styles.authors}>{paper.authors}</span>
-                  <span className={styles.year}>{paper.year}</span>
+          <div className={styles['chat-container']}>
+            <div className={styles['messages-list']}>
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`${styles['message']} ${styles[message.role]}`}
+                >
+                  <div className={styles['message-content']}>
+                    {message.content}
+                  </div>
                 </div>
-                <h3 className={styles['paper-title']}>{paper.title}</h3>
-                <div className={styles['paper-category']}>{paper.category}</div>
-                <p className={styles['paper-abstract']}>{paper.abstract}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className={styles['chat-input-container']}>
+              <form onSubmit={handleSendMessage} className={styles['chat-form']}>
+                <input
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder="Ask about research papers..."
+                  className={styles['chat-input']}
+                />
+                <div className={styles['file-upload']}>
+                  <label 
+                    htmlFor="file-upload" 
+                    className={`${styles['file-upload-label']} ${selectedFile ? styles['file-selected'] : ''}`} 
+                    title={selectedFile ? selectedFile.name : 'Attach file'}
+                  >
+                    <PaperclipIcon size={16} />
+                    <span className={styles['sr-only']}>Attach file</span>
+                  </label>
+                  <input 
+                    id="file-upload" 
+                    type="file" 
+                    onChange={handleFileChange} 
+                    className={styles['file-input']} 
+                  />
+                </div>
+                <button type="submit" className={styles['send-button']} title="Send message">
+                  <SendIcon size={16} />
+                  <span className={styles['sr-only']}>Send</span>
+                </button>
+              </form>
+            </div>
           </div>
         </div>
 
