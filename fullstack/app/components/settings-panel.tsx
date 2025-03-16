@@ -26,8 +26,6 @@ interface SettingsPanelProps {
   }
   fullName?: string
   setFullName?: (value: string) => void
-  username?: string
-  setUsername?: (value: string) => void
   email?: string
   setEmail?: (value: string) => void
   cardData?: any
@@ -48,8 +46,6 @@ export function SettingsPanel({
   featureFlags = { securitySettings: true, memoryManagement: true }, // Ensure memoryManagement is true by default
   fullName,
   setFullName,
-  username,
-  setUsername,
   email,
   setEmail,
   cardData,
@@ -71,13 +67,11 @@ export function SettingsPanel({
 
   const [formData, setFormData] = useState({
     fullName: "",
-    username: "",
     email: "",
   })
 
   const [formErrors, setFormErrors] = useState({
     fullName: "",
-    username: "",
     email: "",
   })
 
@@ -125,7 +119,6 @@ export function SettingsPanel({
           if (data) {
             setFormData({
               fullName: data.full_name || "",
-              username: data.username || "",
               email: data.email || user.email || "",
             })
           } else {
@@ -139,7 +132,6 @@ export function SettingsPanel({
           // For demo purposes, set some placeholder data
           setFormData({
             fullName: "Demo User",
-            username: "demouser",
             email: "demo@example.com",
           })
         }
@@ -148,7 +140,6 @@ export function SettingsPanel({
         // For demo purposes, set some placeholder data
         setFormData({
           fullName: "Demo User",
-          username: "demouser",
           email: "demo@example.com",
         })
       } finally {
@@ -196,7 +187,7 @@ export function SettingsPanel({
 
   const validateForm = () => {
     let isValid = true
-    const errors = { fullName: "", username: "", email: "" }
+    const errors = { fullName: "", email: "" }
 
     // Validate full name
     if (!formData.fullName.trim()) {
@@ -204,18 +195,6 @@ export function SettingsPanel({
       isValid = false
     } else if (formData.fullName.length < 2) {
       errors.fullName = "Full name must be at least 2 characters"
-      isValid = false
-    }
-
-    // Validate username
-    if (!formData.username.trim()) {
-      errors.username = "Username is required"
-      isValid = false
-    } else if (formData.username.length < 3) {
-      errors.username = "Username must be at least 3 characters"
-      isValid = false
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      errors.username = "Username can only contain letters, numbers, and underscores"
       isValid = false
     }
 
@@ -284,7 +263,6 @@ export function SettingsPanel({
           const { error } = await supabase.from("profiles").upsert({
             id: user.id,
             full_name: formData.fullName,
-            username: formData.username,
             email: formData.email,
             updated_at: new Date().toISOString(),
           })
@@ -503,16 +481,6 @@ export function SettingsPanel({
                       className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
                     />
                     {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
-              </div>
-              <div>
-                    <label className="mb-2 block">Username</label>
-                <Input
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.username && <p className="mt-1 text-sm text-red-400">{formErrors.username}</p>}
               </div>
               <div>
                     <label className="mb-2 block">Email</label>
