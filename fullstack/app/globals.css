@@ -161,6 +161,7 @@ body {
   justify-content: flex-start;
   align-items: flex-start;
   background-color: var(--background);
+  position: relative;
 }
 
 /* Horizontal scrollbar styling for chatpage */
@@ -313,4 +314,24 @@ body {
     color: #e0e0e0;
     font-weight: 500;
   }
+}
+
+/* Sidebar integration styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 30;
+  background-color: white;
+  border-right: 1px solid var(--border-color);
+  transition: width 0.2s ease;
+}
+
+/* Content wrapper for proper sidebar spacing */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 3.05rem);
+  transition: margin-left 0.2s ease, width 0.2s ease;
 }
