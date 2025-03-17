@@ -24,6 +24,17 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { Separator } from "@/app/components/ui/separator";
+import { SettingsPanel } from "@/app/components/settings-panel";
+
+// Example user data - in a real app, this would come from your auth system
+const mockUserData = {
+  permissions: ["general", "upgrade"], // User only has access to general and upgrade sections
+  subscription: "free", // User is on free tier
+  featureFlags: {
+    securitySettings: true,
+    memoryManagement: true, // Memory feature is not yet available
+  },
+};
 
 const sidebarVariants = {
   open: {
@@ -74,6 +85,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isDragging, setIsDragging] = useState(false);
   const [documents, setDocuments] = useState<File[]>([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [defaultSettingsTab, setDefaultSettingsTab] = useState("general");
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -171,16 +184,6 @@ export function Sidebar() {
                     <DropdownMenuItem
                       className="flex items-center gap-2"
                     >
-                      <UserCircle className="h-4 w-4" /> Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                    >
-                      <Settings className="h-4 w-4" /> Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                    >
                       <LogOut className="h-4 w-4" /> Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -250,10 +253,51 @@ export function Sidebar() {
                   )}
                 </ScrollArea>
               </div>
+              
+              {/* Bottom buttons for Settings and Profile */}
+              <div className="mt-auto p-2 border-t">
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex w-full items-center justify-start gap-2 px-2"
+                    onClick={() => {
+                      setDefaultSettingsTab("security");
+                      setIsSettingsOpen(true);
+                    }}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {!isCollapsed && <span className="text-sm">Settings</span>}
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex w-full items-center justify-start gap-2 px-2"
+                    onClick={() => {
+                      setDefaultSettingsTab("general");
+                      setIsSettingsOpen(true);
+                    }}
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    {!isCollapsed && <span className="text-sm">Profile</span>}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </motion.ul>
       </motion.div>
+      
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        userPermissions={mockUserData.permissions}
+        userSubscription={mockUserData.subscription}
+        featureFlags={mockUserData.featureFlags}
+        defaultPanel={defaultSettingsTab}
+      />
     </motion.div>
   );
 } 
