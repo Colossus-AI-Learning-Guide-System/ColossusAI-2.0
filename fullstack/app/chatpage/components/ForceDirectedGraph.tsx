@@ -1,86 +1,123 @@
 'use client';
 
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5hierarchy from '@amcharts/amcharts5/hierarchy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
-// Sample data structure for document connections
-const data = {
-  name: "Documents",
+// Define the structure of node data
+interface NodeData {
+  name: string;
+  value: number;
+  id?: string;
+  documentId?: string;
+  page?: number;
+  children?: NodeData[];
+}
+
+// Define the props interface
+interface ForceDirectedGraphProps {
+  onNodeClick?: (nodeId: string, documentId: string, page: number) => void;
+  data?: NodeData;
+}
+
+// Define the methods that can be called on the component
+interface GraphRef {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  fitAll: () => void;
+  updateData: (data: NodeData) => void;
+}
+
+// Sample data structure for initial rendering
+const initialData: NodeData = {
+  name: "Root",
   value: 0,
   children: [
     {
-      name: "Financial Report 2023",
+      name: "Document 1",
       value: 1,
+      id: "doc1",
+      documentId: "doc1",
+      page: 0,
       children: [
-        { name: "Q1 Analysis", value: 1 },
-        { name: "Q2 Analysis", value: 1 },
-        { name: "Annual Forecast", value: 1 }
+        {
+          name: "Section 1.1",
+          value: 1,
+          id: "sec1.1",
+          documentId: "doc1",
+          page: 0
+        },
+        {
+          name: "Section 1.2",
+          value: 1,
+          id: "sec1.2",
+          documentId: "doc1",
+          page: 1
+        }
       ]
     },
     {
-      name: "Project Proposal",
+      name: "Document 2",
       value: 1,
+      id: "doc2",
+      documentId: "doc2",
+      page: 0,
       children: [
-        { name: "Budget Plan", value: 1 },
-        { name: "Timeline", value: 1 },
-        { name: "Resource Allocation", value: 1 }
-      ]
-    },
-    {
-      name: "Market Research",
-      value: 1,
-      children: [
-        { name: "Competitor Analysis", value: 1 },
-        { name: "Customer Survey", value: 1 },
-        { name: "Industry Trends", value: 1 }
-      ]
-    },
-    {
-      name: "Technical Documentation",
-      value: 1,
-      children: [
-        { name: "API Reference", value: 1 },
-        { name: "User Guide", value: 1 }
-      ]
-    },
-    {
-      name: "Legal Contracts",
-      value: 1,
-      children: [
-        { name: "Service Agreement", value: 1 }
+        {
+          name: "Section 2.1",
+          value: 1,
+          id: "sec2.1",
+          documentId: "doc2",
+          page: 0
+        }
       ]
     }
   ]
 };
 
-// Define the component with forwardRef to expose methods to parent
-const ForceDirectedGraph = forwardRef((props, ref) => {
+// ForceDirectedGraph component with ref forwarding
+const ForceDirectedGraph = forwardRef<GraphRef, ForceDirectedGraphProps>((props, ref) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const seriesRef = useRef<am5hierarchy.ForceDirected | null>(null);
   const rootRef = useRef<am5.Root | null>(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
-      console.log("Zoom in requested");
+      if (seriesRef.current) {
+        (seriesRef.current as any).zoomIn();
+      }
     },
     zoomOut: () => {
-      console.log("Zoom out requested");
+      if (seriesRef.current) {
+        (seriesRef.current as any).zoomOut();
+      }
     },
     fitAll: () => {
-      console.log("Fit all requested");
+      if (seriesRef.current) {
+        (seriesRef.current as any).zoomToFit();
+      }
+    },
+    updateData: (data: NodeData) => {
+      if (seriesRef.current) {
+        seriesRef.current.data.setAll([data]);
+      }
     }
   }));
 
   useEffect(() => {
+    // Initialize chart
+    if (!chartRef.current) return;
+
     // Create root element
-    const root = am5.Root.new("chartdiv");
+    const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
 
     // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create wrapper container
+    // Create series
     const container = root.container.children.push(
       am5.Container.new(root, {
         width: am5.percent(100),
@@ -89,63 +126,92 @@ const ForceDirectedGraph = forwardRef((props, ref) => {
       })
     );
 
-    // Create series
     const series = container.children.push(
       am5hierarchy.ForceDirected.new(root, {
         downDepth: 1,
-        initialDepth: 2,
+        initialDepth: 1,
         valueField: "value",
         categoryField: "name",
         childDataField: "children",
-        centerStrength: 0.5,
-        minRadius: 50,
-        maxRadius: 70,
-        nodePadding: 25,
-        manyBodyStrength: -60
+        idField: "id",
+        linkWithField: "linkWith",
+        manyBodyStrength: -15,
+        centerStrength: 0.5
       })
     );
 
-    // Set data
-    series.data.setAll([data]);
+    // Configure nodes
+    const nodeTemplate = series.nodes.template;
+    
+    // Use type assertion to bypass TypeScript errors for amCharts properties
+    (nodeTemplate as any).setAll({
+      draggable: true,
+      tooltipText: "{name}",
+      fillOpacity: 0.8,
+      strokeWidth: 2,
+      stroke: am5.color(0xffffff)
+    });
+
+    // Configure circles
+    (nodeTemplate as any).circle?.setAll({
+      strokeOpacity: 0.8
+    });
+
+    // Configure labels
+    (nodeTemplate as any).label?.setAll({
+      text: "{name}",
+      fontSize: 12,
+      fill: am5.color(0xffffff),
+      strokeOpacity: 0,
+      paddingLeft: 5,
+      paddingRight: 5,
+      paddingTop: 2,
+      paddingBottom: 2,
+      background: am5.RoundedRectangle.new(root, {
+        fill: am5.color(0x000000),
+        fillOpacity: 0.7
+      })
+    });
+
+    // Handle node click events
+    nodeTemplate.events.on("click", (ev) => {
+      if (props.onNodeClick) {
+        const node = ev.target.dataItem?.dataContext as NodeData;
+        if (node && node.id && node.documentId && typeof node.page === 'number') {
+          props.onNodeClick(node.id, node.documentId, node.page);
+        }
+      }
+    });
+
+    // Set initial data
+    if (props.data) {
+      series.data.setAll([props.data]);
+    }
+
+    // Save series reference
+    seriesRef.current = series;
 
     // Make stuff animate on load
     series.appear(1000, 100);
 
     return () => {
-      root.dispose();
+      // Clean up
+      if (rootRef.current) {
+        rootRef.current.dispose();
+      }
     };
-  }, []);
+  }, [props.onNodeClick]);
 
-  return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        maxWidth: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}
-    >
-      <div
-        id="chartdiv"
-        style={{
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0
-        }}
-      />
-    </div>
-  );
+  // Update data when props.data changes
+  useEffect(() => {
+    if (seriesRef.current && props.data) {
+      seriesRef.current.data.setAll([props.data]);
+    }
+  }, [props.data]);
+
+  return <div ref={chartRef} style={{ width: '100%', height: '100%' }} />;
 });
 
-// Add display name for debugging
-ForceDirectedGraph.displayName = "ForceDirectedGraph";
+ForceDirectedGraph.displayName = 'ForceDirectedGraph';
 
 export default ForceDirectedGraph; 
