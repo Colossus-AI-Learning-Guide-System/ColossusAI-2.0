@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import styles from './page.module.css';
-import { PaperclipIcon, SendIcon } from 'lucide-react';
+import { PaperclipIcon, SendIcon, ZoomIn, ZoomOut, RotateCw, Download, Maximize, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Sidebar } from '@/app/components/ui/sidebar';
+import Image from 'next/image';
 
 // Define the interface for the graph ref
 interface GraphRef {
@@ -18,8 +19,8 @@ const ForceDirectedGraph = dynamic(() => import('./components/ForceDirectedGraph
   ssr: false
 });
 
-// Sample PDF pages for demonstration
-const samplePdfPages = [
+// Sample document pages for demonstration
+const sampleDocumentPages = [
   '/sample-pdf-page-1.png',
   '/sample-pdf-page-2.png',
   '/sample-pdf-page-3.png',
@@ -40,9 +41,14 @@ export default function DocumentAnalysisPage() {
   // State for file upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // State for PDF viewer
+  // State for document viewer
   const [currentPage, setCurrentPage] = useState(0);
-  const [pdfPages, setPdfPages] = useState(samplePdfPages);
+  const [documentPages, setDocumentPages] = useState(sampleDocumentPages);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
 
   // Handle sending a message
   const handleSendMessage = (e: React.FormEvent) => {
@@ -99,7 +105,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // PDF navigation handlers
+  // Document viewer handlers
   const handlePrevPage = () => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
@@ -107,10 +113,85 @@ export default function DocumentAnalysisPage() {
   };
 
   const handleNextPage = () => {
-    if (currentPage < pdfPages.length - 1) {
+    if (currentPage < documentPages.length - 1) {
       setCurrentPage(currentPage + 1);
     }
   };
+
+  const handleDocumentZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleDocumentZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  const handleRotate = () => {
+    setRotation(prev => (prev + 90) % 360);
+  };
+
+  const handleDownload = () => {
+    // In a real app, this would download the current document
+    const link = document.createElement('a');
+    link.href = documentPages[currentPage];
+    link.download = `document-page-${currentPage + 1}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      if (viewerRef.current?.requestFullscreen) {
+        viewerRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  // Handle document selection from graph
+  const handleDocumentSelection = (documentId: string) => {
+    // In a real app, this would fetch document data from the backend
+    setSelectedDocument(documentId);
+    // Reset viewer state
+    setCurrentPage(0);
+    setZoomLevel(1);
+    setRotation(0);
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Simulate receiving document data when a graph node is clicked
+  // In a real app, this would be triggered by an actual click on the graph
+  useEffect(() => {
+    // Mock function to simulate graph node click
+    const mockGraphNodeClick = (nodeId: string) => {
+      console.log(`Graph node clicked: ${nodeId}`);
+      // This would typically fetch document data from the backend
+      handleDocumentSelection(nodeId);
+    };
+
+    // For demonstration purposes only
+    const simulateClick = () => {
+      // This is just for demonstration - remove in real implementation
+      // mockGraphNodeClick('financial-report-2023');
+    };
+
+    simulateClick();
+  }, []);
 
   return (
     <main className="chatpage-container" style={{ width: '100%' }}>
@@ -194,56 +275,121 @@ export default function DocumentAnalysisPage() {
             </div>
           </div>
 
-          {/* PDF Viewer Panel */}
-          <div className={styles.panel + ' ' + styles['pdf-viewer-panel']}>
+          {/* Modern Document Viewer Panel */}
+          <div className={styles.panel + ' ' + styles['document-viewer-panel']} ref={viewerRef}>
             <div className={styles['panel-header']}>
               <h2>Document Viewer</h2>
-            </div>
-            <div className={styles['pdf-container']}>
-              <div className={styles['pdf-page']}>
-                {/* In a real application, you would load actual PDF images from your backend */}
-                {/* For now, we'll use a placeholder */}
-                <div style={{ 
-                  width: '100%', 
-                  height: '700px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  backgroundColor: '#f5f5f5',
-                  color: '#666',
-                  fontSize: '14px',
-                  textAlign: 'center',
-                  padding: '20px'
-                }}>
-                  <div>
-                    <p>Document Page {currentPage + 1} of {pdfPages.length}</p>
-                    <p style={{ marginTop: '10px' }}>
-                      In the actual application, this area will display images of document pages
-                      sent from the backend.
-                    </p>
-                  </div>
-                </div>
+              <div className={styles['document-controls']}>
+                <button 
+                  className={styles['document-control-btn']} 
+                  onClick={handleDocumentZoomOut}
+                  title="Zoom out"
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <span className={styles['zoom-level']}>{Math.round(zoomLevel * 100)}%</span>
+                <button 
+                  className={styles['document-control-btn']} 
+                  onClick={handleDocumentZoomIn}
+                  title="Zoom in"
+                >
+                  <ZoomIn size={16} />
+                </button>
+                <button 
+                  className={styles['document-control-btn']} 
+                  onClick={handleRotate}
+                  title="Rotate"
+                >
+                  <RotateCw size={16} />
+                </button>
+                <button 
+                  className={styles['document-control-btn']} 
+                  onClick={handleDownload}
+                  title="Download"
+                >
+                  <Download size={16} />
+                </button>
+                <button 
+                  className={styles['document-control-btn']} 
+                  onClick={toggleFullscreen}
+                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                >
+                  <Maximize size={16} />
+                </button>
               </div>
-              <div className={styles['pdf-controls']}>
+            </div>
+            
+            <div className={styles['document-viewer-container']}>
+              {/* Document display area */}
+              <div 
+                className={styles['document-display']}
+                style={{
+                  transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
+                  transition: 'transform 0.3s ease'
+                }}
+              >
+                {documentPages.length > 0 ? (
+                  <div className={styles['document-image-container']}>
+                    <Image
+                      src={documentPages[currentPage]}
+                      alt={`Document page ${currentPage + 1}`}
+                      width={800}
+                      height={1100}
+                      className={styles['document-image']}
+                      priority
+                    />
+                    
+                    {/* Overlay for annotations or highlights could go here */}
+                    <div className={styles['document-overlay']}></div>
+                  </div>
+                ) : (
+                  <div className={styles['document-placeholder']}>
+                    <p>Select a document from the graph or upload a file to view</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Page navigation */}
+              <div className={styles['page-navigation']}>
+                <button 
+                  className={styles['page-nav-btn']} 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={20} />
+                </button>
                 <div className={styles['page-indicator']}>
-                  Page {currentPage + 1} of {pdfPages.length}
+                  Page {currentPage + 1} of {documentPages.length}
                 </div>
-                <div className={styles['page-nav']}>
-                  <button 
-                    className={styles['page-btn']} 
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 0}
+                <button 
+                  className={styles['page-nav-btn']} 
+                  onClick={handleNextPage}
+                  disabled={currentPage === documentPages.length - 1}
+                  title="Next page"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+              
+              {/* Thumbnail navigation */}
+              <div className={styles['thumbnail-navigation']}>
+                {documentPages.map((page, index) => (
+                  <div 
+                    key={index}
+                    className={`${styles['thumbnail']} ${currentPage === index ? styles['active'] : ''}`}
+                    onClick={() => setCurrentPage(index)}
                   >
-                    Previous
-                  </button>
-                  <button 
-                    className={styles['page-btn']} 
-                    onClick={handleNextPage}
-                    disabled={currentPage === pdfPages.length - 1}
-                  >
-                    Next
-                  </button>
-                </div>
+                    <Image
+                      src={page}
+                      alt={`Thumbnail ${index + 1}`}
+                      width={60}
+                      height={80}
+                      className={styles['thumbnail-image']}
+                    />
+                    <span className={styles['thumbnail-number']}>{index + 1}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
