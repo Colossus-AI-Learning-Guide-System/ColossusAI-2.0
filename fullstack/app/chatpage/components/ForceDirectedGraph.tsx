@@ -5,51 +5,51 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5hierarchy from '@amcharts/amcharts5/hierarchy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
-// Sample data structure matching our papers
+// Sample data structure for document connections
 const data = {
-  name: "Research Papers",
+  name: "Documents",
   value: 0,
   children: [
     {
-      name: "Yang 2011",
+      name: "Financial Report 2023",
       value: 1,
       children: [
-        { name: "Ginther 2012", value: 1 },
-        { name: "Bianchini 2013", value: 1 },
-        { name: "Erickson 2014", value: 1 }
+        { name: "Q1 Analysis", value: 1 },
+        { name: "Q2 Analysis", value: 1 },
+        { name: "Annual Forecast", value: 1 }
       ]
     },
     {
-      name: "Ginther 2016",
+      name: "Project Proposal",
       value: 1,
       children: [
-        { name: "Valantine 2015", value: 1 },
-        { name: "Carnes 2015", value: 1 },
-        { name: "Moss-Racusin 2012", value: 1 }
+        { name: "Budget Plan", value: 1 },
+        { name: "Timeline", value: 1 },
+        { name: "Resource Allocation", value: 1 }
       ]
     },
     {
-      name: "Valantine 2015",
+      name: "Market Research",
       value: 1,
       children: [
-        { name: "Ginther 2018", value: 1 },
-        { name: "Selly 2021", value: 1 },
-        { name: "Hong 2004", value: 1 }
+        { name: "Competitor Analysis", value: 1 },
+        { name: "Customer Survey", value: 1 },
+        { name: "Industry Trends", value: 1 }
       ]
     },
     {
-      name: "Bakken 2006",
+      name: "Technical Documentation",
       value: 1,
       children: [
-        { name: "Tabak 2017", value: 1 },
-        { name: "McGee 2012", value: 1 }
+        { name: "API Reference", value: 1 },
+        { name: "User Guide", value: 1 }
       ]
     },
     {
-      name: "Maffei 1996",
+      name: "Legal Contracts",
       value: 1,
       children: [
-        { name: "Hong 2004", value: 1 }
+        { name: "Service Agreement", value: 1 }
       ]
     }
   ]

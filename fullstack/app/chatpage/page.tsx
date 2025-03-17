@@ -25,13 +25,13 @@ const samplePdfPages = [
   '/sample-pdf-page-3.png',
 ];
 
-export default function ResearchPage() {
+export default function DocumentAnalysisPage() {
   // Reference to the graph component
   const graphRef = useRef<GraphRef>(null);
 
   // State for chat messages
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
-    { role: 'assistant', content: 'Hello! I can help you analyze research papers. Upload a document or ask me a question.' }
+    { role: 'assistant', content: 'Hello! I can help you analyze your documents. Upload a file or ask me a question.' }
   ]);
   
   // State for user input
@@ -66,7 +66,7 @@ export default function ResearchPage() {
     setTimeout(() => {
       setMessages([...newMessages, { 
         role: 'assistant' as const, 
-        content: 'I received your message. How can I help you analyze this information?' 
+        content: 'I received your message. How can I help you analyze this document?' 
       }]);
     }, 1000);
     
@@ -120,7 +120,7 @@ export default function ResearchPage() {
           {/* Chatbot Conversation Container */}
           <div className={styles.panel + ' ' + styles['chatbot-panel']}>
             <div className={styles['panel-header']}>
-              <h2>AI Research Assistant</h2>
+              <h2>AI Document Assistant</h2>
             </div>
             <div className={styles['chat-container']}>
               <div className={styles['messages-list']}>
@@ -141,7 +141,7 @@ export default function ResearchPage() {
                     type="text"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Ask about research papers..."
+                    placeholder="Ask about your documents..."
                     className={styles['chat-input']}
                   />
                   <div className={styles['file-upload']}>
@@ -172,15 +172,15 @@ export default function ResearchPage() {
           {/* Graph Visualization Panel */}
           <div className={styles.panel + ' ' + styles['graph-panel']}>
             <div className={styles['panel-header']}>
-              <h2>Connections between papers</h2>
+              <h2>Document Connections</h2>
               <div className={styles['graph-controls']}>
                 <div className={styles['view-toggles']}>
                   <button className={styles['view-toggle'] + ' ' + styles.active}>Network</button>
                   <button className={styles['view-toggle']}>Timeline</button>
                 </div>
                 <div className={styles['label-toggles']}>
-                  <button className={styles['label-toggle']}>First Author</button>
-                  <button className={styles['label-toggle']}>Last Author</button>
+                  <button className={styles['label-toggle']}>Categories</button>
+                  <button className={styles['label-toggle']}>Keywords</button>
                 </div>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function ResearchPage() {
           {/* PDF Viewer Panel */}
           <div className={styles.panel + ' ' + styles['pdf-viewer-panel']}>
             <div className={styles['panel-header']}>
-              <h2>PDF Viewer</h2>
+              <h2>Document Viewer</h2>
             </div>
             <div className={styles['pdf-container']}>
               <div className={styles['pdf-page']}>
@@ -216,9 +216,9 @@ export default function ResearchPage() {
                   padding: '20px'
                 }}>
                   <div>
-                    <p>PDF Page {currentPage + 1} of {pdfPages.length}</p>
+                    <p>Document Page {currentPage + 1} of {pdfPages.length}</p>
                     <p style={{ marginTop: '10px' }}>
-                      In the actual application, this area will display images of PDF pages
+                      In the actual application, this area will display images of document pages
                       sent from the backend.
                     </p>
                   </div>
