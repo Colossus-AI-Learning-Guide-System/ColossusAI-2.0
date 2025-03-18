@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 // Force dynamic rendering for all pages
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Colossus AI | Settings Panel App",
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} min-h-screen bg-background font-sans antialiased overflow-x-hidden`}
+        className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
       >
         <div className="noise-overlay" />
         <main className="min-h-screen w-full overflow-x-visible p-0 m-0">
@@ -36,4 +36,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-} 
+}

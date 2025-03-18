@@ -80,7 +80,12 @@ const staggerVariants = {
   },
 };
 
-export function Sidebar() {
+// Add to your props interface
+interface SidebarProps {
+  onDocumentUpload?: (documentId: string) => void;
+}
+
+export function Sidebar({ onDocumentUpload }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
   const [isDragging, setIsDragging] = useState(false);
@@ -219,9 +224,9 @@ export function Sidebar() {
       // Store document_id for future reference
       const documentId = data.document_id;
 
-      // Start polling for indexing status
-      if (documentId) {
-        pollIndexingStatus(documentId);
+      // Set as selected document (you'll need to pass this function as a prop)
+      if (documentId && onDocumentUpload) {
+        onDocumentUpload(documentId);
       }
 
       alert(

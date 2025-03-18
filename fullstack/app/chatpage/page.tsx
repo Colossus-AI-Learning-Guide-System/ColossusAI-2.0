@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Sidebar } from "@/app/components/ui/sidebar";
 import Image from "next/image";
+import DocumentStructureGraph from "./components/DocumentStructureGraph";
+import DocumentList from "../components/DocumentList";
 
 // Add API base URL constant at the top of the file
 const API_BASE_URL = "http://127.0.0.1:5002";
@@ -146,7 +148,9 @@ export default function DocumentAnalysisPage() {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
+    null
+  );
   const [loadedDocument, setLoadedDocument] = useState<string | null>(null);
   const [highlightedSections, setHighlightedSections] = useState<
     HighlightSection[]
@@ -240,6 +244,7 @@ export default function DocumentAnalysisPage() {
   // Load document graph data
   const loadDocumentGraph = async (documentId: string) => {
     try {
+      console.log(`Loading document graph for document ID: ${documentId}`);
       const data = await apiRequest(`/api/structure/document/${documentId}`);
 
       // Transform the data for the graph component
@@ -250,9 +255,14 @@ export default function DocumentAnalysisPage() {
         graphRef.current.updateData(graphData);
       }
 
-      setSelectedDocument(documentId);
+      // Store selected document ID
+      setSelectedDocumentId(documentId);
+
+      // Return the data for chaining
+      return data;
     } catch (error) {
       console.error("Error loading document graph:", error);
+      throw error; // Rethrow for proper async error handling
     }
   };
 
@@ -606,7 +616,7 @@ export default function DocumentAnalysisPage() {
 
   // Handle citation click from chat
   const handleCitationClick = (documentId: string, page: number) => {
-    setSelectedDocument(documentId);
+    setSelectedDocumentId(documentId);
 
     // Load document if not already loaded
     if (!activeDocuments.includes(documentId)) {
@@ -624,31 +634,17 @@ export default function DocumentAnalysisPage() {
     setCurrentPage(page - 1); // Convert 1-indexed to 0-indexed
   };
 
-  // Handle node click from graph
+  // Update handleNodeClick function to set the selected document
   const handleNodeClick = (
     nodeId: string,
     documentId: string,
     page: number
   ) => {
-    setSelectedDocument(documentId);
-
-    // Load document pages if needed
-    if (loadedDocument !== documentId) {
-      loadDocumentPages(documentId);
-    }
-
-    // Set the page
-    setCurrentPage(page);
-
-    // Highlight the selected section
-    setHighlightedSections([
-      {
-        id: nodeId,
-        page: page,
-        // You'd need to get actual coordinates from backend
-        rect: { x: 100, y: 100, width: 300, height: 50 },
-      },
-    ]);
+    console.log(
+      `Node clicked: ${nodeId}, Document: ${documentId}, Page: ${page}`
+    );
+    setSelectedDocumentId(documentId);
+    loadDocument(documentId, page);
   };
 
   // Load document pages
@@ -874,19 +870,60 @@ export default function DocumentAnalysisPage() {
     statusCheck();
   };
 
+  // Add this function to pass to the Sidebar
+  const handleDocumentUpload = (documentId: string) => {
+    setSelectedDocumentId(documentId);
+    // You might want to load the first page automatically
+    loadDocument(documentId, 0);
+  };
+
+  // Add the loadDocument function that was missing
+  const loadDocument = async (documentId: string, page: number = 0) => {
+    try {
+      // Set the selected document ID
+      setSelectedDocumentId(documentId);
+
+      // Load document structure
+      await loadDocumentGraph(documentId);
+
+      // Load document pages
+      if (loadedDocument !== documentId) {
+        await loadDocumentPages(documentId);
+      }
+
+      // Navigate to the specified page (0-indexed)
+      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error loading document:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Failed to load the document. Please try again.",
+        },
+      ]);
+    }
+  };
+
   return (
     <main className="chatpage-container" style={{ width: "100%" }}>
-      <Sidebar />
+      <Sidebar onDocumentUpload={handleDocumentUpload} />
       <div
         className="content-wrapper"
         style={{
           marginLeft: "3.05rem",
           width: "calc(100% - 3.05rem)",
           transition: "margin-left 0.2s ease",
+          overflowX: "auto",
         }}
       >
+        {/* Small instruction for horizontal scroll */}
+        <div className={styles["scroll-instruction"]}>
+          <span>Scroll horizontally to see all panels</span>
+        </div>
+
         <div className={styles["papers-container"]}>
-          {/* Chatbot Conversation Container */}
+          {/* 1. Chatbot Conversation Container */}
           <div className={styles.panel + " " + styles["chatbot-panel"]}>
             <div className={styles["panel-header"]}>
               <h2>AI Document Assistant</h2>
@@ -986,54 +1023,40 @@ export default function DocumentAnalysisPage() {
             </div>
           </div>
 
-          {/* Graph Visualization Panel */}
+          {/* 2. Graph Visualization Panel */}
           <div className={styles.panel + " " + styles["graph-panel"]}>
             <div className={styles["panel-header"]}>
-              <h2>Document Connections</h2>
+              <h2>Document Structure</h2>
               <div className={styles["graph-controls"]}>
-                <div className={styles["view-toggles"]}>
-                  <button
-                    className={styles["view-toggle"] + " " + styles.active}
-                  >
-                    Network
-                  </button>
-                  <button className={styles["view-toggle"]}>Timeline</button>
-                </div>
-                <div className={styles["label-toggles"]}>
-                  <button className={styles["label-toggle"]}>Categories</button>
-                  <button className={styles["label-toggle"]}>Keywords</button>
-                </div>
+                <button
+                  className={styles["graph-control-btn"]}
+                  onClick={() => graphRef.current?.zoomIn()}
+                  title="Zoom in"
+                >
+                  <ZoomIn size={16} />
+                </button>
+                <button
+                  className={styles["graph-control-btn"]}
+                  onClick={() => graphRef.current?.zoomOut()}
+                  title="Zoom out"
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <button
+                  className={styles["graph-control-btn"]}
+                  onClick={() => graphRef.current?.fitAll()}
+                  title="Fit all"
+                >
+                  <Maximize size={16} />
+                </button>
               </div>
             </div>
             <div className={styles["graph-container"]}>
-              {graphData ? (
-                <ForceDirectedGraph
-                  ref={graphRef}
-                  onNodeClick={handleNodeClick}
-                  data={graphData}
-                />
-              ) : (
-                <div className={styles["graph-placeholder"]}>
-                  <p>Upload a document to visualize connections</p>
-                </div>
-              )}
+              <DocumentStructureGraph documentId={selectedDocumentId} />
             </div>
-            {graphData && (
-              <div className={styles["graph-zoom-controls"]}>
-                <button className={styles["zoom-btn"]} onClick={handleZoomOut}>
-                  Zoom Out
-                </button>
-                <button className={styles["zoom-btn"]} onClick={handleFitAll}>
-                  Fit All
-                </button>
-                <button className={styles["zoom-btn"]} onClick={handleZoomIn}>
-                  Zoom In
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Modern Document Viewer Panel */}
+          {/* 3. Document Viewer Panel */}
           <div
             className={styles.panel + " " + styles["document-viewer-panel"]}
             ref={viewerRef}
@@ -1041,6 +1064,26 @@ export default function DocumentAnalysisPage() {
             <div className={styles["panel-header"]}>
               <h2>Document Viewer</h2>
               <div className={styles["document-controls"]}>
+                <button
+                  className={styles["document-control-btn"]}
+                  onClick={handlePrevPage}
+                  disabled={!loadedDocument || currentPage === 0}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className={styles["page-indicator"]}>
+                  {loadedDocument ? `${currentPage + 1}/${totalPages}` : "-/-"}
+                </span>
+                <button
+                  className={styles["document-control-btn"]}
+                  onClick={handleNextPage}
+                  disabled={!loadedDocument || currentPage === totalPages - 1}
+                  title="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+                <div className={styles["control-divider"]}></div>
                 <button
                   className={styles["document-control-btn"]}
                   onClick={handleDocumentZoomOut}
@@ -1127,69 +1170,22 @@ export default function DocumentAnalysisPage() {
                     <p>
                       {loadedDocument
                         ? "Loading document..."
-                        : "Select a document from the graph or upload a file to view"}
+                        : "Select a document from the list or upload a file to view"}
                     </p>
                   </div>
                 )}
               </div>
-
-              {/* Page navigation */}
-              <div className={styles["page-navigation"]}>
-                <button
-                  className={styles["page-nav-btn"]}
-                  onClick={handlePrevPage}
-                  disabled={!loadedDocument || currentPage === 0}
-                  title="Previous page"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <div className={styles["page-indicator"]}>
-                  {loadedDocument
-                    ? `Page ${currentPage + 1} of ${totalPages}`
-                    : "No document loaded"}
-                </div>
-                <button
-                  className={styles["page-nav-btn"]}
-                  onClick={handleNextPage}
-                  disabled={!loadedDocument || currentPage === totalPages - 1}
-                  title="Next page"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-
-              {/* Thumbnail navigation */}
-              {loadedDocument && (
-                <div className={styles["thumbnail-navigation"]}>
-                  {documentPages.map((page, index) => (
-                    <div
-                      key={index}
-                      className={`${styles["thumbnail"]} ${
-                        currentPage === index ? styles["active"] : ""
-                      }`}
-                      onClick={() => setCurrentPage(index)}
-                    >
-                      {page ? (
-                        <Image
-                          src={page}
-                          alt={`Thumbnail ${index + 1}`}
-                          width={60}
-                          height={80}
-                          className={styles["thumbnail-image"]}
-                        />
-                      ) : (
-                        <div className={styles["thumbnail-placeholder"]}>
-                          {index + 1}
-                        </div>
-                      )}
-                      <span className={styles["thumbnail-number"]}>
-                        {index + 1}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
+          </div>
+
+          {/* 4. Document List Container */}
+          <div
+            className={styles.panel + " " + styles["document-list-container"]}
+          >
+            <DocumentList
+              onSelectDocument={(documentId) => loadDocument(documentId, 0)}
+              selectedDocumentId={selectedDocumentId}
+            />
           </div>
         </div>
       </div>

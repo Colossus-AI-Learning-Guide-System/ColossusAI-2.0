@@ -1,0 +1,58 @@
+export const mockDocuments = [
+  {
+    document_id: "890adf66-079e-4172-a686-c0b50f78fc04",
+    title: "Attention Is All You Need",
+    upload_date: "2025-03-17T21:45:32.123456",
+    heading_count: 15,
+    page_count: 10,
+  },
+  {
+    document_id: "d4464d0e-802a-41bd-b5bf-9c93f8acbd24",
+    title: "Document d4464d0e",
+    upload_date: "2025-03-17T22:10:15.654321",
+    heading_count: 8,
+    page_count: 5,
+  },
+  {
+    document_id: "f8221cf2-9db5-4f77-b4e7-9c9b3e46cac1",
+    title: "Deep Learning Research Paper",
+    upload_date: "2025-03-16T14:22:45.234567",
+    heading_count: 12,
+    page_count: 8,
+  },
+  {
+    document_id: "c1e8a7b2-59d3-41f1-ac63-1d5f8a9e0b7d",
+    title: "Introduction to Neural Networks",
+    upload_date: "2025-03-15T09:30:12.345678",
+    heading_count: 10,
+    page_count: 15,
+  },
+  {
+    document_id: "3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d",
+    title: "Machine Learning Fundamentals",
+    upload_date: "2025-03-14T16:45:33.456789",
+    heading_count: 20,
+    page_count: 25,
+  },
+  {
+    document_id: "1234abcd-5678-efgh-9012-ijkl3456mnop",
+    title: "Natural Language Processing Overview",
+    upload_date: "2025-03-13T11:20:45.567890",
+    heading_count: 18,
+    page_count: 22,
+  },
+  {
+    document_id: "9876fedc-5432-ba10-9876-fedcba987654",
+    title: "Computer Vision Techniques",
+    upload_date: "2025-03-12T08:15:22.678901",
+    heading_count: 14,
+    page_count: 18,
+  },
+  {
+    document_id: "abcd1234-efgh-5678-ijkl-mnop9012qrst",
+    title: "Reinforcement Learning Basics",
+    upload_date: "2025-03-11T13:40:10.789012",
+    heading_count: 16,
+    page_count: 20,
+  },
+];
