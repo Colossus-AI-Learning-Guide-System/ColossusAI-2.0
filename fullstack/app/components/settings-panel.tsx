@@ -8,6 +8,7 @@ import { X, Camera, Check } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
 import { supabase } from "@/app/lib/utils/supabaseClient"
 import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
+import { deleteUserAccount } from "@/app/actions/user"
 import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
 import Image from "next/image"
 import { Button } from "@/app/components/ui/button"
@@ -295,6 +296,78 @@ export function SettingsPanel({
       showToast("Upload failed", "There was a problem uploading your photo.", "destructive");
     }
   };
+
+  const handleChangePassword = async () => {
+    setSaveLoading(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      
+      if (error) throw error
+      
+      showToast(
+        "Password reset email sent", 
+        "Check your email for a link to reset your password."
+      )
+    } catch (error) {
+      console.error("Error sending password reset email:", error)
+      showToast(
+        "Failed to send reset email", 
+        "Please try again or contact support.", 
+        "destructive"
+      )
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+  
+  const handleLogoutAllDevices = async () => {
+    setSaveLoading(true)
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'global' })
+      if (error) throw error
+      
+      // Redirect to sign-in page
+      router.push('/signin')
+    } catch (error) {
+      console.error("Error logging out from all devices:", error)
+      showToast(
+        "Logout failed", 
+        "Could not log out from all devices. Please try again.", 
+        "destructive"
+      )
+      setSaveLoading(false)
+    }
+  }
+  
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return
+    }
+    
+    setSaveLoading(true)
+    try {
+      // Call server action to delete account
+      const result = await deleteUserAccount()
+      
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete account")
+      }
+      
+      // Sign out and redirect to signin page
+      await supabase.auth.signOut()
+      router.push('/signin')
+    } catch (error) {
+      console.error("Error deleting account:", error)
+      showToast(
+        "Account deletion failed", 
+        "Please try again or contact support.", 
+        "destructive"
+      )
+      setSaveLoading(false)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -623,19 +696,52 @@ export function SettingsPanel({
 
             {activeTab === "security" && (
               <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Change passsword</h3>
-                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Change</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Change password</h3>
+                      <p className="text-sm text-blue-300">We'll send you an email with a link to reset your password</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      onClick={handleChangePassword}
+                      disabled={isLoading || !formData.email}
+                    >
+                      {isLoading ? "Sending..." : "Change"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Log out from All Devices</h3>
-                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Logout</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Log out from All Devices</h3>
+                      <p className="text-sm text-blue-300">This will end all your active sessions and require re-login</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      onClick={handleLogoutAllDevices}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Processing..." : "Logout"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Delete Accounts</h3>
-                  <button className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600">Delete</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Delete Account</h3>
+                      <p className="text-sm text-red-300">This will permanently remove all your data and cannot be undone</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
+                      onClick={handleDeleteAccount}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Processing..." : "Delete"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

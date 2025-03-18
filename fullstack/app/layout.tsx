@@ -28,6 +28,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
+        suppressHydrationWarning
       >
         <div className="noise-overlay" />
         <PageTransition>
