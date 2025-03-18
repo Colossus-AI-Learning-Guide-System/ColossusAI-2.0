@@ -14,7 +14,6 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import styles from "./DocumentList.module.css";
-import { mockDocuments } from "@/app/api/mockData";
 
 interface DocumentMetadata {
   document_id: string;
@@ -50,7 +49,7 @@ export default function DocumentList({
     const fetchDocuments = async () => {
       try {
         setLoading(true);
-        // First try the real backend API
+        // Try to fetch documents from the real backend API
         try {
           const response = await fetch(
             `${API_BASE_URL}/api/document/documents-with-metadata`
@@ -63,18 +62,12 @@ export default function DocumentList({
             return;
           }
         } catch (error) {
-          console.log("Backend API not available, falling back to local API");
+          console.log("Backend API not available");
         }
 
-        // Fall back to local API route with mock data
-        const response = await fetch("/api/document/documents-with-metadata");
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setDocuments(data);
+        // If we reach here, the backend API was not available
+        // Instead of falling back to mock data, show an empty state
+        setDocuments([]);
         setLoading(false);
       } catch (error: any) {
         console.error("Error fetching documents:", error);
@@ -159,9 +152,9 @@ export default function DocumentList({
   return (
     <div className={styles.documentListContainer}>
       <div className={styles.documentListHeader}>
-        <h2 className={styles.documentListTitle}>Docs</h2>
+        <h2 className={styles.documentListTitle}>Documents</h2>
         <div className={styles.searchContainer}>
-          <Search size={10} className={styles.searchIcon} />
+          <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search..."
@@ -179,7 +172,7 @@ export default function DocumentList({
           }`}
           onClick={() => handleSortChange("date")}
         >
-          <Clock size={8} />
+          <Clock size={16} />
           Date {sortBy === "date" && (sortOrder === "asc" ? "↑" : "↓")}
         </button>
         <button
@@ -188,7 +181,7 @@ export default function DocumentList({
           }`}
           onClick={() => handleSortChange("title")}
         >
-          <FileText size={8} />
+          <FileText size={16} />
           Title {sortBy === "title" && (sortOrder === "asc" ? "↑" : "↓")}
         </button>
         <button
@@ -197,8 +190,8 @@ export default function DocumentList({
           }`}
           onClick={() => handleSortChange("pages")}
         >
-          <FileDigit size={8} />
-          Pgs {sortBy === "pages" && (sortOrder === "asc" ? "↑" : "↓")}
+          <FileDigit size={16} />
+          Pages {sortBy === "pages" && (sortOrder === "asc" ? "↑" : "↓")}
         </button>
         <button
           className={`${styles.sortButton} ${
@@ -206,16 +199,26 @@ export default function DocumentList({
           }`}
           onClick={() => handleSortChange("headings")}
         >
-          <Text size={8} />
-          Hds {sortBy === "headings" && (sortOrder === "asc" ? "↑" : "↓")}
+          <Text size={16} />
+          Headings {sortBy === "headings" && (sortOrder === "asc" ? "↑" : "↓")}
         </button>
       </div>
 
       {sortedDocuments.length === 0 ? (
         <div className={styles.emptyState}>
-          <FileText size={24} className={styles.emptyIcon} />
-          <p>No docs found</p>
-          {searchQuery && <p>Try another search</p>}
+          <FileText size={48} className={styles.emptyIcon} />
+          <p>No documents found</p>
+          {searchQuery ? (
+            <p>Try a different search term</p>
+          ) : (
+            <div className={styles.emptyStateMessage}>
+              <p>Use the sidebar to upload your documents.</p>
+              <p>
+                You can drag and drop PDF files into the sidebar or use the
+                upload button.
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <ScrollArea className={styles.documentListScrollArea}>
@@ -231,29 +234,30 @@ export default function DocumentList({
                 onClick={() => onSelectDocument(doc.document_id)}
               >
                 <div className={styles.documentIconContainer}>
-                  <FileText size={14} className={styles.documentIcon} />
+                  <FileText size={28} className={styles.documentIcon} />
                 </div>
                 <div className={styles.documentInfo}>
                   <h3 className={styles.documentTitle}>{doc.title}</h3>
                   <p className={styles.documentDate}>
-                    <Clock size={8} />
+                    <Clock size={14} />
                     {formatDistanceToNow(new Date(doc.upload_date), {
                       addSuffix: true,
                     })}
                   </p>
                   <div className={styles.documentMetadata}>
                     <span className={styles.metadataItem}>
-                      <FileDigit size={8} />
-                      {doc.page_count} {doc.page_count === 1 ? "p" : "p"}
+                      <FileDigit size={14} />
+                      {doc.page_count} {doc.page_count === 1 ? "page" : "pages"}
                     </span>
                     <span className={styles.metadataItem}>
-                      <Text size={8} />
-                      {doc.heading_count} {doc.heading_count === 1 ? "h" : "h"}
+                      <Text size={14} />
+                      {doc.heading_count}{" "}
+                      {doc.heading_count === 1 ? "heading" : "headings"}
                     </span>
                   </div>
                 </div>
                 <ChevronRight
-                  size={10}
+                  size={18}
                   className={`${styles.documentCardArrow} ${
                     doc.document_id === selectedDocumentId
                       ? styles.visibleArrow

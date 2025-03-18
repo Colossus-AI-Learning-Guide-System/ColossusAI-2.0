@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
-import { mockDocuments } from "@/app/api/mockData";
+
+// Define the API base URL for the real backend
+const API_BASE_URL = "http://127.0.0.1:5002";
 
 export async function GET() {
   try {
-    // In a real application, you would fetch this data from your backend
-    // For demo purposes, we'll just return the mock data
-    return NextResponse.json(mockDocuments);
+    // Try to fetch documents from the real backend
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/document/documents-with-metadata`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return NextResponse.json(data);
+      }
+    } catch (error) {
+      console.log("Backend API not available in documents-with-metadata route");
+    }
+
+    // If backend unavailable, return empty array instead of mock data
+    return NextResponse.json([]);
   } catch (error) {
     console.error("Error fetching documents with metadata:", error);
     return NextResponse.json(

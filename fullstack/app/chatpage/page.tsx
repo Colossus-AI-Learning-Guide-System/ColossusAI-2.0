@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
+import Image from "next/image";
 import {
   PaperclipIcon,
   SendIcon,
@@ -14,11 +15,18 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  FileText,
+  ArrowLeft,
+  AlertTriangle,
 } from "lucide-react";
 import { Sidebar } from "@/app/components/ui/sidebar";
-import Image from "next/image";
 import DocumentStructureGraph from "./components/DocumentStructureGraph";
 import DocumentList from "../components/DocumentList";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+// Temporarily comment out these imports until we can install them or find alternatives
+// import { useChat } from "ai/react";
+// import Markdown from "react-markdown";
 
 // Add API base URL constant at the top of the file
 const API_BASE_URL = "http://127.0.0.1:5002";
@@ -143,7 +151,7 @@ export default function DocumentAnalysisPage() {
   // State for document viewer
   const [currentPage, setCurrentPage] = useState(0);
   const [documentPages, setDocumentPages] =
-    useState<string[]>(sampleDocumentPages);
+    useState<(string | null)[]>(sampleDocumentPages);
   const [totalPages, setTotalPages] = useState(sampleDocumentPages.length);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -169,6 +177,19 @@ export default function DocumentAnalysisPage() {
   const [isPolling, setIsPolling] = useState(true);
   const [lastPollTime, setLastPollTime] = useState<number>(0);
   const POLL_INTERVAL = 5000; // Poll every 5 seconds
+
+  // Add new state for tracking the current heading
+  const [currentHeading, setCurrentHeading] = useState<string | null>(null);
+  const [headingLoading, setHeadingLoading] = useState<boolean>(false);
+
+  // Add new state for tracking pages with errors
+  const [pagesWithErrors, setPagesWithErrors] = useState<
+    Record<number, boolean>
+  >({});
+
+  // Add these state variables near the other state declarations
+  const [documentLoading, setDocumentLoading] = useState<boolean>(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   // Update the apiRequest helper function
   const apiRequest = async (url: string, options: RequestOptions = {}) => {
@@ -247,8 +268,33 @@ export default function DocumentAnalysisPage() {
       console.log(`Loading document graph for document ID: ${documentId}`);
       const data = await apiRequest(`/api/structure/document/${documentId}`);
 
+      console.log("Received document structure data:", data);
+
+      // Check if data is in headings/hierarchy format or nodes/edges format
+      let transformedData: DocumentStructure;
+
+      if ("headings" in data && "hierarchy" in data) {
+        // The response is in headings/hierarchy format, convert to nodes/edges
+        console.log(
+          "Converting headings/hierarchy format to nodes/edges format"
+        );
+        transformedData = convertHeadingsToGraphFormat(data, documentId);
+      } else if ("nodes" in data && "edges" in data) {
+        // Already in the expected format
+        transformedData = data;
+      } else {
+        console.error("Unexpected data format received from API:", data);
+        // Create an empty document structure
+        transformedData = {
+          id: documentId,
+          name: "Unknown Document",
+          nodes: [],
+          edges: [],
+        };
+      }
+
       // Transform the data for the graph component
-      const graphData = transformToGraphFormat(data);
+      const graphData = transformToGraphFormat(transformedData);
 
       // Update the graph
       if (graphRef.current) {
@@ -259,7 +305,7 @@ export default function DocumentAnalysisPage() {
       setSelectedDocumentId(documentId);
 
       // Return the data for chaining
-      return data;
+      return transformedData;
     } catch (error) {
       console.error("Error loading document graph:", error);
       throw error; // Rethrow for proper async error handling
@@ -423,6 +469,93 @@ export default function DocumentAnalysisPage() {
       id: data.id,
       children:
         rootNodes.length > 0 ? rootNodes : Array.from(nodesMap.values()),
+    };
+  };
+
+  // Helper function to convert headings/hierarchy format to nodes/edges format
+  const convertHeadingsToGraphFormat = (
+    data: any,
+    documentId: string
+  ): DocumentStructure => {
+    const { headings, hierarchy } = data;
+
+    // Handle empty data case
+    if (!headings || headings.length === 0) {
+      console.warn("No headings found in document structure");
+      return {
+        id: documentId,
+        name: "Document with No Headings",
+        nodes: [],
+        edges: [],
+      };
+    }
+
+    // Create nodes for document root
+    const documentNode: DocumentNode = {
+      id: `doc-${documentId}`,
+      label: "Document Root",
+      type: "document",
+      level: 0,
+      page: 1,
+    };
+
+    const nodes: DocumentNode[] = [documentNode];
+    const edges: DocumentEdge[] = [];
+
+    // Create nodes for each heading
+    headings.forEach((heading: string, index: number) => {
+      const headingId = `heading-${index}`;
+      // Add heading node
+      nodes.push({
+        id: headingId,
+        label: heading,
+        type: "heading",
+        level: 1,
+        page: 1, // Default to page 1 if unknown
+      });
+
+      // Connect heading to document
+      edges.push({
+        source: documentNode.id,
+        target: headingId,
+        weight: 1,
+        type: "contains",
+      });
+
+      // Add subheadings if they exist
+      if (
+        hierarchy[heading] &&
+        Array.isArray(hierarchy[heading]) &&
+        hierarchy[heading].length > 0
+      ) {
+        hierarchy[heading].forEach((subheading: string, subIndex: number) => {
+          const subheadingId = `subheading-${index}-${subIndex}`;
+
+          // Add subheading node
+          nodes.push({
+            id: subheadingId,
+            label: subheading,
+            type: "subheading",
+            level: 2,
+            page: 1, // Default to page 1 if unknown
+          });
+
+          // Connect subheading to its parent heading
+          edges.push({
+            source: headingId,
+            target: subheadingId,
+            weight: 1,
+            type: "contains",
+          });
+        });
+      }
+    });
+
+    return {
+      id: documentId,
+      name: `Document ${documentId}`,
+      nodes,
+      edges,
     };
   };
 
@@ -647,49 +780,154 @@ export default function DocumentAnalysisPage() {
     loadDocument(documentId, page);
   };
 
-  // Load document pages
+  // Load document pages - updated with better error handling
   const loadDocumentPages = async (documentId: string) => {
+    if (!documentId) {
+      console.error("No document ID provided to loadDocumentPages");
+      return;
+    }
+
+    console.log(`Loading document pages for document ID: ${documentId}`);
+
     try {
+      // Show loading state
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Loading document...",
+        },
+      ]);
+
       // Get document metadata to know page count
       const data = await apiRequest(`/api/structure/document/${documentId}`);
 
-      const pageCount = data.page_count || 10; // Default if not provided
-
-      // Pre-load first few pages
-      const pagesToPreload = Math.min(5, pageCount);
-      const pages = new Array(pageCount).fill(null);
-
-      for (let i = 0; i < pagesToPreload; i++) {
-        const pageUrl = `/api/document/${documentId}/page/${i}`;
-        pages[i] = pageUrl;
+      if (!data) {
+        throw new Error("No data returned from API");
       }
 
+      // Extract and validate page count
+      const pageCount = data.page_count || 10; // Default if not provided
+      console.log(`Document has ${pageCount} pages`);
+
+      if (pageCount <= 0) {
+        throw new Error("Invalid page count received from API");
+      }
+
+      // Create an array of nulls - we'll load pages on demand
+      const pages = new Array(pageCount).fill(null);
+
+      // Set up the document structure
       setDocumentPages(pages);
       setTotalPages(pageCount);
       setCurrentPage(0);
       setLoadedDocument(documentId);
+
+      // Clear any previous error messages
+      setMessages((prev) =>
+        prev.filter(
+          (msg) =>
+            msg.role !== "assistant" ||
+            !msg.content.includes("Error loading document")
+        )
+      );
+
+      // Now load just the first page
+      await loadPage(0);
+
+      return true;
     } catch (error) {
       console.error("Error loading document pages:", error);
+
+      // Reset document state
+      setDocumentPages([]);
+      setTotalPages(0);
+
+      // Notify the user
+      setMessages((prev) => [
+        ...prev.filter(
+          (msg) =>
+            msg.role !== "assistant" ||
+            !msg.content.includes("Loading document")
+        ),
+        {
+          role: "assistant",
+          content: `Error loading document: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }. Please try again.`,
+        },
+      ]);
+
+      return false;
     }
   };
 
-  // Load a specific page when needed (for lazy loading)
+  // Improve the loadPage function to prevent unnecessary re-renders and better error handling
   const loadPage = async (pageNumber: number) => {
-    if (!loadedDocument || documentPages[pageNumber]) {
-      // No document loaded or page already loaded
+    // Validate inputs
+    if (!loadedDocument) {
+      console.log("No document loaded, skipping page load");
+      return;
+    }
+
+    // Skip if page is already loaded successfully
+    if (documentPages[pageNumber] && documentPages[pageNumber] !== "error") {
+      console.log(`Page ${pageNumber} already loaded, skipping`);
       return;
     }
 
     try {
-      const pageUrl = `/api/document/${loadedDocument}/page/${pageNumber}`;
+      // Show loading state first
+      setDocumentPages((prevPages) => {
+        const updatedPages = [...prevPages];
+        // If we previously had an error, clear it to show loading
+        if (updatedPages[pageNumber] === "error") {
+          updatedPages[pageNumber] = null;
+        }
+        return updatedPages;
+      });
 
-      // Update the pages array with the new page
-      const updatedPages = [...documentPages];
-      updatedPages[pageNumber] = pageUrl;
+      // Validate and construct the URL
+      if (!API_BASE_URL) {
+        throw new Error("API base URL is not defined");
+      }
 
-      setDocumentPages(updatedPages);
+      // Format URL properly with trailing slashes
+      const baseUrl = API_BASE_URL.endsWith("/")
+        ? API_BASE_URL.slice(0, -1)
+        : API_BASE_URL;
+
+      const pageUrl = `${baseUrl}/api/document/${loadedDocument}/page/${pageNumber}`;
+      console.log(`Loading page ${pageNumber} from ${pageUrl}`);
+
+      // Update the pages array with the URL
+      setDocumentPages((prevPages) => {
+        const updatedPages = [...prevPages];
+        updatedPages[pageNumber] = pageUrl;
+        return updatedPages;
+      });
     } catch (error) {
       console.error(`Error loading page ${pageNumber}:`, error);
+
+      // Set error state for this page
+      setDocumentPages((prevPages) => {
+        const updatedPages = [...prevPages];
+        updatedPages[pageNumber] = "error";
+        return updatedPages;
+      });
+
+      // Provide feedback to the user
+      if (pageNumber === currentPage) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `Failed to load page ${
+              pageNumber + 1
+            }. Please check your connection and try again.`,
+          },
+        ]);
+      }
     }
   };
 
@@ -759,7 +997,32 @@ export default function DocumentAnalysisPage() {
 
     // Create a download link for the current page
     const link = document.createElement("a");
-    link.href = documentPages[currentPage] || "";
+    const pageUrl = documentPages[currentPage] || "";
+
+    // If URL is a data URL, use it directly; otherwise, make a fetch request
+    if (pageUrl.startsWith("data:")) {
+      link.href = pageUrl;
+    } else {
+      // For normal URLs, fetch the image and convert to data URL
+      fetch(pageUrl)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          link.href = url;
+          link.download = `document-${loadedDocument}-page-${
+            currentPage + 1
+          }.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        })
+        .catch((error) => {
+          console.error("Error downloading image:", error);
+        });
+      return;
+    }
+
     link.download = `document-${loadedDocument}-page-${currentPage + 1}.png`;
     document.body.appendChild(link);
     link.click();
@@ -877,31 +1140,222 @@ export default function DocumentAnalysisPage() {
     loadDocument(documentId, 0);
   };
 
-  // Add the loadDocument function that was missing
+  // Update the loadDocument function to use these new state variables
   const loadDocument = async (documentId: string, page: number = 0) => {
     try {
-      // Set the selected document ID
+      setDocumentLoading(true);
+      setDocumentError(null);
       setSelectedDocumentId(documentId);
+      console.log(`Loading document ${documentId}, page ${page}`);
 
-      // Load document structure
-      await loadDocumentGraph(documentId);
-
-      // Load document pages
-      if (loadedDocument !== documentId) {
-        await loadDocumentPages(documentId);
+      // Initialize document pages array if needed
+      if (!documentPages[page]) {
+        setDocumentPages((prevPages) => {
+          const updatedPages = [...prevPages];
+          updatedPages[page] = null;
+          return updatedPages;
+        });
       }
 
-      // Navigate to the specified page (0-indexed)
-      setCurrentPage(page);
-    } catch (error) {
+      // Load the document page
+      await loadPage(page);
+      setDocumentLoading(false);
+    } catch (error: any) {
       console.error("Error loading document:", error);
+      setDocumentError(error.message || "Error loading document");
+      setDocumentLoading(false);
+    }
+  };
+
+  // Add or update the handleSelectDocument function
+  const handleSelectDocument = (documentId: string) => {
+    if (!documentId) return;
+    loadDocument(documentId, 0);
+  };
+
+  // Load page based on heading - improved error handling and state updates
+  const loadHeadingPage = async (documentId: string, headingText: string) => {
+    try {
+      setHeadingLoading(true);
+      console.log(
+        `Loading page for heading: "${headingText}" in document: ${documentId}`
+      );
+
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      try {
+        // Call the API to get the page for this heading
+        const response = await fetch(
+          `${API_BASE_URL}/api/document/${documentId}/heading/${encodeURIComponent(
+            headingText
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            signal: controller.signal,
+          }
+        );
+
+        // Clear the timeout
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch page for heading: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const data = await response.json();
+        console.log("Heading page data:", data);
+
+        // Get the page number from the response (0-indexed)
+        const pageNumber =
+          data.page_number !== undefined ? data.page_number : 0;
+
+        // If the API returns a base64 encoded image directly, use it
+        if (data.page_image) {
+          // Ensure document is loaded or create a placeholder
+          if (loadedDocument !== documentId) {
+            // Initialize document pages array if needed
+            const pageCount = data.total_pages || 1;
+
+            // Use functional update to avoid stale state
+            setDocumentPages(() => {
+              const pages = new Array(pageCount).fill(null);
+              // Add the base64 image to the pages array
+              const imageFormat = data.image_format || "jpeg";
+              pages[
+                pageNumber
+              ] = `data:image/${imageFormat};base64,${data.page_image}`;
+              return pages;
+            });
+
+            setTotalPages(pageCount);
+            setLoadedDocument(documentId);
+          } else {
+            // Just update the current page with the base64 image
+            const imageFormat = data.image_format || "jpeg";
+
+            // Use functional update to avoid stale state
+            setDocumentPages((prevPages) => {
+              const updatedPages = [...prevPages];
+              updatedPages[
+                pageNumber
+              ] = `data:image/${imageFormat};base64,${data.page_image}`;
+              return updatedPages;
+            });
+          }
+        } else {
+          // Ensure document is loaded
+          if (loadedDocument !== documentId) {
+            await loadDocumentPages(documentId);
+          }
+        }
+
+        // Set current page to the one containing the heading
+        setCurrentPage(pageNumber);
+
+        // Highlight the section if coordinates are provided
+        if (data.section_rect) {
+          setHighlightedSections([
+            {
+              id: `heading-${Date.now()}`,
+              page: pageNumber,
+              rect: data.section_rect,
+            },
+          ]);
+        } else {
+          // Clear any existing highlights
+          setHighlightedSections([]);
+        }
+
+        return data;
+      } catch (error) {
+        // Clear the timeout if an error occurs
+        clearTimeout(timeoutId);
+
+        // Re-throw to be handled by the caller
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error loading heading page:", error);
+
+      // Show error message to user
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Failed to load the document. Please try again.",
+          content: `Error loading page for heading "${headingText}": ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
         },
       ]);
+
+      return null;
+    } finally {
+      setHeadingLoading(false);
+    }
+  };
+
+  // Function to handle heading clicks from the document structure graph
+  const handleHeadingClick = (headingText: string, documentId: string) => {
+    try {
+      // Set the active document and current heading
+      setSelectedDocumentId(documentId);
+      setCurrentHeading(headingText);
+
+      // Load the relevant page for this heading
+      loadHeadingPage(documentId, headingText)
+        .then(() => {
+          console.log(`Successfully loaded page for heading: ${headingText}`);
+        })
+        .catch((error) => {
+          console.error(
+            `Error loading page for heading ${headingText}:`,
+            error
+          );
+        });
+    } catch (error) {
+      console.error("Error in handleHeadingClick:", error);
+    }
+  };
+
+  // Function to load a document's graph structure data and retain the original headings/hierarchy
+  const loadDocumentStructureForGraph = async (documentId: string) => {
+    try {
+      console.log(`Loading document structure for graph: ${documentId}`);
+      const response = await fetch(
+        `http://127.0.0.1:5002/api/structure/document/${documentId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `API returned ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("Document structure data for graph:", data);
+
+      return data; // Return the original headings/hierarchy format
+    } catch (error) {
+      console.error("Error loading document structure for graph:", error);
+      // Return empty structure
+      return {
+        headings: [],
+        hierarchy: {},
+      };
     }
   };
 
@@ -1052,7 +1506,10 @@ export default function DocumentAnalysisPage() {
               </div>
             </div>
             <div className={styles["graph-container"]}>
-              <DocumentStructureGraph documentId={selectedDocumentId} />
+              <DocumentStructureGraph
+                documentId={selectedDocumentId}
+                onNodeClick={handleHeadingClick}
+              />
             </div>
           </div>
 
@@ -1062,7 +1519,14 @@ export default function DocumentAnalysisPage() {
             ref={viewerRef}
           >
             <div className={styles["panel-header"]}>
-              <h2>Document Viewer</h2>
+              <h2>
+                Document Viewer
+                {currentHeading && (
+                  <span className={styles["current-heading-info"]}>
+                    {currentHeading}
+                  </span>
+                )}
+              </h2>
               <div className={styles["document-controls"]}>
                 <button
                   className={styles["document-control-btn"]}
@@ -1135,42 +1599,107 @@ export default function DocumentAnalysisPage() {
                   transition: "transform 0.3s ease",
                 }}
               >
-                {loadedDocument && documentPages[currentPage] ? (
-                  <div className={styles["document-image-container"]}>
-                    <Image
-                      src={documentPages[currentPage]}
-                      alt={`Document page ${currentPage + 1}`}
-                      width={800}
-                      height={1100}
-                      className={styles["document-image"]}
-                      priority
-                    />
-
-                    {/* Overlay for annotations or highlights */}
-                    <div className={styles["document-overlay"]}>
-                      {highlightedSections.map(
-                        (section, index) =>
-                          section.page === currentPage && (
-                            <div
-                              key={index}
-                              className={styles["highlight"]}
-                              style={{
-                                left: `${section.rect.x}px`,
-                                top: `${section.rect.y}px`,
-                                width: `${section.rect.width}px`,
-                                height: `${section.rect.height}px`,
-                              }}
-                            ></div>
-                          )
-                      )}
+                {!loadedDocument && !headingLoading && !documentLoading ? (
+                  <div className={styles["document-placeholder"]}>
+                    <FileText size={48} className={styles.placeholderIcon} />
+                    <h3 className={styles.placeholderTitle}>
+                      No Document Selected
+                    </h3>
+                    <p className={styles.placeholderText}>
+                      Upload a document from the sidebar to get started.
+                    </p>
+                    <p className={styles.placeholderSubText}>
+                      You can drag and drop a PDF file or use the upload button.
+                    </p>
+                    <div className={styles.placeholderArrow}>
+                      <ArrowLeft size={24} />
+                      <span>Upload Here</span>
                     </div>
+                  </div>
+                ) : documentLoading ? (
+                  <div className={styles["document-loading"]}>
+                    <div className={styles["loading-spinner"]}></div>
+                    <p>Loading document...</p>
+                  </div>
+                ) : documentError ? (
+                  <div className={styles["document-error"]}>
+                    <p>Error loading document: {documentError}</p>
+                    <button
+                      onClick={() => {
+                        if (selectedDocumentId) {
+                          handleSelectDocument(selectedDocumentId);
+                        }
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : currentPage !== null && documentPages[currentPage] ? (
+                  <div className={styles["document-image-wrapper"]}>
+                    <img
+                      key={`page-${currentPage}-${Date.now()}-${documentPages[
+                        currentPage
+                      ]?.substring(0, 20)}`}
+                      className={styles["document-image"]}
+                      src={documentPages[currentPage]}
+                      alt={`Page ${currentPage + 1}`}
+                      style={{
+                        transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
+                      }}
+                      onError={(e) => {
+                        console.error(
+                          `Error loading image for page ${currentPage + 1}`
+                        );
+                        if (e.currentTarget) {
+                          setPagesWithErrors((prev) => ({
+                            ...prev,
+                            [currentPage]: true,
+                          }));
+                        }
+                      }}
+                    />
+                    {pagesWithErrors[currentPage] && (
+                      <div className={styles["document-image-error"]}>
+                        <AlertTriangle size={32} />
+                        <p>Error loading this page.</p>
+                        <button
+                          onClick={() => {
+                            loadPage(currentPage);
+                            setPagesWithErrors((prev) => ({
+                              ...prev,
+                              [currentPage]: false,
+                            }));
+                          }}
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
+                    {highlightedSections
+                      .filter((section) => section.page === currentPage)
+                      .map((section) => (
+                        <div
+                          key={section.id}
+                          className={styles.highlight}
+                          style={{
+                            left: `${section.rect.x * 100}%`,
+                            top: `${section.rect.y * 100}%`,
+                            width: `${section.rect.width * 100}%`,
+                            height: `${section.rect.height * 100}%`,
+                          }}
+                        ></div>
+                      ))}
                   </div>
                 ) : (
                   <div className={styles["document-placeholder"]}>
                     <p>
-                      {loadedDocument
+                      {headingLoading
+                        ? "Loading heading content..."
+                        : currentHeading
+                        ? `Navigating to "${currentHeading}"...`
+                        : loadedDocument
                         ? "Loading document..."
-                        : "Select a document from the list or upload a file to view"}
+                        : "Select a document to view its content"}
                     </p>
                   </div>
                 )}

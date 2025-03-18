@@ -26,13 +26,14 @@ import {
 import { Separator } from "@/app/components/ui/separator";
 import { SettingsPanel } from "@/app/components/settings-panel";
 
-// Example user data - in a real app, this would come from your auth system
+// TODO: Replace with real user data from authentication system in production
+// This temporary placeholder is used for demonstration purposes only
 const mockUserData = {
   permissions: ["general", "upgrade"], // User only has access to general and upgrade sections
   subscription: "free", // User is on free tier
   featureFlags: {
     securitySettings: true,
-    memoryManagement: true, // Memory feature is not yet available
+    memoryManagement: true,
   },
 };
 

@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Settings } from "lucide-react"
-import { Button } from "@/app/components/ui/button"
-import { SettingsPanel } from "@/app/components/settings-panel"
+import { useState } from "react";
+import { Settings } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { SettingsPanel } from "@/app/components/settings-panel";
 
-// Example user data - in a real app, this would come from your auth system
+// TODO: Replace with real user data from authentication system in production
+// This temporary placeholder is used for demonstration purposes only
 const mockUserData = {
   permissions: ["general", "upgrade"], // User only has access to general and upgrade sections
   subscription: "free", // User is on free tier
@@ -13,14 +14,19 @@ const mockUserData = {
     securitySettings: true,
     memoryManagement: true, // Memory feature is not yet available
   },
-}
+};
 
 export function SettingsButton() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
     <>
-      <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)} className="rounded-full">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setIsSettingsOpen(true)}
+        className="rounded-full"
+      >
         <Settings className="h-5 w-5" />
         <span className="sr-only">Open settings</span>
       </Button>
@@ -33,5 +39,5 @@ export function SettingsButton() {
         featureFlags={mockUserData.featureFlags}
       />
     </>
-  )
+  );
 }
