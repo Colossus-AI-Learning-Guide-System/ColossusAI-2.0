@@ -62,11 +62,17 @@ export const resendConfirmationEmail = async (email: string) => {
 };
 
 // OAuth Sign In (Google, GitHub)
-export const signInWithOAuth = async (provider: Provider) => {
+export const signInWithOAuth = async (provider: Provider, redirectUrl?: string) => {
+  const baseRedirectTo = `${window.location.origin}/auth/callback`;
+  // Append a next parameter to the redirect URL
+  const finalRedirectTo = redirectUrl 
+    ? `${baseRedirectTo}?next=${encodeURIComponent(redirectUrl)}` 
+    : baseRedirectTo;
+    
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: finalRedirectTo,
     },
   });
   return { data, error };

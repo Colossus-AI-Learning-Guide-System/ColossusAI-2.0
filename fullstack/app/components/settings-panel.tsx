@@ -6,11 +6,13 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { X, Camera, Check } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
-import { supabase } from "../lib/utils/supabaseClient"
+import { supabase } from "@/app/lib/utils/supabaseClient"
 import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
 import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
 import Image from "next/image"
 import { Button } from "@/app/components/ui/button"
+import { useProfile } from "@/app/hooks/use-profile"
+import { useImageUpload } from "@/app/hooks/use-image-upload"
 
 type SettingsTab = "general" | "upgrade" | "memory" | "security"
 export type PlanType = "free" | "pro" | "enterprise" | null
@@ -61,9 +63,33 @@ export function SettingsPanel({
   const [activeTab, setActiveTab] = useState<SettingsTab>("general")
   const [memoryEnabled, setMemoryEnabled] = useState(true)
   const [storageUsed, setStorageUsed] = useState(45) // percentage
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("free")
-  const [isLoading, setIsLoading] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
+  
+  // Update the profile hook usage
+  const { 
+    profile, 
+    loading: profileLoading, 
+    error: profileError, 
+    isAuthenticated,
+    updateProfile, 
+    fetchProfile 
+  } = useProfile()
+  
+  // Use the image upload hook with profile refresh callback
+  const imageUploadResult = useImageUpload(
+    profile?.avatar_url || null, 
+    { onSuccess: () => fetchProfile() }
+  );
+  
+  const avatarUrl = imageUploadResult.previewUrl;
+  const fileInputRef = imageUploadResult.fileInputRef;
+  const isUploading = imageUploadResult.isUploading;
+  const handlePhotoUpload = imageUploadResult.handleThumbnailClick;
+  const handleFileChange = imageUploadResult.handleFileChange;
+
+  // Combined loading state for UI
+  const isLoading = profileLoading || isUploading || saveLoading;
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -75,7 +101,6 @@ export function SettingsPanel({
     email: "",
   })
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [storageStats, setStorageStats] = useState<StorageStats>({
     usedStorage: 0,
     maxStorage: STORAGE_LIMITS.free,
@@ -103,86 +128,20 @@ export function SettingsPanel({
     }
   }, [isOpen, searchParams])
 
-  // Fetch user data from Supabase
+  // Update form data when profile is loaded
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        setIsLoading(true)
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (user) {
-          const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-          if (data) {
-            setFormData({
-              fullName: data.full_name || "",
-              email: data.email || user.email || "",
-            })
-          } else {
-            // If no profile exists yet, just use the email from auth
-            setFormData((prev) => ({
-              ...prev,
-              email: user.email || "",
-            }))
-          }
-        } else {
-          // For demo purposes, set some placeholder data
-          setFormData({
-            fullName: "Demo User",
-            email: "demo@example.com",
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-        // For demo purposes, set some placeholder data
-        setFormData({
-          fullName: "Demo User",
-          email: "demo@example.com",
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    if (profile) {
+      setFormData({
+        fullName: profile.full_name || "",
+        email: profile.email || "",
+      })
     }
-
-    if (isOpen && activeTab === "general") {
-      fetchUserData()
-    }
-  }, [isOpen, activeTab])
-
-  useEffect(() => {
-    async function fetchAvatar() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (user) {
-          const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
-
-          if (data?.avatar_url) {
-            setAvatarUrl(data.avatar_url)
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching avatar:", error)
-      }
-    }
-
-    if (isOpen && activeTab === "general") {
-      fetchAvatar()
-    }
-  }, [isOpen, activeTab])
+  }, [profile])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error when user types
-    if (formErrors[name as keyof typeof formErrors]) {
-      setFormErrors((prev) => ({ ...prev, [name]: "" }))
-    }
+    setFormErrors((prev) => ({ ...prev, [name]: "" })) // Clear error on change
   }
 
   const validateForm = () => {
@@ -252,88 +211,32 @@ export function SettingsPanel({
   const handleSaveChanges = async () => {
     if (activeTab === "general") {
       if (!validateForm()) return
+      
+      // Check if profile exists (user is authenticated)
+      if (!profile) {
+        showToast("Authentication required", "Please sign in to save changes.", "destructive")
+        return
+      }
 
       try {
-        setIsLoading(true)
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+        setSaveLoading(true)
+        
+        const updatedProfile = await updateProfile({
+          full_name: formData.fullName,
+          email: formData.email,
+        })
 
-        if (user) {
-          const { error } = await supabase.from("profiles").upsert({
-            id: user.id,
-            full_name: formData.fullName,
-            email: formData.email,
-            updated_at: new Date().toISOString(),
-          })
-
-          if (error) throw error
-
+        if (updatedProfile) {
           showToast("Profile updated", "Your profile information has been updated successfully.")
         } else {
-          // For demo purposes, show success anyway
-          showToast("Demo mode", "In a real app, your profile would be updated now.")
+          throw new Error("Failed to update profile")
         }
       } catch (error) {
         console.error("Error updating profile:", error)
         showToast("Update failed", "There was a problem updating your profile.", "destructive")
       } finally {
-        setIsLoading(false)
+        setSaveLoading(false)
       }
-    }
-  }
-
-  const handlePhotoUpload = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      setIsLoading(true)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (user) {
-        // First, upload to local storage
-        const reader = new FileReader()
-        reader.onload = async (event) => {
-          const dataUrl = event.target?.result as string
-          setAvatarUrl(dataUrl) // Update UI immediately
-
-          // Then upload to Supabase
-          const fileExt = file.name.split(".").pop()
-          const fileName = `${user.id}-${Date.now()}.${fileExt}`
-
-          const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file)
-
-          if (uploadError) throw uploadError
-
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("avatars").getPublicUrl(fileName)
-
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({ avatar_url: publicUrl })
-            .eq("id", user.id)
-
-          if (updateError) throw updateError
-
-          setAvatarUrl(publicUrl)
-          showToast("Photo uploaded", "Your profile photo has been updated successfully.")
-        }
-
-        reader.readAsDataURL(file)
-      }
-    } catch (error) {
-      console.error("Error uploading photo:", error)
-      showToast("Upload failed", "There was a problem uploading your photo.", "destructive")
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -349,7 +252,7 @@ export function SettingsPanel({
   }, [activeTab])
 
   const handleMemoryToggle = async (enabled: boolean) => {
-    setIsLoading(true)
+    setSaveLoading(true)
     try {
       const success = await toggleMemory(enabled)
       if (success) {
@@ -360,12 +263,12 @@ export function SettingsPanel({
       console.error("Error toggling memory:", error)
       showToast("Update failed", "Could not update memory settings.", "destructive")
     } finally {
-      setIsLoading(false)
+      setSaveLoading(false)
     }
   }
 
   const handleClearData = async () => {
-    setIsLoading(true)
+    setSaveLoading(true)
     try {
       const success = await clearUserData()
       if (success) {
@@ -376,9 +279,22 @@ export function SettingsPanel({
       console.error("Error clearing data:", error)
       showToast("Clear failed", "Could not clear uploaded data.", "destructive")
     } finally {
-      setIsLoading(false)
+      setSaveLoading(false)
     }
   }
+
+  // Create a wrapper for handleFileChange to show toast on success
+  const handleFileChangeWithToast = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const result = await handleFileChange(e);
+      if (result) {
+        showToast("Photo uploaded", "Your profile photo has been updated successfully.");
+      }
+    } catch (error) {
+      console.error("Error in handleFileChangeWithToast:", error);
+      showToast("Upload failed", "There was a problem uploading your photo.", "destructive");
+    }
+  };
 
   if (!isOpen) return null
 
@@ -439,60 +355,123 @@ export function SettingsPanel({
 
           <div className="flex-1 overflow-auto p-6">
             {activeTab === "general" && (
-              <div className="flex flex-col space-y-6">
-                <div className="flex justify-center">
-              <div className="relative">
-                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
-                      {avatarUrl ? (
-                        <Image
-                          src={avatarUrl || "/placeholder.svg"}
-                          alt="Profile"
-                          width={96}
-                          height={96}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span>No image</span>
-                  )}
-                </div>
-                <button
-                      onClick={handlePhotoUpload}
-                      className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black"
-                    >
-                      <Camera className="h-4 w-4" />
-                </button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-              </div>
-            </div>
-
-                <div className="space-y-4">
-              <div>
-                    <label className="mb-2 block">Full Name</label>
-                <Input
-                  name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
-              </div>
-              <div>
-                    <label className="mb-2 block">Email</label>
-                <Input
-                  name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
+              <div className="space-y-6 p-6">
+                <h2 className="text-2xl font-bold">Profile Settings</h2>
+                
+                {profileLoading ? (
+                  <div className="flex justify-center items-center h-48">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                   </div>
-                </div>
+                ) : profileError ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <div className="text-red-400 mb-2">Failed to load profile</div>
+                    <p className="text-sm text-blue-300 mb-4">Please try refreshing the page</p>
+                    <Button 
+                      onClick={() => fetchProfile()}
+                      disabled={isLoading}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : !isAuthenticated ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <div className="text-yellow-400 mb-2">Not signed in</div>
+                    <p className="text-sm text-blue-300 mb-4">Please sign in to view and edit your profile</p>
+                    <a href={`/signin?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`}>
+                      <Button>
+                        Sign In
+                      </Button>
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative h-24 w-24">
+                        {avatarUrl ? (
+                          <Image
+                            src={avatarUrl}
+                            alt="Profile"
+                            width={96}
+                            height={96}
+                            className="h-full w-full rounded-full object-cover"
+                            onClick={handlePhotoUpload}
+                          />
+                        ) : (
+                          <div
+                            className="flex h-full w-full items-center justify-center rounded-full bg-blue-700 text-3xl font-bold"
+                            onClick={handlePhotoUpload}
+                          >
+                            {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U"}
+                          </div>
+                        )}
+                        <button
+                          onClick={handlePhotoUpload}
+                          className="absolute bottom-0 right-0 rounded-full bg-blue-600 p-2 shadow-lg hover:bg-blue-500"
+                        >
+                          <Camera className="h-4 w-4" />
+                        </button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChangeWithToast}
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">{formData.fullName || "User"}</h3>
+                        <p className="text-blue-300">{formData.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="fullName" className="block text-sm font-medium text-blue-200">
+                          Full Name
+                        </label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="mt-1 bg-blue-950/50 border-blue-800"
+                          placeholder="Enter your full name"
+                        />
+                        {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-blue-200">
+                          Email
+                        </label>
+                        <Input
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="mt-1 bg-blue-950/50 border-blue-800"
+                          placeholder="Enter your email address"
+                        />
+                        {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
+                      </div>
+
+                      <Button 
+                        className="mt-2" 
+                        onClick={handleSaveChanges}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <span className="flex items-center">
+                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                            Saving...
+                          </span>
+                        ) : (
+                          "Save Changes"
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -705,7 +684,14 @@ export function SettingsPanel({
                 onClick={handleSaveChanges}
                 disabled={isLoading}
               >
-                {isLoading ? "Saving..." : "Save Changes"}
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Changes"
+                )}
               </button>
             )}
           </div>
@@ -714,4 +700,5 @@ export function SettingsPanel({
     </div>
   )
 }
+
 

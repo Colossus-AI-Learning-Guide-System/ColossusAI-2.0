@@ -9,7 +9,16 @@ export async function getStorageStats(): Promise<StorageStats> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) throw new Error("User not authenticated")
+    
+    // Return default values if user is not authenticated instead of throwing error
+    if (!user) {
+      console.log("User not authenticated, returning default storage values")
+      return {
+        usedStorage: 0,
+        maxStorage: STORAGE_LIMITS.free,
+        isMemoryEnabled: false,
+      }
+    }
 
     // Get user's subscription plan
     const { data: profile } = await supabase
@@ -18,7 +27,14 @@ export async function getStorageStats(): Promise<StorageStats> {
       .eq("id", user.id)
       .single()
 
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) {
+      console.log("Profile not found, returning default storage values")
+      return {
+        usedStorage: 0,
+        maxStorage: STORAGE_LIMITS.free,
+        isMemoryEnabled: false,
+      }
+    }
 
     // Get storage usage
     const { data: files } = await supabase.from("user_files").select("file_size").eq("user_id", user.id)
@@ -46,7 +62,11 @@ export async function toggleMemory(enabled: boolean): Promise<boolean> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) throw new Error("User not authenticated")
+    
+    if (!user) {
+      console.log("User not authenticated, cannot toggle memory")
+      return false
+    }
 
     const { error } = await supabase.from("profiles").update({ memory_enabled: enabled }).eq("id", user.id)
 
@@ -63,7 +83,11 @@ export async function clearUserData(): Promise<boolean> {
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) throw new Error("User not authenticated")
+    
+    if (!user) {
+      console.log("User not authenticated, cannot clear data")
+      return false
+    }
 
     // Delete all user files
     const { error: deleteError } = await supabase.from("user_files").delete().eq("user_id", user.id)
