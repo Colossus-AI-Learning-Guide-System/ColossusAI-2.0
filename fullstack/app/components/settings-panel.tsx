@@ -355,9 +355,7 @@ export function SettingsPanel({
 
           <div className="flex-1 overflow-auto p-6">
             {activeTab === "general" && (
-              <div className="space-y-6 p-6">
-                <h2 className="text-2xl font-bold">Profile Settings</h2>
-                
+              <div className="space-y-8 pt-2 pb-6 px-6">
                 {profileLoading ? (
                   <div className="flex justify-center items-center h-48">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -454,21 +452,6 @@ export function SettingsPanel({
                         />
                         {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
                       </div>
-
-                      <Button 
-                        className="mt-2" 
-                        onClick={handleSaveChanges}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <span className="flex items-center">
-                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                            Saving...
-                          </span>
-                        ) : (
-                          "Save Changes"
-                        )}
-                      </Button>
                     </div>
                   </>
                 )}
@@ -676,7 +659,7 @@ export function SettingsPanel({
               >
                 Proceed to Payment
               </button>
-            ) : (
+            ) : activeTab === "general" && profile ? (
               <button
                 className={`w-full h-12 rounded-md bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white ${
                   isLoading ? "opacity-70 cursor-not-allowed" : ""
@@ -693,7 +676,7 @@ export function SettingsPanel({
                   "Save Changes"
                 )}
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
