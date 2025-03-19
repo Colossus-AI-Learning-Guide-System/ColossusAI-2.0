@@ -1,7 +1,7 @@
 "use client";
 
+import { PasswordInput } from "@/app/components/ui/PasswordInput";
 import { Button } from "@/app/components/ui/signin/button";
-import { Input } from "@/app/components/ui/signin/input";
 import { Label } from "@/app/components/ui/signin/label";
 import { resetPassword } from "@/lib/supabase/auth";
 import { cn } from "@/lib/utils";
@@ -282,10 +282,9 @@ export default function ResetPasswordPage() {
                   New Password<span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Input
+                  <PasswordInput
                     id={`${id}-password`}
                     placeholder="Enter your new password"
-                    type="password"
                     value={password}
                     onChange={handlePasswordChange}
                     onFocus={() => setIsPasswordTouched(true)}
@@ -307,10 +306,9 @@ export default function ResetPasswordPage() {
                   Confirm New Password<span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Input
+                  <PasswordInput
                     id={`${id}-confirm-password`}
                     placeholder="Confirm your new password"
-                    type="password"
                     value={confirmPassword}
                     onChange={(e) => {
                       setConfirmPassword(e.target.value);

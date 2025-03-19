@@ -1,12 +1,13 @@
 "use client";
 
+import { PasswordInput } from "@/app/components/ui/PasswordInput";
 import { Button } from "@/app/components/ui/signup/button";
 import { Input } from "@/app/components/ui/signup/input";
 import { Label } from "@/app/components/ui/signup/label";
 import {
-  resendConfirmationEmail,
-  signInWithOAuth,
-  signUpWithEmail,
+    resendConfirmationEmail,
+    signInWithOAuth,
+    signUpWithEmail,
 } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -456,10 +457,9 @@ export default function SignUpPage() {
                   <Label htmlFor={`${id}-password`} className="text-sm font-medium">
                     Password<span className="text-red-500">*</span>
                   </Label>
-                  <Input
+                  <PasswordInput
                     id={`${id}-password`}
                     placeholder="Create a password"
-                    type="password"
                     value={password}
                     onChange={handlePasswordChange}
                     onBlur={() => handleBlur('password')}
@@ -479,10 +479,9 @@ export default function SignUpPage() {
                   <Label htmlFor={`${id}-confirmPassword`} className="text-sm font-medium">
                     Confirm Password<span className="text-red-500">*</span>
                   </Label>
-                  <Input
+                  <PasswordInput
                     id={`${id}-confirmPassword`}
                     placeholder="Confirm your password"
-                    type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     onBlur={() => handleBlur('confirmPassword')}

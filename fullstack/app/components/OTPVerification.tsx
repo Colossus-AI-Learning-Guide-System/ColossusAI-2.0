@@ -8,7 +8,6 @@ import {
   InputOTPSlot
 } from "./ui/input-otp";
 import { Button } from "./ui/signup/button";
-import { ValidationMessage } from "./validation";
 
 interface OTPVerificationProps {
   email: string;
@@ -56,8 +55,8 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
       const { error } = await verifyOTP(email, otp);
       
       if (error) {
-        // Simplified error handling with focus on user experience
-        let errorMessage = "Incorrect code";
+        // Default to "Invalid code" for most OTP errors
+        let errorMessage = "Invalid code";
         let errorType: 'incorrect' | 'expired' | 'other' = 'incorrect'; // Default error classification
         
         if (typeof error === "object" && error !== null) {
@@ -65,28 +64,28 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
           if ('errorType' in error) {
             const errType = String(error.errorType);
             
-            if (errType === 'invalid_code' || errType === 'incorrect_code') {
-              errorType = 'incorrect';
-              errorMessage = "Incorrect code";
-            } else if (errType === 'expired_code') {
+            // Only use 'expired' error type when the token has actually expired
+            if (errType === 'expired_code') {
               errorType = 'expired';
-              errorMessage = "Verification code has expired. Please request a new code.";
+              errorMessage = "Invalid code";
+            } else {
+              // All other error types show as invalid code
+              errorType = 'incorrect';
+              errorMessage = "Invalid code";
             }
           }
           // Fall back to message parsing if no errorType is present
           else if ("message" in error && typeof error.message === "string") {
             const errorStr = error.message.toLowerCase();
             
-            if (errorStr.includes("invalid") || errorStr.includes("incorrect")) {
-              errorType = 'incorrect';
-              errorMessage = "Incorrect code";
-            } else if (errorStr.includes("expired")) {
+            // Only classify as expired if explicitly mentioned
+            if (errorStr.includes("expired")) {
               errorType = 'expired';
               errorMessage = "Verification code has expired. Please request a new code.";
-            } else if (error.message) {
-              // For other errors, use the original message
-              errorType = 'other';
-              errorMessage = error.message;
+            } else {
+              // All other errors (including "invalid") are treated as incorrect code
+              errorType = 'incorrect';
+              errorMessage = "Invalid code";
             }
           }
         }
@@ -95,7 +94,7 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
         setStatus({
           type: 'error',
           message: errorMessage,
-          errorType: errorType // Add error type to help with conditional rendering
+          errorType: errorType
         });
         setLoading(false);
         return;
@@ -132,6 +131,7 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
       if (error) {
         // Handle specific error types from Supabase
         let errorMessage = "Failed to send verification code";
+        let errorType: 'incorrect' | 'expired' | 'other' = 'other';
         
         if (typeof error === "object" && error !== null) {
           if ("message" in error && typeof error.message === "string") {
@@ -146,10 +146,11 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
           }
         }
         
-        // Set error status directly instead of throwing
+        // Set error status directly
         setStatus({
           type: 'error',
-          message: errorMessage
+          message: errorMessage,
+          errorType: errorType
         });
         setResendLoading(false);
         return;
@@ -175,7 +176,8 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
       console.error("Resend OTP error:", err);
       setStatus({
         type: 'error',
-        message: err instanceof Error ? err.message : String(err)
+        message: err instanceof Error ? err.message : String(err),
+        errorType: 'other'
       });
     } finally {
       setResendLoading(false);
@@ -190,13 +192,6 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
           We sent a 6-digit verification code to <span className="font-medium text-gray-300">{email}</span>
         </p>
       </div>
-
-      {status && status.type !== 'error' && (
-        <ValidationMessage
-          type={status.type}
-          message={status.message}
-        />
-      )}
 
       <style jsx global>{`
         /* Custom OTP input styles for improved visibility */
@@ -286,16 +281,16 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
           <svg viewBox="0 0 24 24" width="8" height="8">
             <circle cx="12" cy="12" r="12" fill="currentColor" />
           </svg>
-          <span>
-            {status.errorType === 'incorrect' ? 
-              "Incorrect code" : 
-              status.message}
-          </span>
+          <span>{status.message}</span>
         </div>
       )}
 
-      {status?.type !== 'error' && status?.message && (
-        <div className={`text-center text-sm ${status.type === 'success' ? 'text-green-500' : 'text-yellow-500'} mb-3`}>
+      {status?.type === 'success' && (
+        <div className="text-center text-sm text-green-500 mb-3">
+          <svg className="inline-block mr-1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
           {status.message}
         </div>
       )}
@@ -314,7 +309,7 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
       <div className="space-y-3">
         <Button
           type="button"
-          className="w-full py-2 px-3 h-11 rounded-3xl bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700"
+          className="w-full py-2 px-3 h-11 rounded-3xl bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 text-white"
           onClick={handleVerify}
           disabled={loading || otp.length !== 6}
         >
@@ -325,14 +320,14 @@ export default function OTPVerification({ email, onVerificationComplete }: OTPVe
           <p className="text-sm text-gray-500">
             Didn't receive the code?{" "}
             {timeLeft > 0 ? (
-              <span className="text-red-400">Resend in {timeLeft}s</span>
+              <span className="text-red-500">Resend in {timeLeft}s</span>
             ) : (
               <button
                 onClick={handleResendOTP}
                 disabled={resendLoading || timeLeft > 0}
-                className="text-blue-500 hover:text-blue-400 disabled:text-gray-600 disabled:hover:text-gray-600"
+                className="text-red-500 hover:text-red-400 disabled:text-gray-600 disabled:hover:text-gray-600"
               >
-                {resendLoading ? "Sending..." : "Resend code"}
+                {resendLoading ? "Sending..." : "Resend"}
               </button>
             )}
           </p>

@@ -1,13 +1,13 @@
 "use client";
 
+import { PasswordInput } from "@/app/components/ui/PasswordInput";
 import { Button } from "@/app/components/ui/signin/button";
-import { Checkbox } from "@/app/components/ui/signin/checkbox";
 import { Input } from "@/app/components/ui/signin/input";
 import { Label } from "@/app/components/ui/signin/label";
 import {
-  resendConfirmationEmail,
-  signInWithEmail,
-  signInWithOAuth,
+    resendConfirmationEmail,
+    signInWithEmail,
+    signInWithOAuth,
 } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -66,7 +66,7 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await signInWithEmail(email, password);
+      const { data, error } = await signInWithEmail(email, password, isRememberMe);
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = error.message as string;
         
@@ -318,10 +318,9 @@ export default function SignInPage() {
                 <Label htmlFor={`${id}-password`} className="text-sm font-medium">
                   Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
+                <PasswordInput
                   id={`${id}-password`}
                   placeholder="Enter your password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => handleBlur('password')}
@@ -338,19 +337,21 @@ export default function SignInPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  id={`${id}-remember`} 
-                  className="rounded border-2 border-[#b066ff] text-purple-600 focus:ring-2 focus:ring-purple-300"
-                  checked={isRememberMe}
-                  onCheckedChange={(checked) => setIsRememberMe(checked as boolean)}
-                />
-                <Label
-                  htmlFor={`${id}-remember`}
-                  className="text-sm text-gray-600"
-                >
-                  Remember me
-                </Label>
+              <div className="flex items-start">
+                <div className="flex h-5 items-center">
+                  <input
+                    id={`${id}-remember`}
+                    type="checkbox"
+                    checked={isRememberMe}
+                    onChange={(e) => setIsRememberMe(e.target.checked)}
+                    className="h-4 w-4 rounded border-2 border-purple-500 text-purple-600 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="ml-2">
+                  <label htmlFor={`${id}-remember`} className="text-sm text-gray-500">
+                    Remember me
+                  </label>
+                </div>
               </div>
               <Link
                 href="/forgot-password"
