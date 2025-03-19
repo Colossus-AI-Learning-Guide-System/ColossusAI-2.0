@@ -174,9 +174,6 @@ export default function DocumentAnalysisPage() {
 
   // Add new state variables for graph data and loading state
   const [graphData, setGraphData] = useState<NodeData | null>(null);
-  const [isPolling, setIsPolling] = useState(true);
-  const [lastPollTime, setLastPollTime] = useState<number>(0);
-  const POLL_INTERVAL = 5000; // Poll every 5 seconds
 
   // Add new state for tracking the current heading
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
@@ -240,187 +237,10 @@ export default function DocumentAnalysisPage() {
 
   // Load available documents on component mount
   useEffect(() => {
-    loadDocumentStructure();
+    // Remove the call to loadDocumentStructure() since DocumentList.tsx will now handle document loading
   }, []);
 
-  // Load document structure data for graph visualization
-  const loadDocumentStructure = async () => {
-    try {
-      // First get list of available documents
-      const data = await apiRequest("/api/structure/documents");
-
-      setAvailableDocuments(data.documents);
-
-      // If we have documents, load the first one's structure
-      if (data.documents && data.documents.length > 0) {
-        const firstDoc = data.documents[0];
-        loadDocumentGraph(firstDoc.id);
-        setActiveDocuments([firstDoc.id]);
-      }
-    } catch (error) {
-      console.error("Error loading documents:", error);
-    }
-  };
-
-  // Load document graph data
-  const loadDocumentGraph = async (documentId: string) => {
-    try {
-      console.log(`Loading document graph for document ID: ${documentId}`);
-      const data = await apiRequest(`/api/structure/document/${documentId}`);
-
-      console.log("Received document structure data:", data);
-
-      // Check if data is in headings/hierarchy format or nodes/edges format
-      let transformedData: DocumentStructure;
-
-      if ("headings" in data && "hierarchy" in data) {
-        // The response is in headings/hierarchy format, convert to nodes/edges
-        console.log(
-          "Converting headings/hierarchy format to nodes/edges format"
-        );
-        transformedData = convertHeadingsToGraphFormat(data, documentId);
-      } else if ("nodes" in data && "edges" in data) {
-        // Already in the expected format
-        transformedData = data;
-      } else {
-        console.error("Unexpected data format received from API:", data);
-        // Create an empty document structure
-        transformedData = {
-          id: documentId,
-          name: "Unknown Document",
-          nodes: [],
-          edges: [],
-        };
-      }
-
-      // Transform the data for the graph component
-      const graphData = transformToGraphFormat(transformedData);
-
-      // Update the graph
-      if (graphRef.current) {
-        graphRef.current.updateData(graphData);
-      }
-
-      // Store selected document ID
-      setSelectedDocumentId(documentId);
-
-      // Return the data for chaining
-      return transformedData;
-    } catch (error) {
-      console.error("Error loading document graph:", error);
-      throw error; // Rethrow for proper async error handling
-    }
-  };
-
-  // Add polling effect for document updates
-  useEffect(() => {
-    let pollTimeout: NodeJS.Timeout;
-    let pollAttempts = 0;
-    const MAX_POLL_ATTEMPTS = 3;
-
-    const pollForDocuments = async () => {
-      if (!isPolling) return;
-
-      try {
-        const data = await apiRequest("/api/structure/documents");
-        const currentTime = Date.now();
-
-        // Check if there are new documents since last poll
-        if (data.documents && data.documents.length > 0) {
-          const hasNewDocuments = data.documents.some(
-            (doc: DocumentMetadata) => {
-              const uploadTime = new Date(doc.upload_date).getTime();
-              return uploadTime > lastPollTime;
-            }
-          );
-
-          if (hasNewDocuments) {
-            // Update available documents
-            setAvailableDocuments(data.documents);
-
-            // Load graph data for all documents
-            const graphPromises = data.documents.map((doc: DocumentMetadata) =>
-              apiRequest(`/api/structure/document/${doc.id}`)
-            );
-
-            const graphResults = await Promise.all(graphPromises);
-
-            // Combine all document structures into one graph
-            const combinedGraphData = combineDocumentGraphs(graphResults);
-            setGraphData(combinedGraphData);
-
-            // Update active documents
-            setActiveDocuments(
-              data.documents.map((doc: DocumentMetadata) => doc.id)
-            );
-          }
-        }
-
-        setLastPollTime(currentTime);
-        pollAttempts = 0; // Reset poll attempts on successful request
-      } catch (error: any) {
-        console.error("Polling error:", error);
-        pollAttempts++;
-
-        // Show error message to user
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: `Error connecting to server: ${error.message}`,
-          },
-        ]);
-
-        // Stop polling after max attempts
-        if (pollAttempts >= MAX_POLL_ATTEMPTS) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content:
-                "Unable to connect to the server. Please check if the server is running and try again.",
-            },
-          ]);
-          setIsPolling(false);
-          return;
-        }
-      }
-
-      // Schedule next poll
-      pollTimeout = setTimeout(pollForDocuments, POLL_INTERVAL);
-    };
-
-    // Start polling
-    pollForDocuments();
-
-    return () => {
-      if (pollTimeout) {
-        clearTimeout(pollTimeout);
-      }
-      setIsPolling(false);
-    };
-  }, [isPolling, lastPollTime]);
-
-  // Function to combine multiple document graphs into one
-  const combineDocumentGraphs = (documents: DocumentStructure[]): NodeData => {
-    const rootNode: NodeData = {
-      name: "All Documents",
-      value: 0,
-      children: [],
-    };
-
-    documents.forEach((doc) => {
-      // Transform document structure to graph format
-      const docGraph = transformToGraphFormat(doc);
-      if (docGraph.children && docGraph.children.length > 0) {
-        rootNode.children?.push(...docGraph.children);
-      }
-    });
-
-    return rootNode;
-  };
-
-  // Update transformToGraphFormat function
+  // Keep the transformToGraphFormat function which is still used for visualization
   const transformToGraphFormat = (data: DocumentStructure): NodeData => {
     if (!data || !data.nodes || !data.edges) {
       return {
@@ -559,7 +379,7 @@ export default function DocumentAnalysisPage() {
     };
   };
 
-  // Update handleFileUpload function to properly log and handle the upload
+  // Update handleFileUpload function
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -606,16 +426,21 @@ export default function DocumentAnalysisPage() {
         ...prev,
         {
           role: "assistant",
-          content: `Document "${file.name}" uploaded successfully. Processing has started...`,
+          content: `Document "${file.name}" uploaded successfully!`,
         },
       ]);
 
-      // Store document_id for status polling
+      // No more polling, just set progress to 100%
+      setUploadProgress(100);
+
       if (data.document_id) {
-        // Start polling for document status
-        pollDocumentStatus(data.document_id);
-        // Force an immediate poll for new documents
-        setLastPollTime(0);
+        // Add to active documents
+        setActiveDocuments((prev) => [...prev, data.document_id]);
+
+        // Set the uploaded document as selected
+        setSelectedDocumentId(data.document_id);
+
+        // No need to poll, we assume document is ready
       } else {
         throw new Error("No document ID received from server");
       }
@@ -660,7 +485,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Update handleSendMessage function to handle file uploads
+  // Update handleSendMessage function - only remove references to polling
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -747,15 +572,13 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Handle citation click from chat
+  // Update handleCitationClick function to use DocumentStructureGraph directly
   const handleCitationClick = (documentId: string, page: number) => {
     setSelectedDocumentId(documentId);
 
     // Load document if not already loaded
     if (!activeDocuments.includes(documentId)) {
       setActiveDocuments((prev) => [...prev, documentId]);
-      // Load document structure
-      loadDocumentGraph(documentId);
     }
 
     // Load document pages
@@ -780,7 +603,7 @@ export default function DocumentAnalysisPage() {
     loadDocument(documentId, page);
   };
 
-  // Load document pages - updated with better error handling
+  // Simplify loadDocumentPages function to not depend on structure API
   const loadDocumentPages = async (documentId: string) => {
     if (!documentId) {
       console.error("No document ID provided to loadDocumentPages");
@@ -799,8 +622,23 @@ export default function DocumentAnalysisPage() {
         },
       ]);
 
-      // Get document metadata to know page count
-      const data = await apiRequest(`/api/structure/document/${documentId}`);
+      // Instead of getting document metadata from structure API,
+      // we'll use a direct API call to get page count
+      const response = await fetch(
+        `${API_BASE_URL}/api/document/${documentId}/info`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get document info: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       if (!data) {
         throw new Error("No data returned from API");
@@ -862,7 +700,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Improve the loadPage function to prevent unnecessary re-renders and better error handling
+  // Keep loadPage function mostly unchanged, but with direct URL construction
   const loadPage = async (pageNumber: number) => {
     // Validate inputs
     if (!loadedDocument) {
@@ -931,7 +769,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Ensure the current page is loaded
+  // Keep current page loading effect unchanged
   useEffect(() => {
     if (loadedDocument && currentPage >= 0 && currentPage < totalPages) {
       loadPage(currentPage);
@@ -1041,7 +879,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Listen for fullscreen changes
+  // Keep fullscreen changes effect unchanged
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -1053,94 +891,14 @@ export default function DocumentAnalysisPage() {
     };
   }, []);
 
-  // Update pollDocumentStatus function
-  const pollDocumentStatus = async (documentId: string) => {
-    let pollCount = 0;
-    const maxPolls = 60; // Maximum number of polls (2 minutes with 2-second interval)
-
-    const statusCheck = async () => {
-      try {
-        const data = await apiRequest(
-          `/api/document/indexing-status/${documentId}`
-        );
-
-        // Update progress
-        setUploadProgress(data.progress || 0);
-
-        if (data.status === "completed") {
-          // Update UI to show document is ready
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `Document processed successfully. You can now ask questions about it!`,
-            },
-          ]);
-
-          // Add to active documents
-          setActiveDocuments((prev) => [...prev, documentId]);
-
-          // Refresh document list and graph
-          loadDocumentStructure();
-
-          // Stop polling
-          return;
-        } else if (data.status === "failed") {
-          // Show error message
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `Document processing failed: ${
-                data.message || "Unknown error"
-              }`,
-            },
-          ]);
-          // Stop polling
-          return;
-        }
-
-        // Check if we should continue polling
-        pollCount++;
-        if (pollCount < maxPolls) {
-          // Continue polling
-          setTimeout(statusCheck, 2000);
-        } else {
-          // Stop polling after max attempts
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content:
-                "Document processing timed out. Please try uploading again.",
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error("Status polling error:", error);
-        // Stop polling on error
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              "Error checking document status. Please try uploading again.",
-          },
-        ]);
-      }
-    };
-
-    statusCheck();
-  };
-
-  // Add this function to pass to the Sidebar
+  // Update the document upload handler to simply load the document
   const handleDocumentUpload = (documentId: string) => {
     setSelectedDocumentId(documentId);
-    // You might want to load the first page automatically
+    // Load the first page automatically
     loadDocument(documentId, 0);
   };
 
-  // Update the loadDocument function to use these new state variables
+  // Keep loadDocument function mostly unchanged
   const loadDocument = async (documentId: string, page: number = 0) => {
     try {
       setDocumentLoading(true);
@@ -1167,13 +925,13 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Add or update the handleSelectDocument function
+  // Update handleSelectDocument function to work with the new flow
   const handleSelectDocument = (documentId: string) => {
     if (!documentId) return;
     loadDocument(documentId, 0);
   };
 
-  // Load page based on heading - improved error handling and state updates
+  // Simplify loadHeadingPage to use direct API call
   const loadHeadingPage = async (documentId: string, headingText: string) => {
     try {
       setHeadingLoading(true);
@@ -1301,7 +1059,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Function to handle heading clicks from the document structure graph
+  // Keep the heading click handler
   const handleHeadingClick = (headingText: string, documentId: string) => {
     try {
       // Set the active document and current heading
@@ -1321,41 +1079,6 @@ export default function DocumentAnalysisPage() {
         });
     } catch (error) {
       console.error("Error in handleHeadingClick:", error);
-    }
-  };
-
-  // Function to load a document's graph structure data and retain the original headings/hierarchy
-  const loadDocumentStructureForGraph = async (documentId: string) => {
-    try {
-      console.log(`Loading document structure for graph: ${documentId}`);
-      const response = await fetch(
-        `http://127.0.0.1:5002/api/structure/document/${documentId}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `API returned ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      console.log("Document structure data for graph:", data);
-
-      return data; // Return the original headings/hierarchy format
-    } catch (error) {
-      console.error("Error loading document structure for graph:", error);
-      // Return empty structure
-      return {
-        headings: [],
-        hierarchy: {},
-      };
     }
   };
 
