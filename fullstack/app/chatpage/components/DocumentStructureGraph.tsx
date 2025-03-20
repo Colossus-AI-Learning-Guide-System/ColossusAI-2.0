@@ -6,6 +6,7 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  useLayoutEffect,
 } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5hierarchy from "@amcharts/amcharts5/hierarchy";
@@ -54,6 +55,24 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+// Add a useIsomorphicLayoutEffect to handle SSR environments
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+// Create a custom hook to check if the DOM element is mounted and ready
+const useIsMounted = () => {
+  const isMountedRef = useRef(false);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  return useCallback(() => isMountedRef.current, []);
+};
+
 const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
   documentId,
   onNodeClick,
@@ -64,6 +83,10 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
   const chartInstanceRef = useRef<am5hierarchy.ForceDirected | null>(null);
   const dataRef = useRef<DocumentStructureData | null>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const containerReadyRef = useRef<boolean>(false);
+
+  // Use our custom hook
+  const isMounted = useIsMounted();
 
   // State
   const [loading, setLoading] = useState<boolean>(false);
@@ -187,10 +210,169 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     [documentId, onNodeClick]
   );
 
+  // Create chart once and configure it
+  const createChart = useCallback(() => {
+    if (!chartRef.current) {
+      console.log("Cannot create chart - chart ref doesn't exist");
+      return null;
+    }
+
+    if (rootRef.current) {
+      console.log("Chart root already exists, skipping creation");
+      return chartInstanceRef.current;
+    }
+
+    try {
+      console.log("Creating chart in DOM element:", chartRef.current);
+      console.log("Chart container dimensions:", {
+        offsetWidth: chartRef.current.offsetWidth,
+        offsetHeight: chartRef.current.offsetHeight,
+        clientWidth: chartRef.current.clientWidth,
+        clientHeight: chartRef.current.clientHeight,
+      });
+
+      // Create root element
+      const root = am5.Root.new(chartRef.current);
+      rootRef.current = root;
+
+      // Set themes
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      // Create chart with adjusted configuration
+      const chart = root.container.children.push(
+        am5hierarchy.ForceDirected.new(root, {
+          downDepth: 2,
+          initialDepth: 3,
+          valueField: "value",
+          categoryField: "name",
+          childDataField: "children",
+          centerStrength: 0.3,
+          minRadius: 24,
+          maxRadius: 40,
+          manyBodyStrength: -35,
+          linkWithStrength: 0.5,
+        })
+      );
+
+      chartInstanceRef.current = chart;
+      console.log("Chart instance created and stored in ref");
+
+      // Configure nodes
+      const nodeTemplate = chart.nodes.template;
+
+      // Make nodes interactive
+      nodeTemplate.set("cursorOverStyle", "pointer");
+      nodeTemplate.set("tooltipText", "{name}");
+
+      // Create a label for the node - use 'as any' to bypass TypeScript errors
+      const anyTemplate = nodeTemplate as any;
+      if (!anyTemplate.get("label")) {
+        anyTemplate.set("label", am5.Label.new(root, {}));
+      }
+
+      // Configure the label
+      const label = anyTemplate.get("label");
+      if (label) {
+        label.setAll({
+          text: "{name}",
+          fontSize: 14,
+          fill: am5.color(0xffffff),
+          strokeOpacity: 0,
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingTop: 6,
+          paddingBottom: 6,
+          background: am5.RoundedRectangle.new(root, {
+            fill: am5.color(0x000000),
+            fillOpacity: 0.7,
+          }),
+        });
+      }
+
+      // Node colors based on level
+      anyTemplate.adapters.add("fill", (fill: any, target: any) => {
+        try {
+          const dataItem = target.dataItem;
+          if (dataItem) {
+            const depth = dataItem.get("depth");
+            if (depth === 0) return am5.color(0x4285f4); // Document - blue
+            if (depth === 1) return am5.color(0xea4335); // Headings - red
+            return am5.color(0xfbbc05); // Subheadings - yellow
+          }
+        } catch (err) {
+          console.warn("Error in node color adapter:", err);
+        }
+        return fill;
+      });
+
+      // Add hover state - using 'as any' to bypass TypeScript errors
+      anyTemplate.states.create("hover", {
+        scale: 1.1,
+        strokeWidth: 3,
+        stroke: am5.color(0xffffff),
+      });
+
+      // Set up click handler
+      nodeTemplate.events.on("click", handleNodeClick);
+
+      // Adjust link properties
+      const linkTemplate = chart.links.template;
+      linkTemplate.setAll({
+        strokeWidth: 2,
+        strokeOpacity: 0.5,
+      });
+
+      // Update the state to reflect successful chart creation
+      setChartCreated(true);
+      console.log("Chart creation completed successfully");
+
+      // Return chart instance
+      return chart;
+    } catch (err) {
+      console.error("Error creating chart:", err);
+      setError("Failed to create chart. Please try refreshing the page.");
+      return null;
+    }
+  }, [handleNodeClick]);
+
+  // Update chart data function
+  const updateChartData = useCallback((data: GraphNode) => {
+    try {
+      console.log("updateChartData called with data:", data);
+
+      if (!rootRef.current) {
+        console.error("Cannot update chart data - root reference is null");
+        // Instead of simply returning, we should create the chart first
+        // We'll handle this in the document ID effect
+        return;
+      }
+
+      const chart = chartInstanceRef.current;
+      if (!chart) {
+        console.error("Cannot update chart data - chart instance is null");
+        return;
+      }
+
+      // Wrap in try-catch to prevent errors if the component is unmounting
+      try {
+        console.log("Setting chart data:", data);
+        chart.data.setAll([data]);
+        chart.appear(1000, 100);
+        console.log("Chart data updated successfully");
+      } catch (chartError) {
+        console.error("Error updating chart data in amCharts:", chartError);
+      }
+    } catch (err) {
+      console.error("Error in updateChartData:", err);
+    }
+  }, []);
+
   // Transform API data to graph format - using useCallback for stability
   const transformDocumentStructure = useCallback(
     (data: DocumentStructureData): GraphNode => {
       try {
+        console.log("Transforming document structure:", data);
+
         // Input validation with detailed logging
         if (!data) {
           console.error(
@@ -221,7 +403,8 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
           children: [],
         };
 
-        // Add heading nodes
+        // Modified logic to handle the specialized API response format
+        // Process each heading and create a node for it
         data.headings.forEach((heading) => {
           if (typeof heading !== "string") {
             console.warn(`Invalid heading type: ${typeof heading}`, heading);
@@ -230,40 +413,43 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
 
           const headingNode: GraphNode = {
             name: heading,
-            value: 0.9, // Slightly larger than before
+            value: 0.9,
             children: [],
           };
 
-          // Add subheading nodes
+          // Check if this heading has children in the hierarchy
           if (
             data.hierarchy[heading] &&
-            Array.isArray(data.hierarchy[heading]) &&
-            data.hierarchy[heading].length > 0
+            Array.isArray(data.hierarchy[heading])
           ) {
+            // Add child nodes for each subheading
             data.hierarchy[heading].forEach((subheading) => {
-              if (typeof subheading !== "string") {
-                console.warn(
-                  `Invalid subheading type: ${typeof subheading}`,
-                  subheading
-                );
-                return; // Skip this subheading
-              }
-
               headingNode.children?.push({
                 name: subheading,
-                value: 0.6, // Slightly larger than before
+                value: 0.6,
+                children: [], // Ensure children array exists even if empty
               });
             });
-          } else {
+          }
+
+          // If no children were added, check if this is a numbered heading
+          // that might have a parent-child relationship with other headings
+          if (!headingNode.children?.length && /^\d+(\.\d+)*/.test(heading)) {
+            // This is a numbered heading, add an empty child to ensure it's displayed correctly
             headingNode.children?.push({
               name: heading + " content",
               value: 0.4,
             });
           }
 
+          // Add the heading node to the root
           rootNode.children?.push(headingNode);
         });
 
+        console.log(
+          "Transformed document structure to graph format:",
+          rootNode
+        );
         return rootNode;
       } catch (err) {
         console.error("Error transforming document structure:", err);
@@ -293,123 +479,6 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     };
   }, []);
 
-  // Create chart once and configure it
-  const createChart = useCallback(() => {
-    if (!chartRef.current || rootRef.current || chartCreated) return;
-
-    try {
-      // Create root element
-      const root = am5.Root.new(chartRef.current);
-      rootRef.current = root;
-
-      // Set themes
-      root.setThemes([am5themes_Animated.new(root)]);
-
-      // Create chart with adjusted configuration
-      const chart = root.container.children.push(
-        am5hierarchy.ForceDirected.new(root, {
-          downDepth: 2,
-          initialDepth: 3,
-          valueField: "value",
-          categoryField: "name",
-          childDataField: "children",
-          centerStrength: 0.3,
-          minRadius: 24,
-          maxRadius: 40,
-          manyBodyStrength: -35,
-          linkWithStrength: 0.5,
-        })
-      );
-
-      chartInstanceRef.current = chart;
-
-      // Configure nodes
-      const nodeTemplate = chart.nodes.template;
-
-      // Make nodes interactive
-      nodeTemplate.set("cursorOverStyle", "pointer");
-      nodeTemplate.set("tooltipText", "{name}");
-
-      // Create a label for the node
-      if (!nodeTemplate.get("label")) {
-        nodeTemplate.set("label", am5.Label.new(root, {}));
-      }
-
-      // Configure the label
-      nodeTemplate.get("label")?.setAll({
-        text: "{name}",
-        fontSize: 14,
-        fill: am5.color(0xffffff),
-        strokeOpacity: 0,
-        paddingLeft: 12,
-        paddingRight: 12,
-        paddingTop: 6,
-        paddingBottom: 6,
-        background: am5.RoundedRectangle.new(root, {
-          fill: am5.color(0x000000),
-          fillOpacity: 0.7,
-        }),
-      });
-
-      // Node colors based on level
-      nodeTemplate.adapters.add("fill", (fill, target) => {
-        try {
-          const dataItem = target.dataItem as any;
-          if (dataItem) {
-            const depth = dataItem.get("depth");
-            if (depth === 0) return am5.color(0x4285f4); // Document - blue
-            if (depth === 1) return am5.color(0xea4335); // Headings - red
-            return am5.color(0xfbbc05); // Subheadings - yellow
-          }
-        } catch (err) {
-          console.warn("Error in node color adapter:", err);
-        }
-        return fill;
-      });
-
-      // Add hover state
-      nodeTemplate.states.create("hover", {
-        scale: 1.1,
-        strokeWidth: 3,
-        stroke: am5.color(0xffffff),
-      });
-
-      // Set up click handler
-      nodeTemplate.events.on("click", handleNodeClick);
-
-      // Adjust link properties
-      const linkTemplate = chart.links.template;
-      linkTemplate.setAll({
-        strokeWidth: 2,
-        strokeOpacity: 0.5,
-      });
-
-      setChartCreated(true);
-
-      // Return chart instance
-      return chart;
-    } catch (err) {
-      console.error("Error creating chart:", err);
-      setError("Failed to create chart. Please try refreshing the page.");
-      return null;
-    }
-  }, [handleNodeClick, chartCreated]);
-
-  // Update chart data function
-  const updateChartData = useCallback((data: GraphNode) => {
-    try {
-      if (!rootRef.current) return;
-
-      const chart = chartInstanceRef.current;
-      if (!chart) return;
-
-      chart.data.setAll([data]);
-      chart.appear(1000, 100);
-    } catch (err) {
-      console.error("Error updating chart data:", err);
-    }
-  }, []);
-
   // Fetch document structure - separated for clarity
   const fetchDocumentStructure = useCallback(
     async (docId: string) => {
@@ -422,7 +491,7 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
         timeoutId = setTimeout(() => {
           console.log("Fetch document structure timeout - aborting request");
           controller.abort();
-        }, 15000); // Increase timeout to 15 seconds to give more time
+        }, 20000); // Increase timeout to 20 seconds to give more time
 
         console.log(`Fetching document structure for ${docId}`);
 
@@ -439,6 +508,8 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
             },
             // Use cors mode for cross-origin requests
             mode: "cors",
+            // Add a cache-busting parameter to prevent caching
+            cache: "no-store",
           });
 
           // Clear the timeout as soon as we get a response
@@ -452,59 +523,42 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
             `Response status: ${response.status} ${response.statusText}`
           );
 
+          // Get the response text regardless of status
+          const responseText = await response.text();
+          console.log("Raw response:", responseText.substring(0, 200) + "...");
+
+          // Try to parse the response even if it's a 500 error
+          // Since we're seeing the API return data even with 500 status
+          let data;
+          try {
+            data = JSON.parse(responseText);
+            console.log("Successfully parsed response data:", data);
+
+            // If we could parse it and it has the expected format, use it
+            if (
+              data &&
+              data.headings &&
+              Array.isArray(data.headings) &&
+              data.hierarchy
+            ) {
+              return data;
+            }
+          } catch (parseError) {
+            console.error("Failed to parse response as JSON:", parseError);
+          }
+
+          // If we reach here, either the response wasn't parseable or didn't have the right format
           if (!response.ok) {
             console.error(
               `Response not OK: ${response.status} ${response.statusText}`
             );
-
-            if (response.status === 500) {
-              console.log(
-                "Server returned 500 error - might be processing document"
-              );
-              // This indicates a server-side error, could be because document is still processing
-              return getSampleData;
-            }
-
-            // Try to read the response body for more details
-            const errorText = await response
-              .text()
-              .catch((e) => "Could not read error response");
-            console.error("Error response body:", errorText);
 
             // Use sample data instead of failing completely
             console.log("Using sample data due to error response");
             return getSampleData;
           }
 
-          // Successfully got a response, try to parse it
-          const data = await response.json().catch((e) => {
-            console.error("Failed to parse response as JSON:", e);
-            return null;
-          });
-
-          if (!data) {
-            console.warn("Empty or invalid JSON response");
-            return getSampleData;
-          }
-
-          console.log("Successfully parsed response data:", data);
-
-          // Validate the data structure
-          if (
-            !data.headings ||
-            !Array.isArray(data.headings) ||
-            data.headings.length === 0
-          ) {
-            console.warn("No headings found in document structure data:", data);
-            return getSampleData;
-          }
-
-          if (!data.hierarchy || typeof data.hierarchy !== "object") {
-            console.warn("Invalid hierarchy in document structure data:", data);
-            return getSampleData;
-          }
-
-          return data;
+          return getSampleData;
         } catch (fetchError: any) {
           console.error("Failed to fetch from Flask API:", fetchError);
 
@@ -552,6 +606,8 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
 
   // Improved cleanup for chart disposal
   const disposeChart = useCallback(() => {
+    console.log("Disposing chart...");
+
     // Clear any pending timeouts
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
@@ -561,8 +617,11 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     // Dispose of the chart properly
     if (rootRef.current) {
       try {
+        console.log("Chart root exists, proceeding with disposal...");
+
         // First clear any data to prevent pending operations
         if (chartInstanceRef.current) {
+          console.log("Clearing chart data before disposal");
           chartInstanceRef.current.data.setAll([]);
         }
 
@@ -570,10 +629,12 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
         setTimeout(() => {
           try {
             if (rootRef.current) {
+              console.log("Disposing chart root");
               rootRef.current.dispose();
               rootRef.current = null;
               chartInstanceRef.current = null;
               setChartCreated(false);
+              console.log("Chart disposed successfully");
             }
           } catch (err) {
             console.error("Error during delayed chart disposal:", err);
@@ -582,20 +643,189 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
       } catch (err) {
         console.error("Error disposing chart:", err);
       }
+    } else {
+      console.log("No chart root to dispose");
     }
   }, []);
 
-  // Use the improved cleanup in both the document ID effect and the unmount effect
+  // Improved approach to avoid the DOM element not available issue
+  useIsomorphicLayoutEffect(() => {
+    if (chartRef.current && documentId) {
+      console.log("Chart container DOM element is ready:", chartRef.current);
+
+      // Immediately set explicit dimensions on the chart container
+      chartRef.current.style.width = "100%";
+      chartRef.current.style.height = "400px";
+      chartRef.current.style.minHeight = "300px";
+
+      // Force a reflow to ensure the browser applies these styles
+      void chartRef.current.offsetHeight;
+
+      // Mark container as ready
+      containerReadyRef.current = true;
+
+      console.log(
+        "Set explicit dimensions on chart container in useLayoutEffect:",
+        {
+          width: chartRef.current.style.width,
+          height: chartRef.current.style.height,
+          offsetWidth: chartRef.current.offsetWidth,
+          offsetHeight: chartRef.current.offsetHeight,
+        }
+      );
+    }
+  }, [documentId]);
+
+  // Fixed fetchAndRender function to handle DOM availability
+  const fetchAndRender = useCallback(
+    async (docId: string) => {
+      if (!docId) return;
+
+      try {
+        // First, fetch the document structure
+        console.log("Fetching document structure data");
+        const data = await fetchDocumentStructure(docId);
+
+        if (!isMounted()) {
+          console.log("Component unmounted during fetch, aborting render");
+          return;
+        }
+
+        // Store the fetched data for later use
+        dataRef.current = data;
+        console.log("Document structure data fetched successfully");
+
+        // Wait for the container to be available
+        let waitAttempts = 0;
+        const maxWaitAttempts = 10;
+
+        while (!containerReadyRef.current && waitAttempts < maxWaitAttempts) {
+          waitAttempts++;
+          console.log(
+            `Waiting for chart container to be ready, attempt ${waitAttempts}/${maxWaitAttempts}`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          if (!isMounted()) {
+            console.log(
+              "Component unmounted while waiting for container, aborting"
+            );
+            return;
+          }
+        }
+
+        // Check if the container is ready
+        if (!chartRef.current) {
+          console.error(
+            "Chart container DOM element not available after waiting"
+          );
+          setError("Failed to initialize chart - container not found");
+          setLoading(false);
+          return;
+        }
+
+        // Make sure previous chart is fully disposed
+        disposeChart();
+
+        // Wait for disposal to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Force a specific size on the container to help with initialization
+        if (chartRef.current) {
+          chartRef.current.style.width = "100%";
+          chartRef.current.style.height = "400px";
+          chartRef.current.style.minHeight = "300px";
+          console.log("Set explicit dimensions on chart container");
+        }
+
+        // Create the chart
+        console.log("Creating chart after data fetch");
+
+        // Try creating chart with a few retries
+        let chart = null;
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        while (!chart && attempts < maxAttempts && isMounted()) {
+          attempts++;
+          console.log(`Chart creation attempt ${attempts}/${maxAttempts}`);
+
+          // Wait between attempts with increasing delays
+          await new Promise((resolve) => setTimeout(resolve, 300 * attempts));
+
+          if (!chartRef.current) {
+            console.error(
+              `Chart container disappeared during attempt ${attempts}`
+            );
+            continue;
+          }
+
+          // Try to create the chart
+          chart = createChart();
+
+          if (chart) {
+            console.log("Chart created successfully on attempt", attempts);
+            break;
+          } else {
+            console.log("Chart creation failed on attempt", attempts);
+          }
+        }
+
+        if (!chart) {
+          console.error(
+            "Failed to create chart after",
+            maxAttempts,
+            "attempts"
+          );
+          setError(
+            "Unable to create chart visualization. Please try refreshing the page."
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Transform data for graph
+        const graphData = transformDocumentStructure(data);
+
+        // Wait a bit to ensure chart is fully initialized
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // Update the chart with the data
+        console.log("Updating chart with data");
+        updateChartData(graphData);
+
+        // Reset loading and error state
+        setLoading(false);
+        setError(null);
+      } catch (err) {
+        if (!isMounted()) return;
+
+        console.error("Error in fetchAndRender:", err);
+        setError("Failed to load document structure. Please try again.");
+        setLoading(false);
+      }
+    },
+    [
+      createChart,
+      disposeChart,
+      fetchDocumentStructure,
+      isMounted,
+      transformDocumentStructure,
+      updateChartData,
+    ]
+  );
+
+  // Modified document ID effect to use the improved fetchAndRender
   useEffect(() => {
     // Only load if we have a valid documentId
     if (!documentId) {
+      console.log("No document ID, skipping document structure fetch");
       setLoading(false);
       setError(null);
       return;
     }
 
     // Dispose of any existing chart before creating a new one
-    // This ensures we don't have DOM conflicts
     disposeChart();
 
     // Set loading state
@@ -606,144 +836,54 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
       `Starting document structure fetch for document ID: ${documentId}`
     );
 
-    // Create chart if it doesn't exist
-    createChart();
-
-    let isMounted = true; // Track if component is mounted
-
-    // Load document structure data
-    fetchDocumentStructure(documentId)
-      .then((data) => {
-        if (!isMounted) return; // Don't update state if unmounted
-
-        console.log(`Successfully fetched data for document ID: ${documentId}`);
-
-        // Store data reference
-        dataRef.current = data;
-
-        // Transform data for graph
-        const graphData = transformDocumentStructure(data);
-
-        // Update chart with data
-        updateChartData(graphData);
-
-        // Reset retry count on success
-        setRetryCount(0);
-
-        // Clear any error state
-        setError(null);
-      })
-      .catch((err) => {
-        if (!isMounted) return; // Don't update state if unmounted
-
-        console.error(
-          `Error in document structure effect for document ID: ${documentId}`,
-          err
-        );
-
-        // Increment retry count
-        const newRetryCount = retryCount + 1;
-        setRetryCount(newRetryCount);
-
-        // Use sample data if max retries reached
-        if (newRetryCount >= maxRetries) {
-          console.warn("Using sample data after failed retries");
-          const graphData = transformDocumentStructure(getSampleData);
-          updateChartData(graphData);
-          setError(
-            "Unable to load document structure. Showing sample visualization instead."
-          );
-        } else {
-          setError("Document structure temporarily unavailable. Retrying...");
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false); // Always ensure loading state is cleared
-          console.log(
-            `Fetch operation completed for document ID: ${documentId}`
-          );
-        }
-      });
+    // Start the fetch and render process
+    fetchAndRender(documentId);
 
     // Cleanup function
     return () => {
-      isMounted = false; // Mark as unmounted
+      console.log(`Cleaning up document structure effect for: ${documentId}`);
+      // Cleanup handled by isMounted
     };
-  }, [
-    documentId,
-    createChart,
-    fetchDocumentStructure,
-    transformDocumentStructure,
-    updateChartData,
-    getSampleData,
-    retryCount,
-    maxRetries,
-    disposeChart, // Add the disposeChart dependency
-  ]);
+  }, [documentId, disposeChart, fetchAndRender]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      disposeChart();
-    };
-  }, [disposeChart]);
+  // Add a debugging component to display chart status at the top of the graph container
+  const renderDebugInfo = () => {
+    if (process.env.NODE_ENV !== "production") {
+      return (
+        <div
+          className={styles.debugInfo}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            background: "rgba(0,0,0,0.7)",
+            color: "white",
+            padding: "4px 8px",
+            fontSize: "10px",
+            zIndex: 100,
+            maxWidth: "200px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            borderBottomLeftRadius: "4px",
+          }}
+        >
+          DocumentID: {documentId ? documentId.substring(0, 8) + "..." : "none"}
+          <br />
+          Chart created: {chartCreated ? "✅" : "❌"}
+          <br />
+          Data loaded: {dataRef.current ? "✅" : "❌"}
+          <br />
+          Loading: {loading ? "✅" : "❌"}
+        </div>
+      );
+    }
+    return null;
+  };
 
-  // Graph content rendering function - separate from main render for better error handling
+  // Update graphContent to ensure the chart container is always rendered
   const graphContent = () => {
-    if (loading) {
-      return (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading document structure...</p>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className={styles.errorContainer}>
-          <p className={styles.errorTitle}>Document Structure Unavailable</p>
-          <p className={styles.errorMessage}>{error}</p>
-          <p className={styles.errorHint}>
-            We're displaying a visualization based on sample content.
-            <br />
-            This doesn't represent your actual document.
-          </p>
-          {retryCount < maxRetries && (
-            <button
-              className={styles.retryButton}
-              onClick={() => {
-                if (documentId) {
-                  setRetryCount(0);
-                  setLoading(true);
-                  fetchDocumentStructure(documentId)
-                    .then((data) => {
-                      dataRef.current = data;
-                      const graphData = transformDocumentStructure(data);
-                      updateChartData(graphData);
-                      setError(null);
-                    })
-                    .catch((err) => {
-                      console.error("Error in retry:", err);
-                      setError(
-                        `Unable to load document structure. Showing sample visualization instead.`
-                      );
-                    })
-                    .finally(() => {
-                      setLoading(false);
-                    });
-                }
-              }}
-            >
-              Retry
-            </button>
-          )}
-        </div>
-      );
-    }
-
     if (!documentId) {
+      console.log("No document ID provided, rendering placeholder");
       return (
         <div className={styles.messageContainer}>
           <p>Select a document to view its structure</p>
@@ -751,12 +891,125 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
       );
     }
 
-    return <div ref={chartRef} className={styles.graph}></div>;
+    // Always render the chart container div, even during loading/error
+    // This ensures the DOM element is available for chart creation
+    const chartContainerElement = (
+      <div
+        className={styles.chartContainerWrapper}
+        style={{
+          width: "100%",
+          height: "100%",
+          minHeight: "300px",
+          position: "relative",
+        }}
+      >
+        <div
+          key={`chart-container-${documentId}`}
+          ref={chartRef}
+          className={styles.graph}
+          style={{
+            width: "100%",
+            height: "400px",
+            minHeight: "300px",
+            background: "#f9f9f9",
+            border: "1px solid #eee",
+            borderRadius: "8px",
+          }}
+          data-document-id={documentId}
+          data-component="amcharts-container"
+        />
+        <div
+          className={styles.chartInfo}
+          style={{
+            position: "absolute",
+            bottom: "10px",
+            right: "10px",
+            background: "rgba(0,0,0,0.5)",
+            color: "white",
+            padding: "5px",
+            borderRadius: "4px",
+            fontSize: "10px",
+          }}
+        >
+          Document ID:{" "}
+          {documentId ? documentId.substring(0, 8) + "..." : "none"}
+        </div>
+      </div>
+    );
+
+    // Overlay loading or error state on top of the chart container
+    if (loading) {
+      console.log("Rendering loading state for document structure graph");
+      return (
+        <>
+          {chartContainerElement}
+          <div
+            className={styles.loadingContainer}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 5,
+            }}
+          >
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading document structure...</p>
+          </div>
+        </>
+      );
+    }
+
+    if (error) {
+      console.log("Rendering error state for document structure graph:", error);
+      return (
+        <>
+          {chartContainerElement}
+          <div
+            className={styles.errorContainer}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 5,
+            }}
+          >
+            <p className={styles.errorTitle}>Document Structure Unavailable</p>
+            <p className={styles.errorMessage}>{error}</p>
+            <button
+              className={styles.retryButton}
+              onClick={() => {
+                if (documentId) {
+                  console.log(
+                    "Retrying document structure fetch for:",
+                    documentId
+                  );
+                  setLoading(true);
+                  setError(null);
+                  setRetryCount(0);
+                  disposeChart();
+                  fetchAndRender(documentId);
+                }
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    console.log("Rendering chart container div for document:", documentId);
+    return chartContainerElement;
   };
 
   // Main render with error boundary
   return (
-    <div className={styles.graphWrapper}>
+    <div className={styles.graphWrapper} style={{ position: "relative" }}>
+      {renderDebugInfo()}
       <ErrorBoundary
         fallback={
           <div className={styles.errorContainer}>
