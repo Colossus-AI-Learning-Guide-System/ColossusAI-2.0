@@ -52,8 +52,11 @@
 }
 
 .graph-container-wrapper {
-  width: 100%;
+  width: 140%; /* Increased from 100% to 140% for 40% more width */
   height: 100%;
+  margin-left: -20%; /* Compensate for extra width to keep it centered */
+  overflow: visible; /* Allow content to overflow container */
+  position: relative;
 }
 
 .document-viewer-panel {
@@ -1101,6 +1104,7 @@
   background-color: #fff;
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow graph to overflow */
 }
 
 /* Fix content wrapper to not expand beyond viewport but allow horizontal scroll */
@@ -1261,12 +1265,13 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden; /* Contain the oversized child */
 }
 
 .graph {
   width: 100%;
   height: 100%;
-  min-height: 350px;
+  min-height: 500px; /* Increased height for better visibility */
 }
 
 .loadingContainer {
@@ -1437,4 +1442,27 @@
 
 .document-image-error button:hover {
   background-color: var(--accent-hover);
+}
+
+/* Add styles to ensure amcharts container can expand properly */
+.chartContainerWrapper {
+  width: 140%; /* Increased from 100% to 140% */
+  height: 100%;
+  min-height: 500px;
+  position: relative;
+  margin-left: -20%; /* Compensate for extra width to keep it centered */
+  overflow: visible; /* Allow content to overflow container */
+}
+
+/* Document structure panel specific styles */
+.document-structure-panel {
+  width: 700px; /* Wider panel to accommodate the graph */
+  min-width: 600px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow content to overflow when needed */
 }

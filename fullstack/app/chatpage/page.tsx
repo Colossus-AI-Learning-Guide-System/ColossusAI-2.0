@@ -1201,7 +1201,9 @@ export default function DocumentAnalysisPage() {
           </div>
 
           {/* 2. Graph Visualization Panel */}
-          <div className={styles.panel + " " + styles["graph-panel"]}>
+          <div
+            className={styles.panel + " " + styles["document-structure-panel"]}
+          >
             <div className={styles["panel-header"]}>
               <h2>Document Structure</h2>
               <div className={styles["graph-controls"]}>

@@ -655,8 +655,8 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
 
       // Immediately set explicit dimensions on the chart container
       chartRef.current.style.width = "100%";
-      chartRef.current.style.height = "400px";
-      chartRef.current.style.minHeight = "300px";
+      chartRef.current.style.height = "100%";
+      chartRef.current.style.minHeight = "500px"; // Increased from 300px for better visibility
 
       // Force a reflow to ensure the browser applies these styles
       void chartRef.current.offsetHeight;
@@ -733,8 +733,8 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
         // Force a specific size on the container to help with initialization
         if (chartRef.current) {
           chartRef.current.style.width = "100%";
-          chartRef.current.style.height = "400px";
-          chartRef.current.style.minHeight = "300px";
+          chartRef.current.style.height = "100%";
+          chartRef.current.style.minHeight = "500px"; // Increased from 400px for better visibility
           console.log("Set explicit dimensions on chart container");
         }
 
@@ -894,23 +894,12 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     // Always render the chart container div, even during loading/error
     // This ensures the DOM element is available for chart creation
     const chartContainerElement = (
-      <div
-        className={styles.chartContainerWrapper}
-        style={{
-          width: "100%",
-          height: "100%",
-          minHeight: "300px",
-          position: "relative",
-        }}
-      >
+      <div className={`${styles.chartContainerWrapper}`}>
         <div
           key={`chart-container-${documentId}`}
           ref={chartRef}
           className={styles.graph}
           style={{
-            width: "100%",
-            height: "400px",
-            minHeight: "300px",
             background: "#f9f9f9",
             border: "1px solid #eee",
             borderRadius: "8px",
@@ -1008,7 +997,7 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
 
   // Main render with error boundary
   return (
-    <div className={styles.graphWrapper} style={{ position: "relative" }}>
+    <div className={styles.graphWrapper}>
       {renderDebugInfo()}
       <ErrorBoundary
         fallback={
