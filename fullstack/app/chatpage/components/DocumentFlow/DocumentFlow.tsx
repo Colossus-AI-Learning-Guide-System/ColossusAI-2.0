@@ -13,6 +13,8 @@ import ReactFlow, {
   useReactFlow,
   ConnectionLineType,
   Panel,
+  Handle,
+  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import styles from "./documentFlow.module.css";
@@ -33,17 +35,33 @@ const CustomNode = ({ data }: { data: DocumentNodeData }) => {
 
   return (
     <div className={nodeClass}>
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="target"
+        className={styles.targetHandle}
+      />
       <div className={styles.nodeLabel} title={data.label}>
         {data.label}
       </div>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="source"
+        className={styles.sourceHandle}
+      />
     </div>
   );
 };
 
-// Node types registration - defined OUTSIDE of components and memoized
-const nodeTypes = {
-  custom: CustomNode,
-};
+// Node types registration - defined OUTSIDE of components and properly memoized
+const nodeTypes = { custom: CustomNode };
+// Edge types - also defined outside component
+const edgeTypes = {};
+
+// Stick defaults outside component to avoid recreation
+const defaultViewport = { x: 0, y: 0, zoom: 0.8 };
+const fitViewOptions = { padding: 0.2 };
 
 // The internal flow component that has access to ReactFlow hooks
 const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
@@ -101,27 +119,29 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
       setError(null);
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/structure/document/${docId}/structured`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const apiUrl = `${API_BASE_URL}/api/structure/document/${docId}/structured`;
+        console.log(`Fetching from: ${apiUrl}`);
+
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!isMountedRef.current) return; // Prevent state updates if unmounted
 
         if (!response.ok) {
           throw new Error(
-            `Failed to load document structure: ${response.status}`
+            `Failed to load document structure: ${response.status} ${response.statusText}`
           );
         }
 
         const data: DocumentStructureResponse = await response.json();
+        console.log("Received document structure data:", data);
 
         if (!data.document_structure || data.document_structure.length === 0) {
+          console.warn("Document structure is empty or invalid", data);
           setNodes([]);
           setEdges([]);
           setError("Document structure is empty");
@@ -129,10 +149,23 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         }
 
         // Process data to create nodes and edges using the utility function
+        console.log("Processing document structure into nodes and edges");
         const { processedNodes, processedEdges } = processDocumentStructure(
           data,
           docId
         );
+
+        console.log(
+          `Created ${processedNodes.length} nodes and ${processedEdges.length} edges`
+        );
+
+        // Debug log some of the nodes and edges
+        if (processedNodes.length > 0) {
+          console.log("First node:", processedNodes[0]);
+        }
+        if (processedEdges.length > 0) {
+          console.log("First edge:", processedEdges[0]);
+        }
 
         setNodes(processedNodes);
         setEdges(processedEdges);
@@ -141,9 +174,10 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         // After nodes are set, fit the view
         setTimeout(() => {
           if (isMountedRef.current) {
+            console.log("Fitting view");
             fitView({ padding: 0.2 });
           }
-        }, 50);
+        }, 100);
       } catch (err) {
         console.error("Error loading document structure:", err);
 
@@ -174,20 +208,28 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
     [fitView, setNodes, setEdges]
   );
 
-  // Load document once when document ID changes
+  // Load document once when document ID changes with proper cleanup
   useEffect(() => {
     // Set mounted flag
     isMountedRef.current = true;
 
-    if (documentId && documentId !== lastLoadedDocId.current) {
-      loadDocumentStructure(documentId);
-    }
+    const fetchDocumentStructure = async () => {
+      if (
+        documentId &&
+        documentId !== lastLoadedDocId.current &&
+        !loadingRef.current
+      ) {
+        await loadDocumentStructure(documentId);
+      }
+    };
+
+    fetchDocumentStructure();
 
     // Cleanup function
     return () => {
       isMountedRef.current = false;
     };
-  }, [documentId, loadDocumentStructure]);
+  }, [documentId]); // Only depend on documentId to avoid re-runs
 
   // Handle node click - memoized to prevent recreating on render
   const handleNodeClick = useCallback(
@@ -246,14 +288,16 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
         fitView
         attributionPosition="bottom-right"
         minZoom={0.2}
         maxZoom={1.5}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        defaultViewport={defaultViewport}
         connectionLineType={ConnectionLineType.SmoothStep}
         className={styles.documentFlow}
+        fitViewOptions={fitViewOptions}
       >
         <Background color="#aaa" gap={16} />
         <Controls />

@@ -11,89 +11,142 @@ export const HORIZONTAL_SPACING = 250;
 export const MAX_LEVEL = 5;
 
 /**
- * Process document structure into ReactFlow nodes and edges
+ * Process document structure data into ReactFlow nodes and edges
  */
-export function processDocumentStructure(
+export const processDocumentStructure = (
   data: DocumentStructureResponse,
-  docId: string
-) {
+  documentId: string
+) => {
   const processedNodes: Node<DocumentNodeData>[] = [];
   const processedEdges: Edge[] = [];
 
-  if (!data.document_structure || data.document_structure.length === 0) {
-    return { processedNodes, processedEdges };
-  }
+  // Function to generate unique node IDs
+  const createNodeId = (type: string, index: number) => `${type}-${index}`;
 
-  const documentStructure = data.document_structure[0]; // Assume first structure
-
-  // Root node (document title)
-  const rootId = "root";
+  // Create document root node
+  const rootNodeId = "root";
   processedNodes.push({
-    id: rootId,
+    id: rootNodeId,
     type: "custom",
-    position: { x: 0, y: 0 },
+    position: { x: 0, y: 0 }, // Initial position, will be overridden by layout
     data: {
-      label: documentStructure.heading,
+      id: rootNodeId,
+      label: data.document_name || `Document ${documentId}`,
       level: 0,
-      pageReference: documentStructure.page_reference,
+      pageReference: 1,
     },
+    sourcePosition: "bottom", // Add source position
+    targetPosition: "top", // Add target position
   });
 
-  // Get all first-level headings to arrange them horizontally
-  const firstLevelHeadings = documentStructure.subheadings || [];
-  const headingCount = firstLevelHeadings.length;
+  // Process headings
+  if (data.document_structure && data.document_structure.length > 0) {
+    data.document_structure.forEach((item, index) => {
+      // Create heading node
+      const nodeId = createNodeId("heading", index);
+      processedNodes.push({
+        id: nodeId,
+        type: "custom",
+        position: { x: 0, y: (index + 1) * 100 }, // Initial vertical layout
+        data: {
+          id: nodeId,
+          label: item.heading,
+          level: item.level || 1,
+          pageReference: item.page_number || 1,
+        },
+        sourcePosition: "bottom", // Add source position
+        targetPosition: "top", // Add target position
+      });
 
-  if (headingCount === 0) {
-    return { processedNodes, processedEdges };
+      // Connect heading to root
+      processedEdges.push({
+        id: `edge-root-to-heading-${index}`,
+        source: rootNodeId,
+        target: nodeId,
+        type: "smoothstep",
+        animated: false,
+        // Use explicit handle IDs that match the DOM elements in the CustomNode component
+        sourceHandle: "source",
+        targetHandle: "target",
+      });
+
+      // Process subheadings if available
+      if (item.subheadings && item.subheadings.length > 0) {
+        item.subheadings.forEach((subheading, subIndex) => {
+          // Create subheading node
+          const subNodeId = createNodeId(`subheading-${index}`, subIndex);
+          processedNodes.push({
+            id: subNodeId,
+            type: "custom",
+            position: {
+              x: 150, // Offset to the right
+              y: (index + 1) * 100 + (subIndex + 1) * 60, // Vertical layout
+            },
+            data: {
+              id: subNodeId,
+              label: subheading.heading,
+              level: (item.level || 1) + 1, // One level deeper than parent
+              pageReference: subheading.page_number || item.page_number || 1,
+            },
+            sourcePosition: "bottom", // Add source position
+            targetPosition: "top", // Add target position
+          });
+
+          // Connect subheading to its parent heading
+          processedEdges.push({
+            id: `edge-heading-${index}-to-subheading-${subIndex}`,
+            source: nodeId,
+            target: subNodeId,
+            type: "smoothstep",
+            animated: false,
+            // Use explicit handle IDs that match the DOM elements in the CustomNode component
+            sourceHandle: "source",
+            targetHandle: "target",
+          });
+        });
+      }
+    });
   }
 
-  // Calculate starting X position to center the first level headings
-  const startX = -(HORIZONTAL_SPACING * (headingCount - 1)) / 2;
-
-  // First, create a map to track all created nodes to support subheading connections
-  const nodeMap = new Map<string, string>(); // Title -> NodeId
-
-  // Process first level headings
-  firstLevelHeadings.forEach((heading, index) => {
-    const headingId = `heading-${index}`;
-    const xPos = startX + index * HORIZONTAL_SPACING;
-
-    // Determine heading level from title format (e.g. "3.2" -> level 2)
-    const level = determineHeadingLevel(heading.title);
-
-    // Create node for this heading
-    processedNodes.push({
-      id: headingId,
-      type: "custom",
-      position: { x: xPos, y: VERTICAL_SPACING },
-      data: {
-        label: heading.title,
-        level,
-        pageReference: heading.page_reference,
-      },
-    });
-
-    // Store node ID by title for later reference
-    nodeMap.set(heading.title, headingId);
-
-    // Connect to root
-    processedEdges.push({
-      id: `edge-root-to-${headingId}`,
-      source: rootId,
-      target: headingId,
-      type: "smoothstep",
-      animated: false,
-      style: { stroke: "#999" },
-    });
-
-    // Handle subheadings by parsing the title structure
-    // For example, if we have "3.2 Attention" we would connect it to any "3.2.X" headings
-  });
-
-  // Now create edges between related headings based on numerical hierarchy
-  createHierarchicalEdges(firstLevelHeadings, nodeMap, processedEdges);
+  // Apply a better layout for presentation
+  applyHierarchicalLayout(processedNodes);
 
   return { processedNodes, processedEdges };
+};
+
+/**
+ * Apply a hierarchical layout to position nodes in a more organized way
+ */
+function applyHierarchicalLayout(nodes: Node<DocumentNodeData>[]) {
+  // Group nodes by level
+  const nodesByLevel = new Map<number, Node<DocumentNodeData>[]>();
+
+  nodes.forEach((node) => {
+    const level = node.data.level || 0;
+    if (!nodesByLevel.has(level)) {
+      nodesByLevel.set(level, []);
+    }
+    nodesByLevel.get(level)?.push(node);
+  });
+
+  // Position nodes by level
+  let yOffset = 0;
+  Array.from(nodesByLevel.keys())
+    .sort()
+    .forEach((level) => {
+      const levelNodes = nodesByLevel.get(level) || [];
+      const xStep = levelNodes.length > 1 ? HORIZONTAL_SPACING : 0;
+      const xStart = (-(levelNodes.length - 1) * xStep) / 2;
+
+      levelNodes.forEach((node, index) => {
+        node.position = {
+          x: xStart + index * xStep,
+          y: level * VERTICAL_SPACING,
+        };
+      });
+
+      yOffset += VERTICAL_SPACING;
+    });
 }
 
 /**
