@@ -51,23 +51,27 @@ export default function DocumentList({
         setLoading(true);
         // Try to fetch documents from the real backend API
         try {
+          console.log("Fetching documents list from API");
           const response = await fetch(
             `${API_BASE_URL}/api/document/documents-with-metadata`
           );
 
           if (response.ok) {
             const data = await response.json();
+            console.log("Successfully fetched documents:", data);
             setDocuments(data);
             setLoading(false);
             return;
+          } else {
+            console.error("Error response from API:", response.status);
+            throw new Error(`API returned status ${response.status}`);
           }
         } catch (error) {
-          console.log("Backend API not available");
+          console.error("Backend API not available:", error);
+          // Instead of falling back to mock data, show an empty state
+          setDocuments([]);
         }
 
-        // If we reach here, the backend API was not available
-        // Instead of falling back to mock data, show an empty state
-        setDocuments([]);
         setLoading(false);
       } catch (error: any) {
         console.error("Error fetching documents:", error);

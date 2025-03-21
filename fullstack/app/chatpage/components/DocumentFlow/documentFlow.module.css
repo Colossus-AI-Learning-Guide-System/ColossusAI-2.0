@@ -1,0 +1,245 @@
+.flowContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.documentFlow {
+  width: 100%;
+  height: 100%;
+  background-color: #f9f9f9;
+}
+
+/* Node styling based on level */
+.nodeLevel0 {
+  background-color: white;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #1e3a8a;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: auto;
+  max-width: 250px;
+  text-align: center;
+}
+
+.nodeLevel1 {
+  background-color: white;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #1e40af;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: auto;
+  max-width: 230px;
+}
+
+.nodeLevel2 {
+  background-color: white;
+  border: 2px solid #60a5fa;
+  border-radius: 5px;
+  padding: 5px 8px;
+  color: #1e40af;
+  font-weight: 400;
+  width: auto;
+  max-width: 210px;
+}
+
+.nodeLevel3 {
+  background-color: white;
+  border: 2px solid #93c5fd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #2563eb;
+  font-weight: 400;
+  width: auto;
+  max-width: 200px;
+}
+
+.nodeLevel4 {
+  background-color: white;
+  border: 2px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #3b82f6;
+  font-weight: 400;
+  width: auto;
+  max-width: 190px;
+}
+
+.nodeLevel5 {
+  background-color: white;
+  border: 2px solid #dbeafe;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #60a5fa;
+  font-weight: 400;
+  width: auto;
+  max-width: 180px;
+}
+
+/* Edge styling */
+.edge {
+  stroke: #999;
+  stroke-width: 1.5;
+}
+
+.edgeLabel {
+  background-color: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+}
+
+/* Controls and UI elements */
+.legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.legendTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+.legendLevel0 {
+  background-color: white;
+  border: 2px solid #2563eb;
+}
+
+.legendLevel1 {
+  background-color: white;
+  border: 2px solid #3b82f6;
+}
+
+.legendLevel2 {
+  background-color: white;
+  border: 2px solid #60a5fa;
+}
+
+.legendLevel3 {
+  background-color: white;
+  border: 2px solid #93c5fd;
+}
+
+.legendLevel4 {
+  background-color: white;
+  border: 2px solid #bfdbfe;
+}
+
+.legendLevel5 {
+  background-color: white;
+  border: 2px solid #dbeafe;
+}
+
+.legendText {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.noDocumentContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: #6b7280;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  color: #ef4444;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.retryButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background-color: #2563eb;
+}
+
+.nodeLabel {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Add responsiveness */
+@media (max-width: 768px) {
+  .legend {
+    bottom: 10px;
+    left: 10px;
+    padding: 6px;
+  }
+
+  .legendTitle {
+    font-size: 12px;
+  }
+
+  .legendItem {
+    margin-bottom: 2px;
+  }
+
+  .legendColor {
+    width: 12px;
+    height: 12px;
+  }
+
+  .legendText {
+    font-size: 10px;
+  }
+}
