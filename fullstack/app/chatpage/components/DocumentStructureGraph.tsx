@@ -27,6 +27,9 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     (headingText: string, docId: string, page: number) => {
       if (onNodeClick) {
         onNodeClick(headingText, docId);
+        console.log(
+          `Node clicked: ${headingText}, Document: ${docId}, Page: ${page}`
+        );
       }
     },
     [onNodeClick]

@@ -269,15 +269,20 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
     };
   }, [documentId]); // Only depend on documentId to avoid re-runs
 
-  // Handle node click - memoized to prevent recreating on render
-  const handleNodeClick = useCallback(
-    (event: React.MouseEvent, node: Node<DocumentNodeData>) => {
-      if (onNodeClick && documentId) {
-        onNodeClick(node.data.label, documentId, node.data.pageReference);
-      }
-    },
-    [onNodeClick, documentId]
-  );
+  // Handle node click with more information about the node
+  const handleNodeClick = (
+    event: React.MouseEvent,
+    node: Node<DocumentNodeData>
+  ) => {
+    if (onNodeClick && node.data) {
+      const pageRef = node.data.pageReference || 1;
+      onNodeClick(node.data.label, documentId || "", pageRef);
+
+      console.log(
+        `Clicked on node with label: ${node.data.label}, page: ${pageRef}`
+      );
+    }
+  };
 
   // Render loading, error, or flow content
   if (loadingRef.current) {

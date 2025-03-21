@@ -34,6 +34,20 @@ interface Message {
   content: string;
 }
 
+// Add interfaces for node context information
+interface VisualReference {
+  image_reference: string;
+  image_caption: string;
+  page_reference: number;
+}
+
+interface NodeContext {
+  headingText: string;
+  context: string;
+  pageReference: number;
+  visualReferences: VisualReference[];
+}
+
 export default function DocumentAnalysisPage() {
   // State for chat messages
   const [messages, setMessages] = useState<Message[]>([
@@ -64,6 +78,134 @@ export default function DocumentAnalysisPage() {
 
   // State for current heading
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
+
+  // Add state for node context information
+  const [nodeContext, setNodeContext] = useState<NodeContext | null>(null);
+
+  // DocumentStructure state to store the document structure data
+  const [documentStructure, setDocumentStructure] = useState<any>(null);
+
+  // Function to fetch document structure data
+  const fetchDocumentStructure = async (docId: string) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/structure/document/${docId}/structured`
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch document structure: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setDocumentStructure(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching document structure:", error);
+      return null;
+    }
+  };
+
+  // Function to extract node context from document structure
+  const extractNodeContext = useCallback(
+    async (headingText: string, documentId: string): Promise<void> => {
+      console.log(
+        `Extracting context for "${headingText}" in document ${documentId}`
+      );
+
+      // Clear previous context
+      setNodeContext(null);
+
+      try {
+        // If we don't have the document structure yet, fetch it
+        let structure = documentStructure;
+        if (!structure) {
+          structure = await fetchDocumentStructure(documentId);
+          if (!structure) {
+            throw new Error("Failed to fetch document structure");
+          }
+        }
+
+        // Search for the heading in the document structure
+        let foundContext: NodeContext | null = null;
+
+        // Search in main headings
+        if (structure.document_structure) {
+          for (const heading of structure.document_structure) {
+            // Check if this is the main heading we're looking for
+            if (heading.heading === headingText) {
+              foundContext = {
+                headingText,
+                context: heading.context || "No context available", // Some headings might not have context
+                pageReference: heading.page_reference || 0,
+                visualReferences: [],
+              };
+              break;
+            }
+
+            // Check subheadings if available
+            if (heading.subheadings && heading.subheadings.length > 0) {
+              for (const subheading of heading.subheadings) {
+                if (subheading.title === headingText) {
+                  foundContext = {
+                    headingText,
+                    context: subheading.context || "No context available",
+                    pageReference: subheading.page_reference || 0,
+                    visualReferences: subheading.visual_references || [],
+                  };
+                  break;
+                }
+
+                // Check sub-subheadings if available
+                if (
+                  subheading.subheadings &&
+                  subheading.subheadings.length > 0
+                ) {
+                  for (const subSubheading of subheading.subheadings) {
+                    if (subSubheading.title === headingText) {
+                      foundContext = {
+                        headingText,
+                        context:
+                          subSubheading.context || "No context available",
+                        pageReference: subSubheading.page_reference || 0,
+                        visualReferences: subSubheading.visual_references || [],
+                      };
+                      break;
+                    }
+                  }
+                  if (foundContext) break;
+                }
+              }
+              if (foundContext) break;
+            }
+          }
+        }
+
+        if (foundContext) {
+          console.log("Found context:", foundContext);
+          setNodeContext(foundContext);
+        } else {
+          console.log(`No context found for heading "${headingText}"`);
+          setNodeContext({
+            headingText,
+            context: "No context available for this heading",
+            pageReference: 0,
+            visualReferences: [],
+          });
+        }
+      } catch (error) {
+        console.error("Error extracting node context:", error);
+        setNodeContext({
+          headingText,
+          context: "Error extracting context information",
+          pageReference: 0,
+          visualReferences: [],
+        });
+      }
+    },
+    [documentStructure]
+  );
 
   // Update handleFileUpload function
   const handleFileUpload = async (file: File) => {
@@ -258,6 +400,10 @@ export default function DocumentAnalysisPage() {
     console.log(`Selected document: ${documentId}`);
     setSelectedDocumentId(documentId);
 
+    // Reset current heading and node context when selecting a new document
+    setCurrentHeading(null);
+    setNodeContext(null);
+
     // Add to active documents if not already present
     if (!activeDocuments.includes(documentId)) {
       setActiveDocuments((prev) => [...prev, documentId]);
@@ -268,20 +414,30 @@ export default function DocumentAnalysisPage() {
   const handleDocumentUpload = (documentId: string) => {
     setSelectedDocumentId(documentId);
 
+    // Reset current heading and node context when uploading a new document
+    setCurrentHeading(null);
+    setNodeContext(null);
+
     // Add to active documents if not already present
     if (!activeDocuments.includes(documentId)) {
       setActiveDocuments((prev) => [...prev, documentId]);
     }
   };
 
-  // Keep the heading click handler - simplified
-  const handleHeadingClick = (headingText: string, documentId: string) => {
-    console.log(
-      `Clicked on heading "${headingText}" in document ${documentId}`
-    );
-    setCurrentHeading(headingText);
-    setSelectedDocumentId(documentId);
-  };
+  // Update heading click handler to extract context
+  const handleHeadingClick = useCallback(
+    (headingText: string, documentId: string) => {
+      console.log(
+        `Clicked on heading "${headingText}" in document ${documentId}`
+      );
+      setCurrentHeading(headingText);
+      setSelectedDocumentId(documentId);
+
+      // Extract context for the clicked heading
+      extractNodeContext(headingText, documentId);
+    },
+    [extractNodeContext]
+  );
 
   return (
     <main className="chatpage-container" style={{ width: "100%" }}>
@@ -419,7 +575,7 @@ export default function DocumentAnalysisPage() {
             </div>
           </div>
 
-          {/* 3. Document Viewer Panel - simplified to placeholder */}
+          {/* 3. Document Viewer Panel - updated to show node context */}
           <div
             className={styles.panel + " " + styles["document-viewer-panel"]}
             ref={viewerRef}
@@ -429,8 +585,50 @@ export default function DocumentAnalysisPage() {
             </div>
 
             <div className={styles["document-viewer-container"]}>
-              {/* Simplified content area */}
-              <div className={styles["document-display"]}>
+              {nodeContext ? (
+                <div className={styles["document-context"]}>
+                  <h3 className={styles["context-heading"]}>
+                    {nodeContext.headingText}
+                  </h3>
+
+                  {nodeContext.pageReference > 0 && (
+                    <div className={styles["context-page-reference"]}>
+                      Page: {nodeContext.pageReference}
+                    </div>
+                  )}
+
+                  <div className={styles["context-content"]}>
+                    <h4>Content:</h4>
+                    <p>{nodeContext.context}</p>
+                  </div>
+
+                  {nodeContext.visualReferences &&
+                    nodeContext.visualReferences.length > 0 && (
+                      <div className={styles["context-visual-references"]}>
+                        <h4>Visual References:</h4>
+                        <ul>
+                          {nodeContext.visualReferences.map((ref, index) => (
+                            <li
+                              key={index}
+                              className={styles["visual-reference-item"]}
+                            >
+                              {ref.image_caption && (
+                                <div className={styles["image-caption"]}>
+                                  <strong>Caption:</strong> {ref.image_caption}
+                                </div>
+                              )}
+                              {ref.page_reference && (
+                                <div className={styles["image-page"]}>
+                                  <strong>Page:</strong> {ref.page_reference}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+              ) : (
                 <div className={styles["document-placeholder"]}>
                   <FileText size={48} className={styles.placeholderIcon} />
                   <h3 className={styles.placeholderTitle}>
@@ -444,7 +642,7 @@ export default function DocumentAnalysisPage() {
                       : "Select a document to see context information."}
                   </p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
