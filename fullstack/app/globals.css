@@ -395,3 +395,58 @@ body {
   flex-direction: column;
   background: #fff;
 }
+
+.graph-panel {
+  width: 870px; /* Increased from 580px to 870px (50% wider) */
+  min-width: 780px; /* Increased from 520px to 780px (50% wider) */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow graph to overflow */
+}
+
+@media (max-width: 1400px) {
+  .papers-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .panel {
+    min-width: 300px;
+  }
+
+  .chatbot-panel,
+  .document-management-panel {
+    width: 350px;
+    min-width: 300px;
+  }
+
+  .document-viewer-panel {
+    width: 450px;
+    min-width: 350px;
+  }
+
+  .document-list-container {
+    width: 316px;
+    min-width: 288px;
+    height: 100%;
+  }
+
+  .graph-panel {
+    width: 750px; /* Increased from 500px to 750px (50% wider) */
+    min-width: 675px; /* Increased from 450px to 675px (50% wider) */
+    height: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .graph-panel {
+    width: 675px; /* Increased from 450px to 675px (50% wider) */
+    min-width: 600px; /* Increased from 400px to 600px (50% wider) */
+    height: 100%;
+  }
+}

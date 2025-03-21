@@ -52,9 +52,9 @@
 }
 
 .graph-container-wrapper {
-  width: 140%; /* Increased from 100% to 140% for 40% more width */
+  width: 160%; /* Increased from 140% to 160% for 60% more width */
   height: 100%;
-  margin-left: -20%; /* Compensate for extra width to keep it centered */
+  margin-left: -30%; /* Compensate for extra width to keep it centered */
   overflow: visible; /* Allow content to overflow container */
   position: relative;
 }
@@ -229,7 +229,7 @@
   position: relative;
   border-radius: 0.5rem;
   margin: 0.5rem;
-  min-height: 500px;
+  min-height: 600px;
   overflow: hidden;
   height: calc(100% - 70px); /* Adjust for header */
   padding: 1rem;
@@ -1405,18 +1405,18 @@
 
 /* Add styles to ensure amcharts container can expand properly */
 .chartContainerWrapper {
-  width: 140%; /* Increased from 100% to 140% */
+  width: 160%; /* Increased from 140% to 160% */
   height: 100%;
   min-height: 500px;
   position: relative;
-  margin-left: -20%; /* Compensate for extra width to keep it centered */
+  margin-left: -30%; /* Adjust from -20% to -30% to compensate for extra width */
   overflow: visible; /* Allow content to overflow container */
 }
 
 /* Document structure panel specific styles */
 .document-structure-panel {
-  width: 700px; /* Wider panel to accommodate the graph */
-  min-width: 600px;
+  width: 1050px; /* Increased from 700px to 1050px (50% wider) */
+  min-width: 900px; /* Increased from 600px to 900px (50% wider) */
   height: 100%;
   display: flex;
   flex-direction: column;

@@ -117,7 +117,9 @@ export default function DocumentAnalysisPage() {
   const [documentPages, setDocumentPages] =
     useState<(string | null)[]>(sampleDocumentPages);
   const [totalPages, setTotalPages] = useState(sampleDocumentPages.length);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
+    null
+  );
   const [loadedDocument, setLoadedDocument] = useState<string | null>(null);
   const [highlightedSections, setHighlightedSections] = useState<
     HighlightSection[]
@@ -705,22 +707,20 @@ export default function DocumentAnalysisPage() {
 
   const handleDownload = () => {
     if (!loadedDocument) return;
-    
+
     // Just download the current page as-is without zoom/rotation
     const pageUrl = documentPages[currentPage] || "";
     if (!pageUrl) return;
-    
+
     // Create a temporary link for download
     const link = document.createElement("a");
     link.href = pageUrl;
-    link.download = `document-${loadedDocument}-page-${
-      currentPage + 1
-    }.png`;
+    link.download = `document-${loadedDocument}-page-${currentPage + 1}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
-  
+
   const handleDocumentUpload = (documentId: string) => {
     setSelectedDocumentId(documentId);
     loadDocument(documentId, 0);
@@ -1035,7 +1035,10 @@ export default function DocumentAnalysisPage() {
             <div className={styles["panel-header"]}>
               <h2>Document Structure</h2>
             </div>
-            <div className={styles["graph-container"]}>
+            <div
+              className={styles["graph-container"]}
+              style={{ minHeight: "600px" }}
+            >
               <DocumentStructureGraph
                 documentId={selectedDocumentId}
                 onNodeClick={handleHeadingClick}
