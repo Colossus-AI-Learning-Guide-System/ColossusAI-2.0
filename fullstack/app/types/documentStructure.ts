@@ -26,6 +26,7 @@ export interface VisualReference {
 
 // ReactFlow node data
 export interface DocumentNodeData {
+  id?: string;
   label: string;
   level: number;
   pageReference: number;

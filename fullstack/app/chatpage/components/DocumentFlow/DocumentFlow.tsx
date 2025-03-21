@@ -60,8 +60,13 @@ const nodeTypes = { custom: CustomNode };
 const edgeTypes = {};
 
 // Stick defaults outside component to avoid recreation
-const defaultViewport = { x: 0, y: 0, zoom: 0.65 };
-const fitViewOptions = { padding: 0.3, includeHiddenNodes: true };
+const defaultViewport = { x: 0, y: 0, zoom: 1.2 };
+const fitViewOptions = {
+  padding: 0.2,
+  includeHiddenNodes: true,
+  minZoom: 0.2,
+  maxZoom: 3,
+};
 
 // The internal flow component that has access to ReactFlow hooks
 const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
@@ -193,24 +198,24 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         setEdges(processedEdges);
         lastLoadedDocId.current = docId;
 
-        // After nodes are set, fit the view
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            console.log("Fitting view");
-            try {
-              // Ensure all nodes are centered in the viewport
-              fitView({
-                padding: 0.4, // Increase padding to better see all nodes
-                duration: 800,
-                includeHiddenNodes: true,
-                minZoom: 0.3, // Lower minimum zoom to see more
-                maxZoom: 1.5, // Limit maximum zoom for clarity
-              });
-            } catch (error) {
-              console.error("Error fitting view:", error);
-            }
-          }
-        }, 200); // Increase timeout to ensure nodes are fully processed
+        // Remove automatic fitting to maintain the initial zoom level
+        // setTimeout(() => {
+        //   if (isMountedRef.current) {
+        //     console.log("Fitting view");
+        //     try {
+        //       // Ensure all nodes are centered in the viewport with a zoomed in view
+        //       fitView({
+        //         padding: 0.15, // Smaller padding for more zoomed in initial view
+        //         duration: 800,
+        //         includeHiddenNodes: true,
+        //         minZoom: 0.3,
+        //         maxZoom: 2.5,
+        //       });
+        //     } catch (error) {
+        //       console.error("Error fitting view:", error);
+        //     }
+        //   }
+        // }, 300); // Increase timeout to ensure nodes are fully processed
       } catch (err) {
         console.error("Error loading document structure:", err);
 
@@ -323,10 +328,10 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
-        fitView
+        fitView={false}
         attributionPosition="bottom-right"
         minZoom={0.1}
-        maxZoom={2}
+        maxZoom={3}
         defaultViewport={defaultViewport}
         connectionLineType={ConnectionLineType.SmoothStep}
         className={styles.documentFlow}
@@ -334,8 +339,28 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         nodesDraggable={true}
         elementsSelectable={true}
         zoomOnScroll={true}
-        panOnScroll={true}
+        panOnScroll={false}
+        panOnDrag={[0, 1, 2]}
+        zoomOnPinch={true}
+        zoomOnDoubleClick={true}
+        multiSelectionKeyCode={null}
+        panActivationKeyCode={null}
       >
+        <svg style={{ position: "absolute", width: 0, height: 0 }}>
+          <defs>
+            <marker
+              id="edgeArrowhead"
+              markerWidth="15"
+              markerHeight="15"
+              refX="9"
+              refY="7.5"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <path d="M0,0 L0,15 L15,7.5 z" fill="#555" />
+            </marker>
+          </defs>
+        </svg>
         <Background color="#aaa" gap={16} />
         <Controls />
         <MiniMap

@@ -269,14 +269,16 @@
 
 /* Handle styles for ReactFlow handle components */
 .flowContainer :global(.react-flow__handle) {
-  width: 14px !important;
-  height: 14px !important;
-  background: rgba(59, 130, 246, 0.5) !important;
-  border: 2px solid #3b82f6 !important;
-  opacity: 0.8;
+  width: 6px !important;
+  height: 6px !important;
+  background: rgba(170, 170, 170, 0.8) !important;
+  border: 1px solid #888 !important;
+  opacity: 0.7;
 }
 
 .flowContainer :global(.react-flow__handle:hover) {
+  width: 8px !important;
+  height: 8px !important;
   background: rgba(59, 130, 246, 0.8) !important;
   transform: scale(1.2);
   cursor: crosshair;
@@ -304,7 +306,7 @@
 .nodeLevel4,
 .nodeLevel5 {
   position: relative;
-  margin: 10px 0;
+  margin: 6px 0;
   z-index: 0;
   display: flex;
   flex-direction: column;
@@ -340,29 +342,34 @@
 
 /* Add a class for edges */
 .flowContainer :global(.react-flow__edge-path) {
-  stroke: #3b82f6;
-  stroke-width: 2;
-  cursor: pointer;
+  stroke: #555;
+  stroke-width: 1.8px;
+  fill: none;
 }
 
 .flowContainer :global(.react-flow__edge:hover .react-flow__edge-path) {
-  stroke: #2563eb;
-  stroke-width: 3;
+  stroke: #333;
+  stroke-width: 2.5px;
+}
+
+/* Add arrow to edges - make it more prominent */
+.flowContainer :global(.react-flow__edge-path) {
+  marker-end: url(#edgeArrowhead);
 }
 
 /* Add source and target handle styles */
 .sourceHandle {
-  width: 14px;
-  height: 14px;
-  background: rgba(59, 130, 246, 0.5);
-  border: 2px solid #3b82f6;
+  width: 6px;
+  height: 6px;
+  background: rgba(170, 170, 170, 0.8);
+  border: 1px solid #888;
   border-radius: 100%;
 }
 
 .targetHandle {
-  width: 14px;
-  height: 14px;
-  background: rgba(59, 130, 246, 0.5);
-  border: 2px solid #3b82f6;
+  width: 6px;
+  height: 6px;
+  background: rgba(170, 170, 170, 0.8);
+  border: 1px solid #888;
   border-radius: 100%;
 }
