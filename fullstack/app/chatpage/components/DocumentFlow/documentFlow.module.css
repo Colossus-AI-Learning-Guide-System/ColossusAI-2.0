@@ -2,100 +2,101 @@
   width: 100%;
   height: 100%;
   position: relative;
+  background-color: transparent;
 }
 
 .documentFlow {
   width: 100%;
   height: 100%;
-  background-color: #f9f9f9;
+  background-color: transparent;
 }
 
 /* Node styling based on level */
 .nodeLevel0 {
-  background-color: white;
-  border: 2px solid #2563eb;
-  border-radius: 8px;
+  background-color: rgba(96, 60, 220, 0.9);
+  border: 2px solid rgba(60, 30, 160, 0.9);
+  border-radius: 12px;
   padding: 12px 16px;
-  color: #1e3a8a;
+  color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   width: auto;
   min-width: 200px;
   max-width: 300px;
   text-align: center;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .nodeLevel1 {
-  background-color: white;
-  border: 2px solid #3b82f6;
-  border-radius: 6px;
+  background-color: rgba(220, 38, 38, 0.9);
+  border: 2px solid rgba(185, 28, 28, 0.9);
+  border-radius: 10px;
   padding: 10px 14px;
-  color: #1e40af;
+  color: #ffffff;
   font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   width: auto;
   min-width: 180px;
   max-width: 280px;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .nodeLevel2 {
-  background-color: white;
-  border: 2px solid #60a5fa;
-  border-radius: 5px;
+  background-color: rgba(245, 158, 11, 0.9);
+  border: 2px solid rgba(217, 119, 6, 0.9);
+  border-radius: 8px;
   padding: 8px 12px;
-  color: #1e40af;
+  color: #ffffff;
   font-weight: 400;
   width: auto;
   min-width: 160px;
   max-width: 260px;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .nodeLevel3 {
-  background-color: white;
-  border: 2px solid #93c5fd;
-  border-radius: 4px;
+  background-color: rgba(16, 185, 129, 0.9);
+  border: 2px solid rgba(5, 150, 105, 0.9);
+  border-radius: 8px;
   padding: 8px 12px;
-  color: #2563eb;
+  color: #ffffff;
   font-weight: 400;
   width: auto;
   min-width: 140px;
   max-width: 240px;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .nodeLevel4 {
-  background-color: white;
-  border: 2px solid #bfdbfe;
-  border-radius: 4px;
+  background-color: rgba(59, 130, 246, 0.9);
+  border: 2px solid rgba(37, 99, 235, 0.9);
+  border-radius: 8px;
   padding: 8px 12px;
-  color: #3b82f6;
+  color: #ffffff;
   font-weight: 400;
   width: auto;
   min-width: 130px;
   max-width: 220px;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .nodeLevel5 {
-  background-color: white;
-  border: 2px solid #dbeafe;
-  border-radius: 4px;
+  background-color: rgba(139, 92, 246, 0.9);
+  border: 2px solid rgba(124, 58, 237, 0.9);
+  border-radius: 8px;
   padding: 8px 12px;
-  color: #60a5fa;
+  color: #ffffff;
   font-weight: 400;
   width: auto;
   min-width: 120px;
   max-width: 200px;
   position: relative;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 /* Edge styling */
@@ -145,33 +146,33 @@
 }
 
 .legendLevel0 {
-  background-color: white;
-  border: 2px solid #2563eb;
+  background-color: rgba(96, 60, 220, 0.9);
+  border: 2px solid rgba(60, 30, 160, 0.9);
 }
 
 .legendLevel1 {
-  background-color: white;
-  border: 2px solid #3b82f6;
+  background-color: rgba(220, 38, 38, 0.9);
+  border: 2px solid rgba(185, 28, 28, 0.9);
 }
 
 .legendLevel2 {
-  background-color: white;
-  border: 2px solid #60a5fa;
+  background-color: rgba(245, 158, 11, 0.9);
+  border: 2px solid rgba(217, 119, 6, 0.9);
 }
 
 .legendLevel3 {
-  background-color: white;
-  border: 2px solid #93c5fd;
+  background-color: rgba(16, 185, 129, 0.9);
+  border: 2px solid rgba(5, 150, 105, 0.9);
 }
 
 .legendLevel4 {
-  background-color: white;
-  border: 2px solid #bfdbfe;
+  background-color: rgba(59, 130, 246, 0.9);
+  border: 2px solid rgba(37, 99, 235, 0.9);
 }
 
 .legendLevel5 {
-  background-color: white;
-  border: 2px solid #dbeafe;
+  background-color: rgba(139, 92, 246, 0.9);
+  border: 2px solid rgba(124, 58, 237, 0.9);
 }
 
 .legendText {
@@ -269,28 +270,20 @@
 
 /* Handle styles for ReactFlow handle components */
 .flowContainer :global(.react-flow__handle) {
-  width: 6px !important;
-  height: 6px !important;
+  width: 5px !important;
+  height: 5px !important;
   background: rgba(170, 170, 170, 0.8) !important;
-  border: 1px solid #888 !important;
+  border: 1px solid #555 !important;
   opacity: 0.7;
-}
-
-.flowContainer :global(.react-flow__handle:hover) {
-  width: 8px !important;
-  height: 8px !important;
-  background: rgba(59, 130, 246, 0.8) !important;
-  transform: scale(1.2);
-  cursor: crosshair;
-  opacity: 1;
+  z-index: 5 !important;
 }
 
 .flowContainer :global(.react-flow__handle-top) {
-  top: -7px !important;
+  top: -4px !important;
 }
 
 .flowContainer :global(.react-flow__handle-bottom) {
-  bottom: -7px !important;
+  bottom: -4px !important;
 }
 
 /* Remove handleWrapper since we're using ReactFlow's native handles */
@@ -313,6 +306,7 @@
   justify-content: center;
   align-items: center;
   min-height: 40px;
+  overflow: visible; /* Allow handles to extend outside the node */
 }
 
 /* Ensure minimum content size in all nodes */
@@ -342,13 +336,13 @@
 
 /* Add a class for edges */
 .flowContainer :global(.react-flow__edge-path) {
-  stroke: #555;
+  stroke: #333;
   stroke-width: 1.8px;
   fill: none;
 }
 
 .flowContainer :global(.react-flow__edge:hover .react-flow__edge-path) {
-  stroke: #333;
+  stroke: #000;
   stroke-width: 2.5px;
 }
 
@@ -372,4 +366,55 @@
   background: rgba(170, 170, 170, 0.8);
   border: 1px solid #888;
   border-radius: 100%;
+}
+
+/* Add global styles to remove the ReactFlow container backgrounds and borders */
+.flowContainer :global(.react-flow) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__renderer) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__pane) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__background) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__controls) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.flowContainer :global(.react-flow__controls-button) {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+}
+
+.flowContainer :global(.react-flow__minimap) {
+  background-color: transparent !important;
+}
+
+/* Remove any default borders in ReactFlow */
+.flowContainer :global(.react-flow__container) {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.flowContainer :global(.react-flow__node) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.flowContainer :global(.react-flow__edge) {
+  background-color: transparent;
+}
+
+/* Change Background component properties */
+.flowContainer :global(.react-flow__background) {
+  opacity: 0.3;
 }

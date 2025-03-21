@@ -352,39 +352,42 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
               id="edgeArrowhead"
               markerWidth="15"
               markerHeight="15"
-              refX="9"
+              refX="12"
               refY="7.5"
               orient="auto"
               markerUnits="strokeWidth"
             >
-              <path d="M0,0 L0,15 L15,7.5 z" fill="#555" />
+              <path d="M0,0 L0,15 L15,7.5 z" fill="#333" />
             </marker>
           </defs>
         </svg>
-        <Background color="#aaa" gap={16} />
-        <Controls />
+        <Background color="#aaa" gap={16} style={{ opacity: 0.3 }} />
+        <Controls showZoom={true} showFitView={true} showInteractive={false} />
         <MiniMap
-          nodeStrokeColor={() => "#3b82f6"}
+          nodeStrokeColor={() => "#333"}
           nodeColor={(n) => {
             const level = (n.data as DocumentNodeData)?.level || 0;
             switch (level) {
               case 0:
-                return "#2563eb";
+                return "rgba(96, 60, 220, 0.9)";
               case 1:
-                return "#3b82f6";
+                return "rgba(220, 38, 38, 0.9)";
               case 2:
-                return "#60a5fa";
+                return "rgba(245, 158, 11, 0.9)";
               case 3:
-                return "#93c5fd";
+                return "rgba(16, 185, 129, 0.9)";
               case 4:
-                return "#bfdbfe";
+                return "rgba(59, 130, 246, 0.9)";
               default:
-                return "#dbeafe";
+                return "rgba(139, 92, 246, 0.9)";
             }
           }}
           style={{
-            backgroundColor: "#f9fafb",
+            backgroundColor: "transparent",
+            border: "none",
+            boxShadow: "none",
           }}
+          maskColor="rgba(240, 240, 240, 0.1)"
         />
         <Panel position="bottom-left" className={styles.legend}>
           <div className={styles.legendTitle}>Heading Levels</div>
