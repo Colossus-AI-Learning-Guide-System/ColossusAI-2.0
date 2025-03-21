@@ -5,7 +5,7 @@ export type Profile = {
   id: string
   full_name: string | null
   email: string | null
-  avatar_url: string | null
+  avatar_url?: string | null
   updated_at: string | null
 }
 
@@ -80,7 +80,6 @@ export function useProfile() {
         id: userId,
         full_name: '',
         email: email || '',
-        avatar_url: null,
         updated_at: new Date().toISOString(),
       }
       

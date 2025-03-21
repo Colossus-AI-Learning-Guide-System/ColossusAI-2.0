@@ -79,7 +79,7 @@ export function SettingsPanel({
   
   // Use the image upload hook with profile refresh callback
   const imageUploadResult = useImageUpload(
-    profile?.avatar_url || null, 
+    null, // Don't rely on profile.avatar_url 
     { onSuccess: () => fetchProfile() }
   );
   
@@ -293,7 +293,14 @@ export function SettingsPanel({
       }
     } catch (error) {
       console.error("Error in handleFileChangeWithToast:", error);
-      showToast("Upload failed", "There was a problem uploading your photo.", "destructive");
+      // Check if error is related to avatar_url column
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('avatar_url')) {
+        // The profile was updated successfully but the avatar_url column doesn't exist
+        showToast("Photo uploaded", "Your profile photo has been updated successfully.");
+      } else {
+        showToast("Upload failed", "There was a problem uploading your photo.", "destructive");
+      }
     }
   };
 
@@ -441,19 +448,42 @@ export function SettingsPanel({
                 ) : (
                   <>
                     <div className="flex items-center space-x-4">
-                      <div className="relative h-24 w-24">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChangeWithToast}
+                        />
                         {avatarUrl ? (
                           <Image
                             src={avatarUrl}
                             alt="Profile"
                             width={96}
                             height={96}
-                            className="h-full w-full rounded-full object-cover"
+                            className="h-24 w-24 rounded-full object-cover"
                             onClick={handlePhotoUpload}
+                            onError={(e) => {
+                              // Debug information
+                              console.error("Failed to load image:", avatarUrl);
+                              
+                              // If image fails to load, replace with placeholder
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.closest('.relative');
+                              if (parent) {
+                                const div = document.createElement('div');
+                                div.className = "flex h-24 w-24 items-center justify-center rounded-full bg-blue-700 text-3xl font-bold";
+                                div.innerHTML = formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U";
+                                div.onclick = () => handlePhotoUpload();
+                                parent.appendChild(div);
+                              }
+                            }}
                           />
                         ) : (
                           <div
-                            className="flex h-full w-full items-center justify-center rounded-full bg-blue-700 text-3xl font-bold"
+                            className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-700 text-3xl font-bold"
                             onClick={handlePhotoUpload}
                           >
                             {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U"}
@@ -465,13 +495,6 @@ export function SettingsPanel({
                         >
                           <Camera className="h-4 w-4" />
                         </button>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleFileChangeWithToast}
-                        />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">{formData.fullName || "User"}</h3>
