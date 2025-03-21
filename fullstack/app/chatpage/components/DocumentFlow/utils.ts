@@ -5,9 +5,9 @@ import {
   Subheading,
 } from "@/app/types/documentStructure";
 
-// Constants for layout
-export const VERTICAL_SPACING = 120;
-export const HORIZONTAL_SPACING = 250;
+// Constants for layout - increasing spacing for better visibility
+export const VERTICAL_SPACING = 150;
+export const HORIZONTAL_SPACING = 300;
 export const MAX_LEVEL = 5;
 
 /**
@@ -22,6 +22,10 @@ export const processDocumentStructure = (
 
   // Function to generate unique node IDs
   const createNodeId = (type: string, index: number) => `${type}-${index}`;
+
+  console.log(
+    `Processing document with name: ${data.document_name || "Unknown"}`
+  );
 
   // Create document root node
   const rootNodeId = "root";
@@ -41,18 +45,26 @@ export const processDocumentStructure = (
 
   // Process headings
   if (data.document_structure && data.document_structure.length > 0) {
+    console.log(`Processing ${data.document_structure.length} main headings`);
+
     data.document_structure.forEach((item, index) => {
+      console.log(
+        `Processing heading: ${item.heading} with ${
+          item.subheadings?.length || 0
+        } subheadings`
+      );
+
       // Create heading node
       const nodeId = createNodeId("heading", index);
       processedNodes.push({
         id: nodeId,
         type: "custom",
-        position: { x: 0, y: (index + 1) * 100 }, // Initial vertical layout
+        position: { x: 0, y: (index + 1) * VERTICAL_SPACING }, // Use constant for spacing
         data: {
           id: nodeId,
           label: item.heading,
           level: item.level || 1,
-          pageReference: item.page_number || 1,
+          pageReference: item.page_reference || 1,
         },
         sourcePosition: "bottom", // Add source position
         targetPosition: "top", // Add target position
@@ -72,44 +84,95 @@ export const processDocumentStructure = (
 
       // Process subheadings if available
       if (item.subheadings && item.subheadings.length > 0) {
-        item.subheadings.forEach((subheading, subIndex) => {
-          // Create subheading node
-          const subNodeId = createNodeId(`subheading-${index}`, subIndex);
-          processedNodes.push({
-            id: subNodeId,
-            type: "custom",
-            position: {
-              x: 150, // Offset to the right
-              y: (index + 1) * 100 + (subIndex + 1) * 60, // Vertical layout
-            },
-            data: {
-              id: subNodeId,
-              label: subheading.heading,
-              level: (item.level || 1) + 1, // One level deeper than parent
-              pageReference: subheading.page_number || item.page_number || 1,
-            },
-            sourcePosition: "bottom", // Add source position
-            targetPosition: "top", // Add target position
-          });
+        // Function to recursively process subheadings
+        const processSubheadings = (
+          parentId: string,
+          subheadings: Subheading[],
+          parentIndex: number,
+          level: number,
+          xOffset: number
+        ) => {
+          subheadings.forEach((subheading, subIndex) => {
+            // Create unique ID for this subheading
+            const subNodeId = createNodeId(
+              `subheading-${parentIndex}-${subIndex}`,
+              subIndex
+            );
 
-          // Connect subheading to its parent heading
-          processedEdges.push({
-            id: `edge-heading-${index}-to-subheading-${subIndex}`,
-            source: nodeId,
-            target: subNodeId,
-            type: "smoothstep",
-            animated: false,
-            // Use explicit handle IDs that match the DOM elements in the CustomNode component
-            sourceHandle: "source",
-            targetHandle: "target",
+            // Log subheading data for debugging
+            console.log(
+              `Processing subheading: index=${subIndex}, title=${
+                subheading.title || "Untitled"
+              }`
+            );
+
+            // Ensure we have a valid label
+            const nodeLabel = subheading.title || "Untitled subheading";
+
+            processedNodes.push({
+              id: subNodeId,
+              type: "custom",
+              position: {
+                x: xOffset, // Position based on nesting level
+                y:
+                  (parentIndex + 1) * VERTICAL_SPACING +
+                  (subIndex + 1) * (VERTICAL_SPACING / 2), // Better vertical spacing
+              },
+              data: {
+                id: subNodeId,
+                label: nodeLabel,
+                level: level, // Use the passed level
+                pageReference: subheading.page_reference || 1,
+              },
+              sourcePosition: "bottom",
+              targetPosition: "top",
+            });
+
+            // Connect to parent
+            processedEdges.push({
+              id: `edge-${parentId}-to-${subNodeId}`,
+              source: parentId,
+              target: subNodeId,
+              type: "smoothstep",
+              animated: false,
+              sourceHandle: "source",
+              targetHandle: "target",
+            });
+
+            // Recursively process any deeper subheadings (if available)
+            if (subheading.subheadings && subheading.subheadings.length > 0) {
+              processSubheadings(
+                subNodeId,
+                subheading.subheadings,
+                parentIndex,
+                level + 1,
+                xOffset + HORIZONTAL_SPACING / 2 // Increase horizontal offset for deeper levels
+              );
+            }
           });
-        });
+        };
+
+        // Start processing subheadings with the current heading as parent
+        processSubheadings(
+          nodeId,
+          item.subheadings,
+          index,
+          (item.level || 1) + 1,
+          HORIZONTAL_SPACING
+        );
       }
     });
+  } else {
+    console.warn("No document structure data found");
   }
 
   // Apply a better layout for presentation
   applyHierarchicalLayout(processedNodes);
+
+  // Log the results
+  console.log(
+    `Generated ${processedNodes.length} nodes and ${processedEdges.length} edges`
+  );
 
   return { processedNodes, processedEdges };
 };
@@ -129,7 +192,7 @@ function applyHierarchicalLayout(nodes: Node<DocumentNodeData>[]) {
     nodesByLevel.get(level)?.push(node);
   });
 
-  // Position nodes by level
+  // Position nodes by level with better spacing
   let yOffset = 0;
   Array.from(nodesByLevel.keys())
     .sort()

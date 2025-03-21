@@ -60,8 +60,8 @@ const nodeTypes = { custom: CustomNode };
 const edgeTypes = {};
 
 // Stick defaults outside component to avoid recreation
-const defaultViewport = { x: 0, y: 0, zoom: 0.8 };
-const fitViewOptions = { padding: 0.2 };
+const defaultViewport = { x: 0, y: 0, zoom: 0.65 };
+const fitViewOptions = { padding: 0.3, includeHiddenNodes: true };
 
 // The internal flow component that has access to ReactFlow hooks
 const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
@@ -148,6 +148,28 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
           return;
         }
 
+        // Debug document structure format
+        console.log("Document structure format sample:");
+        if (data.document_structure[0]) {
+          console.log("First heading:", data.document_structure[0].heading);
+
+          if (
+            data.document_structure[0].subheadings &&
+            data.document_structure[0].subheadings.length > 0
+          ) {
+            console.log(
+              "First subheading:",
+              data.document_structure[0].subheadings[0]
+            );
+            console.log(
+              "First subheading title:",
+              data.document_structure[0].subheadings[0].title
+            );
+          } else {
+            console.log("No subheadings in first heading");
+          }
+        }
+
         // Process data to create nodes and edges using the utility function
         console.log("Processing document structure into nodes and edges");
         const { processedNodes, processedEdges } = processDocumentStructure(
@@ -175,9 +197,20 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         setTimeout(() => {
           if (isMountedRef.current) {
             console.log("Fitting view");
-            fitView({ padding: 0.2 });
+            try {
+              // Ensure all nodes are centered in the viewport
+              fitView({
+                padding: 0.4, // Increase padding to better see all nodes
+                duration: 800,
+                includeHiddenNodes: true,
+                minZoom: 0.3, // Lower minimum zoom to see more
+                maxZoom: 1.5, // Limit maximum zoom for clarity
+              });
+            } catch (error) {
+              console.error("Error fitting view:", error);
+            }
           }
-        }, 100);
+        }, 200); // Increase timeout to ensure nodes are fully processed
       } catch (err) {
         console.error("Error loading document structure:", err);
 
@@ -292,12 +325,16 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         onNodeClick={handleNodeClick}
         fitView
         attributionPosition="bottom-right"
-        minZoom={0.2}
-        maxZoom={1.5}
+        minZoom={0.1}
+        maxZoom={2}
         defaultViewport={defaultViewport}
         connectionLineType={ConnectionLineType.SmoothStep}
         className={styles.documentFlow}
         fitViewOptions={fitViewOptions}
+        nodesDraggable={true}
+        elementsSelectable={true}
+        zoomOnScroll={true}
+        panOnScroll={true}
       >
         <Background color="#aaa" gap={16} />
         <Controls />
