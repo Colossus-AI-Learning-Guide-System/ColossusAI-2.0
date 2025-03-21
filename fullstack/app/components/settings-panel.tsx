@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { X, Camera, Check } from "lucide-react"
+import { X, Camera, Check, User, CreditCard, Database, Shield } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
 import { supabase } from "@/app/lib/utils/supabaseClient"
 import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
@@ -156,16 +156,16 @@ export function SettingsPanel({
     } else if (formData.fullName.length < 2) {
       errors.fullName = "Full name must be at least 2 characters"
       isValid = false
+    } else {
+      // Check if full name contains at least 2 words (first and last name)
+      const nameWords = formData.fullName.trim().split(/\s+/).filter(word => word.length > 0)
+      if (nameWords.length < 2) {
+        errors.fullName = "Please enter both first and last name"
+        isValid = false
+      }
     }
 
-    // Validate email
-    if (!formData.email.trim()) {
-      errors.email = "Email is required"
-      isValid = false
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Please enter a valid email address"
-      isValid = false
-    }
+    // Email validation removed as it's now display-only
 
     setFormErrors(errors)
     return isValid
@@ -224,7 +224,7 @@ export function SettingsPanel({
         
         const updatedProfile = await updateProfile({
           full_name: formData.fullName,
-          email: formData.email,
+          // email field removed from update as it's now display-only
         })
 
         if (updatedProfile) {
@@ -298,28 +298,8 @@ export function SettingsPanel({
   };
 
   const handleChangePassword = async () => {
-    setSaveLoading(true)
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      })
-      
-      if (error) throw error
-      
-      showToast(
-        "Password reset email sent", 
-        "Check your email for a link to reset your password."
-      )
-    } catch (error) {
-      console.error("Error sending password reset email:", error)
-      showToast(
-        "Failed to send reset email", 
-        "Please try again or contact support.", 
-        "destructive"
-      )
-    } finally {
-      setSaveLoading(false)
-    }
+    // Redirect to forget password page
+    router.push('/forgot-password');
   }
   
   const handleLogoutAllDevices = async () => {
@@ -379,34 +359,38 @@ export function SettingsPanel({
           <nav className="flex flex-col space-y-2">
             <button
               onClick={() => setActiveTab("general")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "general" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <User className="h-5 w-5 mr-3" />
               Profile
             </button>
             <button
               onClick={() => setActiveTab("upgrade")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "upgrade" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <CreditCard className="h-5 w-5 mr-3" />
               Upgrade Plan
             </button>
             <button
               onClick={() => setActiveTab("memory")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <Database className="h-5 w-5 mr-3" />
               Memory
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <Shield className="h-5 w-5 mr-3" />
               Security
             </button>
           </nav>
@@ -515,15 +499,11 @@ export function SettingsPanel({
                         <label htmlFor="email" className="block text-sm font-medium text-blue-200">
                           Email
                         </label>
-                        <Input
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="mt-1 bg-blue-950/50 border-blue-800"
-                          placeholder="Enter your email address"
-                        />
-                        {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
+                        <div 
+                          className="mt-1 p-2 bg-blue-950/50 border border-blue-800 rounded-md text-gray-200"
+                        >
+                          {formData.email}
+                        </div>
                       </div>
                     </div>
                   </>
