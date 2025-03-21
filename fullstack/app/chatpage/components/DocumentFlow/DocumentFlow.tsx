@@ -352,7 +352,7 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
               id="edgeArrowhead"
               markerWidth="15"
               markerHeight="15"
-              refX="12"
+              refX="10"
               refY="7.5"
               orient="auto"
               markerUnits="strokeWidth"
@@ -369,17 +369,15 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
             const level = (n.data as DocumentNodeData)?.level || 0;
             switch (level) {
               case 0:
-                return "rgba(96, 60, 220, 0.9)";
+                return "#f3f4f6"; // bg-gray-100
               case 1:
-                return "rgba(220, 38, 38, 0.9)";
+                return "#dbeafe"; // bg-blue-100
               case 2:
-                return "rgba(245, 158, 11, 0.9)";
+                return "#dcfce7"; // bg-green-100
               case 3:
-                return "rgba(16, 185, 129, 0.9)";
-              case 4:
-                return "rgba(59, 130, 246, 0.9)";
+                return "#fef3c7"; // bg-amber-100
               default:
-                return "rgba(139, 92, 246, 0.9)";
+                return "#f3e8ff"; // bg-purple-100
             }
           }}
           style={{

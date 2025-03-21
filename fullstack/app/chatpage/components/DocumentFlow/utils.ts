@@ -80,7 +80,7 @@ export const processDocumentStructure = (
         // Use explicit handle IDs that match the DOM elements in the CustomNode component
         sourceHandle: "source",
         targetHandle: "target",
-        style: { strokeWidth: 1.8, stroke: "#333" },
+        style: { strokeWidth: 2, stroke: "#333" },
       });
 
       // Process subheadings if available
@@ -138,7 +138,7 @@ export const processDocumentStructure = (
               animated: false,
               sourceHandle: "source",
               targetHandle: "target",
-              style: { strokeWidth: 1.8, stroke: "#333" },
+              style: { strokeWidth: 2, stroke: "#333" },
             });
 
             // Recursively process any deeper subheadings (if available)
