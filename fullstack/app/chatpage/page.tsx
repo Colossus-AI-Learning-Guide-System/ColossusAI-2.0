@@ -6,13 +6,7 @@ import Image from "next/image";
 import {
   PaperclipIcon,
   SendIcon,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
   Download,
-  Maximize,
-  ChevronLeft,
-  ChevronRight,
   X,
   FileText,
   ArrowLeft,
@@ -123,12 +117,7 @@ export default function DocumentAnalysisPage() {
   const [documentPages, setDocumentPages] =
     useState<(string | null)[]>(sampleDocumentPages);
   const [totalPages, setTotalPages] = useState(sampleDocumentPages.length);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
-    null
-  );
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [loadedDocument, setLoadedDocument] = useState<string | null>(null);
   const [highlightedSections, setHighlightedSections] = useState<
     HighlightSection[]
@@ -701,7 +690,7 @@ export default function DocumentAnalysisPage() {
     }
   }, [loadedDocument, currentPage, totalPages]);
 
-  // Document viewer handlers
+  // Document viewer handlers - simplified to just navigation
   const handlePrevPage = () => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
@@ -714,83 +703,26 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  const handleDocumentZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.25, 3));
-  };
-
-  const handleDocumentZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.25, 0.5));
-  };
-
-  const handleRotate = () => {
-    setRotation((prev) => (prev + 90) % 360);
-  };
-
   const handleDownload = () => {
     if (!loadedDocument) return;
-
-    // Create a download link for the current page
-    const link = document.createElement("a");
+    
+    // Just download the current page as-is without zoom/rotation
     const pageUrl = documentPages[currentPage] || "";
-
-    // If URL is a data URL, use it directly; otherwise, make a fetch request
-    if (pageUrl.startsWith("data:")) {
-      link.href = pageUrl;
-    } else {
-      // For normal URLs, fetch the image and convert to data URL
-      fetch(pageUrl)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
-          link.href = url;
-          link.download = `document-${loadedDocument}-page-${
-            currentPage + 1
-          }.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        })
-        .catch((error) => {
-          console.error("Error downloading image:", error);
-        });
-      return;
-    }
-
-    link.download = `document-${loadedDocument}-page-${currentPage + 1}.png`;
+    if (!pageUrl) return;
+    
+    // Create a temporary link for download
+    const link = document.createElement("a");
+    link.href = pageUrl;
+    link.download = `document-${loadedDocument}-page-${
+      currentPage + 1
+    }.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
-
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      if (viewerRef.current?.requestFullscreen) {
-        viewerRef.current.requestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
-
-  // Keep fullscreen changes effect unchanged
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  // Update the document upload handler to simply load the document
+  
   const handleDocumentUpload = (documentId: string) => {
     setSelectedDocumentId(documentId);
-    // Load the first page automatically
     loadDocument(documentId, 0);
   };
 
@@ -1111,117 +1043,36 @@ export default function DocumentAnalysisPage() {
             </div>
           </div>
 
-          {/* 3. Document Viewer Panel */}
+          {/* 3. Document Viewer Panel - renamed to Context */}
           <div
             className={styles.panel + " " + styles["document-viewer-panel"]}
             ref={viewerRef}
           >
             <div className={styles["panel-header"]}>
-              <h2>
-                Document Viewer
-                {currentHeading && (
-                  <span className={styles["current-heading-info"]}>
-                    {currentHeading}
-                  </span>
-                )}
-              </h2>
-              <div className={styles["document-controls"]}>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handlePrevPage}
-                  disabled={!loadedDocument || currentPage === 0}
-                  title="Previous page"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span className={styles["page-indicator"]}>
-                  {loadedDocument ? `${currentPage + 1}/${totalPages}` : "-/-"}
-                </span>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handleNextPage}
-                  disabled={!loadedDocument || currentPage === totalPages - 1}
-                  title="Next page"
-                >
-                  <ChevronRight size={16} />
-                </button>
-                <div className={styles["control-divider"]}></div>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handleDocumentZoomOut}
-                  title="Zoom out"
-                >
-                  <ZoomOut size={16} />
-                </button>
-                <span className={styles["zoom-level"]}>
-                  {Math.round(zoomLevel * 100)}%
-                </span>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handleDocumentZoomIn}
-                  title="Zoom in"
-                >
-                  <ZoomIn size={16} />
-                </button>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handleRotate}
-                  title="Rotate"
-                >
-                  <RotateCw size={16} />
-                </button>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={handleDownload}
-                  title="Download"
-                  disabled={!loadedDocument}
-                >
-                  <Download size={16} />
-                </button>
-                <button
-                  className={styles["document-control-btn"]}
-                  onClick={toggleFullscreen}
-                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-                >
-                  <Maximize size={16} />
-                </button>
-              </div>
+              <h2>Context</h2>
             </div>
 
             <div className={styles["document-viewer-container"]}>
-              {/* Document display area */}
-              <div
-                className={styles["document-display"]}
-                style={{
-                  transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
-                  transition: "transform 0.3s ease",
-                }}
-              >
+              {/* Simplified content area */}
+              <div className={styles["document-display"]}>
                 {!loadedDocument && !headingLoading && !documentLoading ? (
                   <div className={styles["document-placeholder"]}>
                     <FileText size={48} className={styles.placeholderIcon} />
                     <h3 className={styles.placeholderTitle}>
-                      No Document Selected
+                      No Context Available
                     </h3>
                     <p className={styles.placeholderText}>
-                      Upload a document from the sidebar to get started.
+                      Select a document to see context information.
                     </p>
-                    <p className={styles.placeholderSubText}>
-                      You can drag and drop a PDF file or use the upload button.
-                    </p>
-                    <div className={styles.placeholderArrow}>
-                      <ArrowLeft size={24} />
-                      <span>Upload Here</span>
-                    </div>
                   </div>
                 ) : documentLoading ? (
                   <div className={styles["document-loading"]}>
                     <div className={styles["loading-spinner"]}></div>
-                    <p>Loading document...</p>
+                    <p>Loading context...</p>
                   </div>
                 ) : documentError ? (
                   <div className={styles["document-error"]}>
-                    <p>Error loading document: {documentError}</p>
+                    <p>Error loading context: {documentError}</p>
                     <button
                       onClick={() => {
                         if (selectedDocumentId) {
@@ -1235,18 +1086,12 @@ export default function DocumentAnalysisPage() {
                 ) : currentPage !== null && documentPages[currentPage] ? (
                   <div className={styles["document-image-wrapper"]}>
                     <img
-                      key={`page-${currentPage}-${Date.now()}-${documentPages[
-                        currentPage
-                      ]?.substring(0, 20)}`}
                       className={styles["document-image"]}
                       src={documentPages[currentPage]}
-                      alt={`Page ${currentPage + 1}`}
-                      style={{
-                        transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
-                      }}
+                      alt={`Context ${currentPage + 1}`}
                       onError={(e) => {
                         console.error(
-                          `Error loading image for page ${currentPage + 1}`
+                          `Error loading image for context ${currentPage + 1}`
                         );
                         if (e.currentTarget) {
                           setPagesWithErrors((prev) => ({
