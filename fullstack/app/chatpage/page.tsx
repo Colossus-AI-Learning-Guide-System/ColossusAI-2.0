@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import Image from "next/image";
 import {
@@ -31,17 +30,16 @@ import { Input } from "../components/ui/input";
 // Add API base URL constant at the top of the file
 const API_BASE_URL = "http://127.0.0.1:5002";
 
+// Sample document pages for initial state
+const sampleDocumentPages = [
+  "/sample-pdf-page-1.png",
+  "/sample-pdf-page-2.png",
+  "/sample-pdf-page-3.png",
+];
+
 // Define RequestOptions interface
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
-}
-
-// Define the interface for the graph ref
-interface GraphRef {
-  zoomIn: () => void;
-  zoomOut: () => void;
-  fitAll: () => void;
-  updateData: (data: any) => void;
 }
 
 // Define interfaces for backend data
@@ -102,35 +100,7 @@ interface HighlightSection {
   };
 }
 
-interface NodeData {
-  name: string;
-  value: number;
-  id?: string;
-  children?: NodeData[];
-  documentId?: string;
-  type?: string;
-  page?: number;
-}
-
-// Import ForceDirectedGraph with dynamic import to avoid SSR issues
-const ForceDirectedGraph = dynamic(
-  () => import("./components/ForceDirectedGraph"),
-  {
-    ssr: false,
-  }
-);
-
-// Sample document pages for initial state
-const sampleDocumentPages = [
-  "/sample-pdf-page-1.png",
-  "/sample-pdf-page-2.png",
-  "/sample-pdf-page-3.png",
-];
-
 export default function DocumentAnalysisPage() {
-  // Reference to the graph component
-  const graphRef = useRef<GraphRef>(null);
-
   // State for chat messages
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -171,9 +141,6 @@ export default function DocumentAnalysisPage() {
   >([]);
   const [activeDocuments, setActiveDocuments] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-
-  // Add new state variables for graph data and loading state
-  const [graphData, setGraphData] = useState<NodeData | null>(null);
 
   // Add new state for tracking the current heading
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
@@ -239,58 +206,6 @@ export default function DocumentAnalysisPage() {
   useEffect(() => {
     // Remove the call to loadDocumentStructure() since DocumentList.tsx will now handle document loading
   }, []);
-
-  // Keep the transformToGraphFormat function which is still used for visualization
-  const transformToGraphFormat = (data: DocumentStructure): NodeData => {
-    if (!data || !data.nodes || !data.edges) {
-      return {
-        name: "Empty Document",
-        value: 0,
-        children: [],
-      };
-    }
-
-    // Create a map of nodes by ID
-    const nodesMap = new Map();
-
-    // Add all nodes to the map
-    data.nodes.forEach((node) => {
-      nodesMap.set(node.id, {
-        name: node.label || "Untitled Node",
-        value: 1,
-        id: node.id,
-        documentId: data.id,
-        type: node.type,
-        page: node.page,
-        children: [],
-      });
-    });
-
-    // Build the tree structure based on edges
-    data.edges.forEach((edge) => {
-      const source = nodesMap.get(edge.source);
-      const target = nodesMap.get(edge.target);
-
-      if (source && target) {
-        source.children.push(target);
-      }
-    });
-
-    // Find root nodes (nodes that are not targets in any edge)
-    const targetIds = new Set(data.edges.map((edge) => edge.target));
-    const rootNodes = Array.from(nodesMap.values()).filter(
-      (node) => !targetIds.has(node.id)
-    );
-
-    // Return the graph data structure
-    return {
-      name: data.name || "Untitled Document",
-      value: 0,
-      id: data.id,
-      children:
-        rootNodes.length > 0 ? rootNodes : Array.from(nodesMap.values()),
-    };
-  };
 
   // Helper function to convert headings/hierarchy format to nodes/edges format
   const convertHeadingsToGraphFormat = (
@@ -786,25 +701,6 @@ export default function DocumentAnalysisPage() {
     }
   }, [loadedDocument, currentPage, totalPages]);
 
-  // Zoom control handlers
-  const handleZoomIn = () => {
-    if (graphRef.current) {
-      graphRef.current.zoomIn();
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (graphRef.current) {
-      graphRef.current.zoomOut();
-    }
-  };
-
-  const handleFitAll = () => {
-    if (graphRef.current) {
-      graphRef.current.fitAll();
-    }
-  };
-
   // Document viewer handlers
   const handlePrevPage = () => {
     if (currentPage > 0) {
@@ -1206,29 +1102,6 @@ export default function DocumentAnalysisPage() {
           >
             <div className={styles["panel-header"]}>
               <h2>Document Structure</h2>
-              <div className={styles["graph-controls"]}>
-                <button
-                  className={styles["graph-control-btn"]}
-                  onClick={() => graphRef.current?.zoomIn()}
-                  title="Zoom in"
-                >
-                  <ZoomIn size={16} />
-                </button>
-                <button
-                  className={styles["graph-control-btn"]}
-                  onClick={() => graphRef.current?.zoomOut()}
-                  title="Zoom out"
-                >
-                  <ZoomOut size={16} />
-                </button>
-                <button
-                  className={styles["graph-control-btn"]}
-                  onClick={() => graphRef.current?.fitAll()}
-                  title="Fit all"
-                >
-                  <Maximize size={16} />
-                </button>
-              </div>
             </div>
             <div className={styles["graph-container"]}>
               <DocumentStructureGraph
