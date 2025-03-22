@@ -179,6 +179,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       // Prepare JSON payload according to new API specifications
       const payload = {
         file: base64Content,
+        filename: file.name,
       };
 
       console.log("Sending document to unified upload API...");

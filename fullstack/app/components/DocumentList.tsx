@@ -16,11 +16,15 @@ import { ScrollArea } from "@/app/components/ui/scroll-area";
 import styles from "./DocumentList.module.css";
 
 interface DocumentMetadata {
-  document_id: string;
+  id: string;
   title: string;
   upload_date: string;
-  heading_count: number;
   page_count: number;
+  author?: string;
+  creation_date?: string;
+  file_size_kb?: number;
+  has_enhanced_content?: boolean;
+  heading_count?: number;
 }
 
 interface DocumentListProps {
@@ -104,7 +108,10 @@ export default function DocumentList({
         comparison = a.page_count - b.page_count;
         break;
       case "headings":
-        comparison = a.heading_count - b.heading_count;
+        // Handle undefined heading_count values
+        const headingA = a.heading_count || 0;
+        const headingB = b.heading_count || 0;
+        comparison = headingA - headingB;
         break;
     }
 
@@ -126,7 +133,7 @@ export default function DocumentList({
   // Auto-select the first document if none is selected and documents are loaded
   useEffect(() => {
     if (!selectedDocumentId && sortedDocuments.length > 0 && !loading) {
-      onSelectDocument(sortedDocuments[0].document_id);
+      onSelectDocument(sortedDocuments[0].id);
     }
   }, [selectedDocumentId, sortedDocuments, loading, onSelectDocument]);
 
@@ -229,13 +236,13 @@ export default function DocumentList({
           <div className={styles.documentGrid}>
             {sortedDocuments.map((doc) => (
               <div
-                key={doc.document_id}
+                key={doc.id}
                 className={`${styles.documentCard} ${
-                  doc.document_id === selectedDocumentId
+                  doc.id === selectedDocumentId
                     ? styles.selectedDocumentCard
                     : ""
                 }`}
-                onClick={() => onSelectDocument(doc.document_id)}
+                onClick={() => onSelectDocument(doc.id)}
               >
                 <div className={styles.documentIconContainer}>
                   <FileText size={28} className={styles.documentIcon} />
@@ -253,19 +260,19 @@ export default function DocumentList({
                       <FileDigit size={14} />
                       {doc.page_count} {doc.page_count === 1 ? "page" : "pages"}
                     </span>
-                    <span className={styles.metadataItem}>
-                      <Text size={14} />
-                      {doc.heading_count}{" "}
-                      {doc.heading_count === 1 ? "heading" : "headings"}
-                    </span>
+                    {doc.heading_count !== undefined && (
+                      <span className={styles.metadataItem}>
+                        <Text size={14} />
+                        {doc.heading_count}{" "}
+                        {doc.heading_count === 1 ? "heading" : "headings"}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <ChevronRight
                   size={18}
                   className={`${styles.documentCardArrow} ${
-                    doc.document_id === selectedDocumentId
-                      ? styles.visibleArrow
-                      : ""
+                    doc.id === selectedDocumentId ? styles.visibleArrow : ""
                   }`}
                 />
               </div>
