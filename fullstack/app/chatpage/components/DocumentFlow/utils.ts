@@ -6,8 +6,8 @@ import {
 } from "@/app/types/documentStructure";
 
 // Constants for layout - increasing spacing for better visibility
-export const VERTICAL_SPACING = 150;
-export const HORIZONTAL_SPACING = 300;
+export const VERTICAL_SPACING = 200;
+export const HORIZONTAL_SPACING = 350;
 export const MAX_LEVEL = 5;
 
 /**
@@ -157,12 +157,10 @@ function processSubheadingSection(
   let maxChildY = startY;
   let totalHeight = 0;
 
-  // Determine x coordinate for this level
-  const xPos =
-    level % 2 === 0
-      ? xOffset - HORIZONTAL_SPACING // Even levels go left
-      : xOffset + HORIZONTAL_SPACING; // Odd levels go right
+  // Count total subheadings for balanced distribution
+  const totalSubheadings = subheadings.length;
 
+  // Process subheadings with alternating sides for better distribution
   subheadings.forEach((subheading, subIndex) => {
     if (!subheading.title) {
       console.warn(
@@ -173,6 +171,33 @@ function processSubheadingSection(
 
     // Create node ID and add node
     const nodeId = `subheading-${sectionIndex}-${level}-${subIndex}`;
+
+    // Alternate sides for better distribution
+    // For level 2:
+    // - Even indices go left
+    // - Odd indices go right
+    // For level 3+:
+    // - Use parent's offset plus additional offset
+
+    let xPos;
+    if (level === 2) {
+      // Distribute level 2 subheadings evenly to left and right
+      xPos =
+        subIndex % 2 === 0
+          ? -HORIZONTAL_SPACING // Even indices go left
+          : HORIZONTAL_SPACING; // Odd indices go right
+    } else if (level > 2) {
+      // For deeper levels, alternate position relative to parent
+      // This creates a cascading effect for deeper nesting
+      const direction = subIndex % 2 === 0 ? -1 : 1;
+      xPos = xOffset + direction * HORIZONTAL_SPACING * 0.7;
+    } else {
+      // Level 1 (fallback) - should not usually be used in this context
+      xPos = xOffset + HORIZONTAL_SPACING;
+    }
+
+    // Add extra vertical spacing between nodes (scaled by level)
+    const verticalSpacingFactor = Math.max(1, 0.7 + level * 0.1);
 
     nodes.push({
       id: nodeId,
@@ -191,7 +216,7 @@ function processSubheadingSection(
 
     nodeIdMap.set(subheading.title, nodeId);
 
-    // Connect to parent
+    // Connect to parent with improved edge
     edges.push({
       id: `edge-${parentId}-to-${nodeId}`,
       source: parentId,
@@ -212,6 +237,10 @@ function processSubheadingSection(
       const visualStartY = currentY + VERTICAL_SPACING / 2;
       let visualY = visualStartY;
 
+      // Determine whether visuals go left or right of the subheading
+      const visualXOffset =
+        subIndex % 2 === 0 ? -HORIZONTAL_SPACING / 3 : HORIZONTAL_SPACING / 3;
+
       subheading.visual_references.forEach((visual, visualIndex) => {
         const visualNodeId = `visual-${sectionIndex}-${level}-${subIndex}-${visualIndex}`;
 
@@ -219,7 +248,7 @@ function processSubheadingSection(
           id: visualNodeId,
           type: "custom",
           position: {
-            x: xPos + HORIZONTAL_SPACING / 2,
+            x: xPos + visualXOffset,
             y: visualY,
           },
           data: {
@@ -247,13 +276,13 @@ function processSubheadingSection(
           },
         });
 
-        visualY += VERTICAL_SPACING / 2;
+        visualY += VERTICAL_SPACING / 1.5; // Increased spacing between visuals
       });
 
       if (subheading.visual_references.length > 0) {
         additionalHeight =
-          (subheading.visual_references.length * VERTICAL_SPACING) / 2;
-        lastNodeY = visualY - VERTICAL_SPACING / 2;
+          (subheading.visual_references.length * VERTICAL_SPACING) / 1.5;
+        lastNodeY = visualY - VERTICAL_SPACING / 1.5;
       }
     }
 
@@ -263,7 +292,7 @@ function processSubheadingSection(
         subheading.subheadings,
         nodeId,
         sectionIndex,
-        currentY + VERTICAL_SPACING / 2,
+        currentY + VERTICAL_SPACING / 1.5, // Increased spacing for hierarchy
         level + 1,
         xPos,
         nodes,
@@ -278,8 +307,8 @@ function processSubheadingSection(
     // Update maximum Y position
     maxChildY = Math.max(maxChildY, lastNodeY);
 
-    // Move current Y position for next sibling
-    currentY = lastNodeY + VERTICAL_SPACING;
+    // Move current Y position for next sibling with additional spacing based on level
+    currentY = lastNodeY + VERTICAL_SPACING * verticalSpacingFactor;
     totalHeight += VERTICAL_SPACING + additionalHeight;
   });
 
@@ -311,8 +340,13 @@ function optimizeLayout(nodes: Node<DocumentNodeData>[], edges: Edge[]) {
     const isVisual = node.data.type === "visual";
 
     // Estimate node dimensions based on content and type
-    const width = isVisual ? 150 : node.data.label.length * 10 + 40;
-    const height = isVisual ? 80 : 50;
+    // Increased size for better visibility
+    const width = isVisual
+      ? 150
+      : Math.min(300, node.data.label.length * 12 + 50);
+    const height = isVisual
+      ? 80
+      : Math.min(100, 30 + (node.data.label.length / 15) * 10);
 
     nodePositions.set(node.id, {
       node,
@@ -323,61 +357,114 @@ function optimizeLayout(nodes: Node<DocumentNodeData>[], edges: Edge[]) {
     });
   });
 
-  // Check if any edges intersect with nodes and adjust node positions if needed
-  edges.forEach((edge) => {
-    const sourceNode = nodePositions.get(edge.source);
-    const targetNode = nodePositions.get(edge.target);
+  // Perform multiple passes to detect and resolve overlaps
+  for (let pass = 0; pass < 3; pass++) {
+    let overlapsFound = false;
 
-    if (sourceNode && targetNode) {
-      // Simple bounding box for edge path (not perfect but a reasonable approximation)
-      const edgeMinX = Math.min(sourceNode.x, targetNode.x);
-      const edgeMaxX = Math.max(sourceNode.x, targetNode.x);
-      const edgeMinY = Math.min(sourceNode.y, targetNode.y);
-      const edgeMaxY = Math.max(sourceNode.y, targetNode.y);
+    // First check for node-node overlaps
+    const nodeIds = Array.from(nodePositions.keys());
 
-      // Check if any node (other than source and target) overlaps with this edge path
-      nodePositions.forEach((nodePos, nodeId) => {
-        if (nodeId !== edge.source && nodeId !== edge.target) {
-          // Simple overlap check (not perfect for curved edges but helps)
-          const nodeMinX = nodePos.x - nodePos.width / 2;
-          const nodeMaxX = nodePos.x + nodePos.width / 2;
-          const nodeMinY = nodePos.y - nodePos.height / 2;
-          const nodeMaxY = nodePos.y + nodePos.height / 2;
+    for (let i = 0; i < nodeIds.length; i++) {
+      for (let j = i + 1; j < nodeIds.length; j++) {
+        const nodeA = nodePositions.get(nodeIds[i]);
+        const nodeB = nodePositions.get(nodeIds[j]);
 
-          // Check if node bounding box intersects edge bounding box
-          if (
-            nodeMaxX > edgeMinX &&
-            nodeMinX < edgeMaxX &&
-            nodeMaxY > edgeMinY &&
-            nodeMinY < edgeMaxY
-          ) {
-            // Move the node slightly to avoid overlap
-            const isHorizontalOverlap =
-              edgeMaxX - edgeMinX > edgeMaxY - edgeMinY;
+        if (!nodeA || !nodeB) continue;
 
-            if (isHorizontalOverlap) {
-              // Move node vertically to avoid horizontal edge
-              nodePos.node.position.y += VERTICAL_SPACING / 3;
-            } else {
-              // Move node horizontally to avoid vertical edge
-              nodePos.node.position.x += HORIZONTAL_SPACING / 3;
+        // Check if nodes overlap
+        const overlapX =
+          Math.abs(nodeA.x - nodeB.x) < (nodeA.width + nodeB.width) / 2;
+        const overlapY =
+          Math.abs(nodeA.y - nodeB.y) < (nodeA.height + nodeB.height) / 2;
+
+        if (overlapX && overlapY) {
+          overlapsFound = true;
+
+          // Determine best direction to move (horizontal/vertical)
+          const xOverlap =
+            (nodeA.width + nodeB.width) / 2 - Math.abs(nodeA.x - nodeB.x);
+          const yOverlap =
+            (nodeA.height + nodeB.height) / 2 - Math.abs(nodeA.y - nodeB.y);
+
+          if (xOverlap < yOverlap) {
+            // Move horizontally - away from each other
+            const direction = nodeA.x < nodeB.x ? -1 : 1;
+            nodeA.node.position.x += direction * (xOverlap / 2 + 10);
+            nodeB.node.position.x -= direction * (xOverlap / 2 + 10);
+          } else {
+            // Move vertically - away from each other
+            const direction = nodeA.y < nodeB.y ? -1 : 1;
+            nodeA.node.position.y += direction * (yOverlap / 2 + 10);
+            nodeB.node.position.y -= direction * (yOverlap / 2 + 10);
+          }
+
+          // Update position in map
+          nodeA.x = nodeA.node.position.x;
+          nodeA.y = nodeA.node.position.y;
+          nodeB.x = nodeB.node.position.x;
+          nodeB.y = nodeB.node.position.y;
+        }
+      }
+    }
+
+    // Check if any edges intersect with nodes and adjust node positions if needed
+    edges.forEach((edge) => {
+      const sourceNode = nodePositions.get(edge.source);
+      const targetNode = nodePositions.get(edge.target);
+
+      if (sourceNode && targetNode) {
+        // Simple bounding box for edge path (not perfect but a reasonable approximation)
+        const edgeMinX = Math.min(sourceNode.x, targetNode.x);
+        const edgeMaxX = Math.max(sourceNode.x, targetNode.x);
+        const edgeMinY = Math.min(sourceNode.y, targetNode.y);
+        const edgeMaxY = Math.max(sourceNode.y, targetNode.y);
+
+        // Check if any node (other than source and target) overlaps with this edge path
+        nodePositions.forEach((nodePos, nodeId) => {
+          if (nodeId !== edge.source && nodeId !== edge.target) {
+            // Simple overlap check (not perfect for curved edges but helps)
+            const nodeMinX = nodePos.x - nodePos.width / 2;
+            const nodeMaxX = nodePos.x + nodePos.width / 2;
+            const nodeMinY = nodePos.y - nodePos.height / 2;
+            const nodeMaxY = nodePos.y + nodePos.height / 2;
+
+            // Check if node bounding box intersects edge bounding box
+            if (
+              nodeMaxX > edgeMinX &&
+              nodeMinX < edgeMaxX &&
+              nodeMaxY > edgeMinY &&
+              nodeMinY < edgeMaxY
+            ) {
+              overlapsFound = true;
+
+              // Move the node to avoid overlap
+              const isHorizontalOverlap =
+                edgeMaxX - edgeMinX > edgeMaxY - edgeMinY;
+
+              if (isHorizontalOverlap) {
+                // Move node vertically to avoid horizontal edge
+                const direction =
+                  nodePos.y < (edgeMinY + edgeMaxY) / 2 ? -1 : 1;
+                nodePos.node.position.y += direction * (VERTICAL_SPACING / 2);
+              } else {
+                // Move node horizontally to avoid vertical edge
+                const direction =
+                  nodePos.x < (edgeMinX + edgeMaxX) / 2 ? -1 : 1;
+                nodePos.node.position.x += direction * (HORIZONTAL_SPACING / 2);
+              }
+
+              // Update position in map
+              nodePos.x = nodePos.node.position.x;
+              nodePos.y = nodePos.node.position.y;
             }
           }
-        }
-      });
-    }
-  });
+        });
+      }
+    });
 
-  // Apply corrected positions back to the nodes
-  nodePositions.forEach((nodePos, nodeId) => {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (node) {
-      node.position = {
-        x: nodePos.node.position.x,
-        y: nodePos.node.position.y,
-      };
-    }
-  });
+    // If no overlaps were found, we can stop early
+    if (!overlapsFound) break;
+  }
 }
 
 /**
