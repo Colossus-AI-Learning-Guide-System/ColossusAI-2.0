@@ -19,7 +19,8 @@ export default function SignInPage() {
   const id = useId();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/chatpage";
+  // Set default redirect to absolute URL
+  const redirectPath = searchParams.get("redirect") || "https://app.colossusai.net/chatpage";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,12 @@ export default function SignInPage() {
       }
 
       if (data?.session) {
-        router.push(redirectPath);
+        // Use absolute URL here for client-side navigation
+        if (redirectPath.startsWith("http")) {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
       }
     } catch (err: any) {
       console.error("Signin error:", err);
@@ -102,6 +108,7 @@ export default function SignInPage() {
     }
   };
 
+  // Update OAuth sign-in to use absolute URL
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setFormStatus(null);
     setLoading(true);

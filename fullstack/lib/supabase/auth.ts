@@ -123,8 +123,7 @@ export const resendConfirmationEmail = async (email: string) => {
 };
 
 // OAuth Sign In (Google, GitHub)
-// OAuth Sign In (Google, GitHub)
-export const signInWithOAuth = async (provider: Provider, redirectUrl?: string) => {
+export const signInWithOAuth = async (provider: "github" | "google", redirectUrl?: string) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;

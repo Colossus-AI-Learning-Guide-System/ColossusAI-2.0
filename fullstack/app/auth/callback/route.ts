@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/chatpage";
+  // Change the default redirect to the absolute URL
+  const next = requestUrl.searchParams.get("next") ?? "https://app.colossusai.net/chatpage";
 
   if (code) {
     const cookieStore = cookies();
@@ -84,9 +85,9 @@ export async function GET(request: Request) {
         console.log("Auth callback: User already has a profile");
       }
 
-      // Redirect to dashboard after successful verification
+      // When redirecting, use the absolute URL instead of relative path
       console.log(`Auth callback: Redirecting to ${next}`);
-      return NextResponse.redirect(new URL(next, requestUrl.origin));
+      return NextResponse.redirect(next.startsWith("http") ? next : new URL(next, "https://app.colossusai.net"));
     } catch (error: unknown) {
       console.error("Auth callback error:", error);
       const errorMessage =
