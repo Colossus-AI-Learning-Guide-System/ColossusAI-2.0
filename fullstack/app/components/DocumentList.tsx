@@ -28,7 +28,7 @@ interface DocumentMetadata {
 }
 
 interface DocumentListProps {
-  onSelectDocument: (documentId: string) => void;
+  onSelectDocument: (documentId: string, documentTitle: string) => void;
   selectedDocumentId: string | null;
 }
 
@@ -133,7 +133,7 @@ export default function DocumentList({
   // Auto-select the first document if none is selected and documents are loaded
   useEffect(() => {
     if (!selectedDocumentId && sortedDocuments.length > 0 && !loading) {
-      onSelectDocument(sortedDocuments[0].id);
+      onSelectDocument(sortedDocuments[0].id, sortedDocuments[0].title);
     }
   }, [selectedDocumentId, sortedDocuments, loading, onSelectDocument]);
 
@@ -242,7 +242,7 @@ export default function DocumentList({
                     ? styles.selectedDocumentCard
                     : ""
                 }`}
-                onClick={() => onSelectDocument(doc.id)}
+                onClick={() => onSelectDocument(doc.id, doc.title)}
               >
                 <div className={styles.documentIconContainer}>
                   <FileText size={28} className={styles.documentIcon} />

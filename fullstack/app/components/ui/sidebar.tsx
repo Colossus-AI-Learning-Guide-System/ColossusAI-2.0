@@ -83,7 +83,7 @@ const staggerVariants = {
 
 // Add to your props interface
 interface SidebarProps {
-  onDocumentUpload?: (documentId: string) => void;
+  onDocumentUpload?: (documentId: string, documentName: string) => void;
 }
 
 export function Sidebar({ onDocumentUpload }: SidebarProps) {
@@ -228,7 +228,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
 
       // Set as selected document (you'll need to pass this function as a prop)
       if (documentId && onDocumentUpload) {
-        onDocumentUpload(documentId);
+        onDocumentUpload(documentId, file.name);
       }
 
       alert(

@@ -55,11 +55,25 @@ interface NodeContext {
 }
 
 // Modify PDFDocumentViewer to use the dynamic import
-const PDFDocumentViewer = ({ documentId }: { documentId: string | null }) => {
+const PDFDocumentViewer = ({
+  documentId,
+  documentName,
+}: {
+  documentId: string | null;
+  documentName?: string;
+}) => {
   const [base64Pdf, setBase64Pdf] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [filename, setFilename] = useState<string>("Document");
+  const [filename, setFilename] = useState<string>(documentName || "Document");
+
+  // Update filename when documentName prop changes
+  useEffect(() => {
+    if (documentName) {
+      console.log(`Document name received from props: ${documentName}`);
+      setFilename(documentName);
+    }
+  }, [documentName]);
 
   const fetchPdf = async (docId: string, retryCount = 0) => {
     setIsLoading(true);
@@ -106,7 +120,7 @@ const PDFDocumentViewer = ({ documentId }: { documentId: string | null }) => {
 
       // Try to find base64 PDF data in various possible response formats
       let pdfBase64 = null;
-      let documentFilename = filename;
+      let documentFilename = documentName || filename;
 
       // Extract PDF data from original_pdf property
       if (data.original_pdf && typeof data.original_pdf === "string") {
@@ -117,17 +131,19 @@ const PDFDocumentViewer = ({ documentId }: { documentId: string | null }) => {
         throw new Error("No original_pdf property found in server response");
       }
 
-      // Try to find filename in various possible response formats
-      if (data.filename) {
-        documentFilename = data.filename;
-      } else if (data.name) {
-        documentFilename = data.name;
-      } else if (data.title) {
-        documentFilename = data.title;
-      } else if (data.document_name) {
-        documentFilename = data.document_name;
-      } else if (data.document_id) {
-        documentFilename = `Document-${data.document_id}`;
+      // Use the document name from props if available, otherwise try to extract from the response
+      if (!documentName) {
+        if (data.filename) {
+          documentFilename = data.filename;
+        } else if (data.name) {
+          documentFilename = data.name;
+        } else if (data.title) {
+          documentFilename = data.title;
+        } else if (data.document_name) {
+          documentFilename = data.document_name;
+        } else if (data.document_id) {
+          documentFilename = `Document-${data.document_id}`;
+        }
       }
 
       if (!pdfBase64) {
@@ -220,6 +236,11 @@ export default function DocumentAnalysisPage() {
   // State for document management
   const [activeDocuments, setActiveDocuments] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+
+  // State to track document names by their IDs
+  const [documentNames, setDocumentNames] = useState<Record<string, string>>(
+    {}
+  );
 
   // State for current heading
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
@@ -416,6 +437,12 @@ export default function DocumentAnalysisPage() {
         // Add to active documents
         setActiveDocuments((prev) => [...prev, data.document_id]);
 
+        // Store the document name
+        setDocumentNames((prev) => ({
+          ...prev,
+          [data.document_id]: file.name,
+        }));
+
         // Set the uploaded document as selected
         setSelectedDocumentId(data.document_id);
       } else {
@@ -545,11 +572,23 @@ export default function DocumentAnalysisPage() {
   };
 
   // Handle document selection
-  const handleSelectDocument = (documentId: string) => {
+  const handleSelectDocument = (documentId: string, documentName?: string) => {
     if (!documentId) return;
 
-    console.log(`Selected document: ${documentId}`);
+    console.log(
+      `Selected document: ${documentId}${
+        documentName ? ` (${documentName})` : ""
+      }`
+    );
     setSelectedDocumentId(documentId);
+
+    // If documentName is provided, store it
+    if (documentName) {
+      setDocumentNames((prev) => ({
+        ...prev,
+        [documentId]: documentName,
+      }));
+    }
 
     // Reset current heading and node context when selecting a new document
     setCurrentHeading(null);
@@ -562,8 +601,16 @@ export default function DocumentAnalysisPage() {
   };
 
   // Document upload handler
-  const handleDocumentUpload = (documentId: string) => {
+  const handleDocumentUpload = (documentId: string, documentName?: string) => {
     setSelectedDocumentId(documentId);
+
+    // If documentName is provided, store it
+    if (documentName) {
+      setDocumentNames((prev) => ({
+        ...prev,
+        [documentId]: documentName,
+      }));
+    }
 
     // Reset current heading and node context when uploading a new document
     setCurrentHeading(null);
@@ -840,7 +887,14 @@ export default function DocumentAnalysisPage() {
                   activeTab === "page-view" ? styles.active : ""
                 }`}
               >
-                <PDFDocumentViewer documentId={selectedDocumentId} />
+                <PDFDocumentViewer
+                  documentId={selectedDocumentId}
+                  documentName={
+                    selectedDocumentId
+                      ? documentNames[selectedDocumentId]
+                      : undefined
+                  }
+                />
               </div>
             </div>
           </div>
