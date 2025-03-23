@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import styles from "./page.module.css";
 import { PaperclipIcon, SendIcon, FileText } from "lucide-react";
 import { Sidebar } from "@/app/components/ui/sidebar";
@@ -87,50 +87,13 @@ export default function DocumentAnalysisPage() {
     "context"
   );
 
-  // Add state for PDF page viewing
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
-
   // DocumentStructure state to store the document structure data
   const [documentStructure, setDocumentStructure] = useState<any>(null);
-
-  // Add function to fetch page image
-  const fetchPageImage = useCallback(
-    async (docId: string, pageNum: number) => {
-      if (!docId) return;
-
-      setIsLoadingPage(true);
-      try {
-        // Check if total pages is set, if not, fetch document metadata to get page count
-        if (totalPages === 0) {
-          const metadataResponse = await fetch(
-            `${API_BASE_URL}/api/document/${docId}/metadata`
-          );
-          if (metadataResponse.ok) {
-            const metadata = await metadataResponse.json();
-            setTotalPages(metadata.page_count || 1);
-          }
-        }
-
-        // When clicking on a node, switch to page view and show the referenced page
-        if (nodeContext?.pageReference && pageNum === 0) {
-          setCurrentPage(nodeContext.pageReference);
-        } else if (pageNum > 0) {
-          setCurrentPage(pageNum);
-        }
-      } catch (error) {
-        console.error("Error fetching page information:", error);
-      } finally {
-        setIsLoadingPage(false);
-      }
-    },
-    [nodeContext, totalPages]
-  );
 
   // Function to fetch document structure data
   const fetchDocumentStructure = async (docId: string) => {
     try {
+      // Fetch the document structure
       const response = await fetch(
         `${API_BASE_URL}/api/structure/document/${docId}/structured`
       );
@@ -467,7 +430,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Update heading click handler to extract context and switch to Page View tab
+  // Update heading click handler to only load context without switching tab
   const handleHeadingClick = useCallback(
     (headingText: string, documentId: string, pageReference?: number) => {
       console.log(
@@ -475,44 +438,22 @@ export default function DocumentAnalysisPage() {
           pageReference ? `, page ${pageReference}` : ""
         }`
       );
+
+      // Update document and heading state
       setCurrentHeading(headingText);
       setSelectedDocumentId(documentId);
 
-      // Extract context for the clicked heading
+      // Extract context only - no tab switching
       extractNodeContext(headingText, documentId);
-
-      // If there's a page reference, automatically switch to the Page View tab
-      if (pageReference && pageReference > 0) {
-        setCurrentPage(pageReference);
-        // Use a short delay to make sure context is fetched first
-        setTimeout(() => {
-          setActiveTab("page-view");
-          fetchPageImage(documentId, pageReference);
-        }, 100);
-      }
     },
-    [extractNodeContext, fetchPageImage]
+    [extractNodeContext]
   );
 
-  // Handle tab change
+  // Handle tab change (unchanged)
   const handleTabChange = (tab: "context" | "page-view") => {
+    // Prevent unnecessary re-renders when tab is already active
+    if (tab === activeTab) return;
     setActiveTab(tab);
-
-    // If switching to page view and we have a selected document and page reference
-    if (
-      tab === "page-view" &&
-      selectedDocumentId &&
-      nodeContext?.pageReference
-    ) {
-      fetchPageImage(selectedDocumentId, nodeContext.pageReference);
-    }
-  };
-
-  // Handle page navigation
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages || !selectedDocumentId) return;
-    setCurrentPage(newPage);
-    fetchPageImage(selectedDocumentId, newPage);
   };
 
   return (
@@ -677,12 +618,6 @@ export default function DocumentAnalysisPage() {
                 onClick={() => handleTabChange("page-view")}
               >
                 Page View
-                {nodeContext?.pageReference &&
-                  nodeContext.pageReference > 0 && (
-                    <span className={styles["tab-hint"]}>
-                      Page {nodeContext.pageReference}
-                    </span>
-                  )}
               </li>
             </ul>
 
@@ -760,68 +695,22 @@ export default function DocumentAnalysisPage() {
                   activeTab === "page-view" ? styles.active : ""
                 }`}
               >
-                {selectedDocumentId ? (
-                  <div className={styles["pdf-view-container"]}>
-                    {isLoadingPage ? (
-                      <div className={styles["pdf-loading"]}>
-                        <div className={styles["pdf-loading-spinner"]}></div>
-                        <p>Loading page {currentPage}...</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className={styles["pdf-page-wrapper"]}>
-                          <img
-                            src={`${API_BASE_URL}/api/document/${selectedDocumentId}/page/${currentPage}/image`}
-                            alt={`Page ${currentPage}`}
-                            className={styles["pdf-page-image"]}
-                            onError={(e) => {
-                              // Hide broken image icon and show error
-                              (e.target as HTMLImageElement).style.display =
-                                "none";
-                              const parent = (e.target as HTMLImageElement)
-                                .parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<div style="padding: 2rem; text-align: center; color: #ef4444;">
-                                  <p>Error loading page image</p>
-                                  <p>This may be due to server limitations or image not being available</p>
-                                </div>`;
-                              }
-                            }}
-                          />
-                        </div>
-
-                        <div className={styles["pdf-navigation"]}>
-                          <button
-                            className={styles["pdf-nav-button"]}
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage <= 1}
-                          >
-                            Previous
-                          </button>
-                          <div className={styles["pdf-page-number"]}>
-                            {currentPage} / {totalPages || "?"}
-                          </div>
-                          <button
-                            className={styles["pdf-nav-button"]}
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage >= totalPages}
-                          >
-                            Next
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className={styles["document-placeholder"]}>
-                    <FileText size={48} className={styles.placeholderIcon} />
-                    <h3 className={styles.placeholderTitle}>Page View</h3>
-                    <p className={styles.placeholderText}>
-                      Select a document and click on a heading in the structure
-                      to view its page.
-                    </p>
-                  </div>
-                )}
+                <div className={styles["document-placeholder"]}>
+                  <FileText size={48} className={styles.placeholderIcon} />
+                  <h3 className={styles.placeholderTitle}>
+                    Document Viewer (Coming Soon)
+                  </h3>
+                  <p className={styles.placeholderText}>
+                    This feature is currently under development. When
+                    implemented, you'll be able to browse through all pages of
+                    your selected document.
+                  </p>
+                  <p className={styles.placeholderSubText}>
+                    The document viewer will show the entire PDF document with
+                    pagination, and will automatically load when you select a
+                    document from the Document List panel.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

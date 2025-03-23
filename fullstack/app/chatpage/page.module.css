@@ -569,45 +569,36 @@
   padding: 2rem;
   text-align: center;
   color: var(--foreground-secondary);
-}
-
-.document-placeholder h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: var(--foreground-primary);
-}
-
-.document-placeholder p {
-  margin-bottom: 0.75rem;
-  max-width: 400px;
-  line-height: 1.5;
-}
-
-.document-placeholder svg {
-  margin-top: 1rem;
-  font-size: 2rem;
-  color: var(--accent);
-  transform: rotate(-45deg);
-  margin-bottom: 1rem;
-}
-
-.placeholderIcon {
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-  opacity: 0.8;
+  background-color: #f9fafb;
 }
 
 .placeholderTitle {
   font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #4b5563;
 }
 
 .placeholderText {
   font-size: 1rem;
+  margin-bottom: 0.75rem;
+  max-width: 400px;
+  line-height: 1.5;
+  color: #6b7280;
 }
 
 .placeholderSubText {
   font-size: 0.9rem;
-  opacity: 0.8;
+  color: #9ca3af;
+  max-width: 360px;
+  margin-top: 0.75rem;
+  line-height: 1.4;
+}
+
+.placeholderIcon {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
 }
 
 .placeholderArrow {
@@ -1526,13 +1517,15 @@
 }
 
 .tab-item {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: #6b7280;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
 }
 
 .tab-item:hover {
@@ -1544,6 +1537,7 @@
   color: #3b82f6;
   border-bottom-color: #3b82f6;
   background-color: white;
+  font-weight: 600;
 }
 
 .tab-hint {
