@@ -56,10 +56,139 @@ interface NodeContext {
 
 // Modify PDFDocumentViewer to use the dynamic import
 const PDFDocumentViewer = ({ documentId }: { documentId: string | null }) => {
-  // Always render the local sample PDF without backend checks
+  const [base64Pdf, setBase64Pdf] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string>("Document");
+
+  const fetchPdf = async (docId: string, retryCount = 0) => {
+    setIsLoading(true);
+    setError(null);
+
+    // Only clear base64Pdf on the first attempt, not on retries
+    if (retryCount === 0) {
+      setBase64Pdf(null);
+    }
+
+    try {
+      console.log(
+        `Fetching PDF for document ID: ${docId} (Attempt ${retryCount + 1})`
+      );
+
+      // Fetch the PDF document from the backend as base64
+      const response = await fetch(
+        `${API_BASE_URL}/api/document/document/${docId}/original-pdf`
+      );
+
+      console.log("API response status:", response.status);
+
+      if (!response.ok) {
+        // For 5xx errors, consider retrying
+        if (response.status >= 500 && retryCount < 3) {
+          console.log(`Server error (${response.status}), retrying...`);
+          setIsLoading(false);
+
+          // Wait a bit longer between retries
+          setTimeout(() => {
+            fetchPdf(docId, retryCount + 1);
+          }, 1000 * (retryCount + 1)); // Exponential backoff
+
+          return;
+        }
+
+        throw new Error(
+          `Failed to fetch PDF: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("API response data keys:", Object.keys(data));
+
+      // Try to find base64 PDF data in various possible response formats
+      let pdfBase64 = null;
+      let documentFilename = filename;
+
+      // Extract PDF data from original_pdf property
+      if (data.original_pdf && typeof data.original_pdf === "string") {
+        pdfBase64 = data.original_pdf;
+        console.log("Found base64 PDF data in original_pdf property");
+      } else {
+        console.error("Response data structure:", data);
+        throw new Error("No original_pdf property found in server response");
+      }
+
+      // Try to find filename in various possible response formats
+      if (data.filename) {
+        documentFilename = data.filename;
+      } else if (data.name) {
+        documentFilename = data.name;
+      } else if (data.title) {
+        documentFilename = data.title;
+      } else if (data.document_name) {
+        documentFilename = data.document_name;
+      } else if (data.document_id) {
+        documentFilename = `Document-${data.document_id}`;
+      }
+
+      if (!pdfBase64) {
+        console.error("Response data structure:", data);
+        throw new Error("No PDF data found in server response");
+      }
+
+      // Remove potential data URI prefix if present
+      if (pdfBase64.startsWith("data:application/pdf;base64,")) {
+        pdfBase64 = pdfBase64.substring("data:application/pdf;base64,".length);
+      }
+
+      // Set the base64 PDF data and filename
+      console.log("Setting base64 PDF data, length:", pdfBase64.length);
+      setBase64Pdf(pdfBase64);
+      console.log("Setting filename:", documentFilename);
+      setFilename(documentFilename);
+    } catch (err: any) {
+      console.error("Error fetching PDF:", err);
+
+      // Retry for network errors
+      if (err.message.includes("NetworkError") && retryCount < 3) {
+        console.log(`Network error, retrying (${retryCount + 1}/3)...`);
+        setIsLoading(false);
+
+        // Wait a bit longer between retries
+        setTimeout(() => {
+          fetchPdf(docId, retryCount + 1);
+        }, 1000 * (retryCount + 1)); // Exponential backoff
+
+        return;
+      }
+
+      setError(err.message || "Failed to load PDF document");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch the PDF when the document ID changes
+  useEffect(() => {
+    if (documentId) {
+      fetchPdf(documentId);
+    } else {
+      // Reset the state when no document is selected
+      setBase64Pdf(null);
+      setError(null);
+      setIsLoading(false);
+      setFilename("Document");
+    }
+  }, [documentId]);
+
   return (
     <div className={styles["pdf-container"]}>
-      <PDFViewer />
+      <PDFViewer
+        base64Pdf={base64Pdf || undefined}
+        filename={filename}
+        isLoading={isLoading}
+        error={error}
+        onRetry={documentId ? () => fetchPdf(documentId) : undefined}
+      />
     </div>
   );
 };
