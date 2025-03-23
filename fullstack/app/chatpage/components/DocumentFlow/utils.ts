@@ -19,9 +19,10 @@ export const processDocumentStructure = (
 ) => {
   const processedNodes: Node<DocumentNodeData>[] = [];
   const processedEdges: Edge[] = [];
+  const nodeIdMap = new Map<string, string>(); // Maps content to nodeId to avoid duplicates
 
   // Function to generate unique node IDs
-  const createNodeId = (type: string, index: number) => `${type}-${index}`;
+  const createNodeId = (prefix: string, index: number) => `${prefix}-${index}`;
 
   // Check if we're dealing with enhanced structure
   const isEnhanced = data.enhanced === true;
@@ -32,210 +33,104 @@ export const processDocumentStructure = (
     }, Enhanced format: ${isEnhanced}`
   );
 
-  // Create document root node
-  const rootNodeId = "root";
-  processedNodes.push({
-    id: rootNodeId,
-    type: "custom",
-    position: { x: 0, y: 0 }, // Initial position, will be overridden by layout
-    data: {
-      id: rootNodeId,
-      label: data.document_name || data.title || `Document ${documentId}`,
-      level: 0,
-      pageReference: 1,
-    },
-    sourcePosition: "bottom", // Add source position
-    targetPosition: "top", // Add target position
-  });
-
-  // Process headings
+  // Process document structure
   if (data.document_structure && data.document_structure.length > 0) {
     console.log(`Processing ${data.document_structure.length} main headings`);
 
-    data.document_structure.forEach((item, index) => {
-      console.log(
-        `Processing heading: ${item.heading} with ${
-          item.subheadings?.length || 0
-        } subheadings`
-      );
+    // First pass - create all nodes
+    let currentY = 0;
+    let nextHeadingY = 0;
 
-      // Create heading node
-      const nodeId = createNodeId("heading", index);
+    data.document_structure.forEach((section, sectionIndex) => {
+      if (!section.heading) {
+        console.warn(`Section ${sectionIndex} is missing a heading`);
+        return;
+      }
 
-      // Determine the level of the heading (either from the data or using our function)
-      const headingLevel = item.level || determineHeadingLevel(item.heading);
+      // Set Y position for this heading
+      currentY = nextHeadingY;
+
+      // Create main heading node
+      const headingId = createNodeId("heading", sectionIndex);
+      // If this is the first heading (top parent node), make it level 0, otherwise level 1
+      const headingLevel = sectionIndex === 0 ? 0 : 1;
 
       processedNodes.push({
-        id: nodeId,
+        id: headingId,
         type: "custom",
-        position: { x: 0, y: (index + 1) * VERTICAL_SPACING }, // Use constant for spacing
+        position: { x: 0, y: currentY },
         data: {
-          id: nodeId,
-          label: item.heading,
+          id: headingId,
+          label: section.heading,
           level: headingLevel,
-          pageReference: item.page_reference || 1,
+          pageReference: section.page_reference || 1,
         },
-        sourcePosition: "bottom", // Add source position
-        targetPosition: "top", // Add target position
+        sourcePosition: "bottom",
+        targetPosition: "top",
       });
 
-      // Connect heading to root
-      processedEdges.push({
-        id: `edge-root-to-heading-${index}`,
-        source: rootNodeId,
-        target: nodeId,
-        type: "smoothstep",
-        animated: false,
-        sourceHandle: "source",
-        targetHandle: "target",
-        style: { strokeWidth: 2, stroke: "#333" },
-      });
+      nodeIdMap.set(section.heading, headingId);
 
-      // Process subheadings if available
-      if (item.subheadings && item.subheadings.length > 0) {
-        // Function to recursively process subheadings with enhanced support
-        const processSubheadings = (
-          parentId: string,
-          subheadings: Subheading[],
-          parentIndex: number,
-          level: number,
-          xOffset: number
-        ) => {
-          subheadings.forEach((subheading, subIndex) => {
-            // Create unique ID for this subheading
-            const subNodeId = createNodeId(
-              `subheading-${parentIndex}-${subIndex}`,
-              subIndex
-            );
+      // Track the Y position after processing this heading and its subheadings
+      let sectionHeight = VERTICAL_SPACING;
 
-            // Log subheading data for debugging
-            console.log(
-              `Processing subheading: index=${subIndex}, title=${
-                subheading.title || "Untitled"
-              }`
-            );
-
-            // Ensure we have a valid label
-            const nodeLabel = subheading.title || "Untitled subheading";
-
-            // Create node with enhanced data if available
-            processedNodes.push({
-              id: subNodeId,
-              type: "custom",
-              position: {
-                x: xOffset, // Position based on nesting level
-                y:
-                  (parentIndex + 1) * VERTICAL_SPACING +
-                  (subIndex + 1) * (VERTICAL_SPACING / 2), // Better vertical spacing
-              },
-              data: {
-                id: subNodeId,
-                label: nodeLabel,
-                level: level, // Use the passed level
-                pageReference: subheading.page_reference || 1,
-                context: subheading.context, // Include context information if available
-                visualReferences: subheading.visual_references, // Include visual references
-              },
-              sourcePosition: "bottom",
-              targetPosition: "top",
-            });
-
-            // Connect to parent
-            processedEdges.push({
-              id: `edge-${parentId}-to-${subNodeId}`,
-              source: parentId,
-              target: subNodeId,
-              type: "smoothstep",
-              animated: false,
-              sourceHandle: "source",
-              targetHandle: "target",
-              style: { strokeWidth: 2, stroke: "#333" },
-            });
-
-            // Process visual references in enhanced format (if enabled)
-            if (
-              isEnhanced &&
-              subheading.visual_references &&
-              subheading.visual_references.length > 0
-            ) {
-              subheading.visual_references.forEach((visual, visualIndex) => {
-                const visualNodeId = createNodeId(
-                  `visual-${parentIndex}-${subIndex}-${visualIndex}`,
-                  visualIndex
-                );
-
-                // Create node for visual reference
-                processedNodes.push({
-                  id: visualNodeId,
-                  type: "custom",
-                  position: {
-                    x: xOffset + HORIZONTAL_SPACING / 2, // Position to the right of the subheading
-                    y:
-                      (parentIndex + 1) * VERTICAL_SPACING +
-                      (subIndex + 1) * (VERTICAL_SPACING / 2) +
-                      (visualIndex + 1) * (VERTICAL_SPACING / 4), // Vertical spacing for visual
-                  },
-                  data: {
-                    id: visualNodeId,
-                    label: visual.image_caption || "Image",
-                    level: level + 1, // Visual references are one level deeper
-                    pageReference:
-                      visual.page_reference || subheading.page_reference || 1,
-                    type: "visual", // Mark as visual node type
-                  },
-                  sourcePosition: "bottom",
-                  targetPosition: "top",
-                });
-
-                // Connect subheading to visual reference
-                processedEdges.push({
-                  id: `edge-${subNodeId}-to-${visualNodeId}`,
-                  source: subNodeId,
-                  target: visualNodeId,
-                  type: "smoothstep",
-                  animated: false,
-                  sourceHandle: "source",
-                  targetHandle: "target",
-                  style: {
-                    strokeWidth: 2,
-                    stroke: "#333",
-                    strokeDasharray: "5,5",
-                  }, // Dashed line for visuals
-                });
-              });
-            }
-
-            // Recursively process any deeper subheadings (if available)
-            if (subheading.subheadings && subheading.subheadings.length > 0) {
-              processSubheadings(
-                subNodeId,
-                subheading.subheadings,
-                parentIndex,
-                level + 1,
-                xOffset + HORIZONTAL_SPACING / 2 // Increase horizontal offset for deeper levels
-              );
-            }
-          });
-        };
-
-        // Start processing subheadings with the current heading as parent
-        processSubheadings(
-          nodeId,
-          item.subheadings,
-          index,
-          headingLevel + 1, // Use headingLevel instead of fixed (item.level || 1) + 1
-          HORIZONTAL_SPACING
+      // Process subheadings recursively
+      if (section.subheadings && section.subheadings.length > 0) {
+        // Calculate height needed for this section's subheadings
+        const { height, lastNodeY } = processSubheadingSection(
+          section.subheadings,
+          headingId,
+          sectionIndex,
+          currentY + VERTICAL_SPACING,
+          headingLevel + 1,
+          0,
+          processedNodes,
+          processedEdges,
+          nodeIdMap
         );
+
+        // Adjust the next heading Y position based on the height of this section
+        sectionHeight = Math.max(sectionHeight, height);
+        nextHeadingY = Math.max(nextHeadingY, lastNodeY) + VERTICAL_SPACING;
+      } else {
+        nextHeadingY = currentY + VERTICAL_SPACING;
+      }
+
+      // If this isn't the first heading, connect it to the previous heading
+      if (sectionIndex > 0) {
+        const prevHeadingId = createNodeId("heading", sectionIndex - 1);
+        processedEdges.push({
+          id: `edge-${prevHeadingId}-to-${headingId}`,
+          source: prevHeadingId,
+          target: headingId,
+          type: "smoothstep",
+          animated: false,
+          style: { strokeWidth: 2, stroke: "#333" },
+        });
       }
     });
   } else {
     console.warn("No document structure data found");
+
+    // Create an empty heading if none exists
+    processedNodes.push({
+      id: "empty",
+      type: "custom",
+      position: { x: 0, y: 0 },
+      data: {
+        id: "empty",
+        label: data.document_name || data.title || `Document ${documentId}`,
+        level: 0,
+        pageReference: 1,
+      },
+      sourcePosition: "bottom",
+      targetPosition: "top",
+    });
   }
 
-  // Apply a better layout for presentation
-  applyHierarchicalLayout(processedNodes);
+  // Perform additional layout optimization to prevent edge/node overlap
+  optimizeLayout(processedNodes, processedEdges);
 
-  // Log the results
   console.log(
     `Generated ${processedNodes.length} nodes and ${processedEdges.length} edges`
   );
@@ -244,38 +139,245 @@ export const processDocumentStructure = (
 };
 
 /**
- * Apply a hierarchical layout to position nodes in a more organized way
+ * Process a group of subheadings and their children
+ * Returns the total height taken by this subheading section and the last node's Y position
  */
-function applyHierarchicalLayout(nodes: Node<DocumentNodeData>[]) {
-  // Group nodes by level
-  const nodesByLevel = new Map<number, Node<DocumentNodeData>[]>();
+function processSubheadingSection(
+  subheadings: Subheading[],
+  parentId: string,
+  sectionIndex: number,
+  startY: number,
+  level: number,
+  xOffset: number,
+  nodes: Node<DocumentNodeData>[],
+  edges: Edge[],
+  nodeIdMap: Map<string, string>
+): { height: number; lastNodeY: number } {
+  let currentY = startY;
+  let maxChildY = startY;
+  let totalHeight = 0;
 
-  nodes.forEach((node) => {
-    const level = node.data.level || 0;
-    if (!nodesByLevel.has(level)) {
-      nodesByLevel.set(level, []);
+  // Determine x coordinate for this level
+  const xPos =
+    level % 2 === 0
+      ? xOffset - HORIZONTAL_SPACING // Even levels go left
+      : xOffset + HORIZONTAL_SPACING; // Odd levels go right
+
+  subheadings.forEach((subheading, subIndex) => {
+    if (!subheading.title) {
+      console.warn(
+        `Subheading ${subIndex} in section ${sectionIndex} is missing a title`
+      );
+      return;
     }
-    nodesByLevel.get(level)?.push(node);
-  });
 
-  // Position nodes by level with better spacing
-  let yOffset = 0;
-  Array.from(nodesByLevel.keys())
-    .sort()
-    .forEach((level) => {
-      const levelNodes = nodesByLevel.get(level) || [];
-      const xStep = levelNodes.length > 1 ? HORIZONTAL_SPACING : 0;
-      const xStart = (-(levelNodes.length - 1) * xStep) / 2;
+    // Create node ID and add node
+    const nodeId = `subheading-${sectionIndex}-${level}-${subIndex}`;
 
-      levelNodes.forEach((node, index) => {
-        node.position = {
-          x: xStart + index * xStep,
-          y: level * VERTICAL_SPACING,
-        };
+    nodes.push({
+      id: nodeId,
+      type: "custom",
+      position: { x: xPos, y: currentY },
+      data: {
+        id: nodeId,
+        label: subheading.title,
+        level: level,
+        pageReference: subheading.page_reference || 1,
+        context: subheading.context || "",
+      },
+      sourcePosition: "bottom",
+      targetPosition: "top",
+    });
+
+    nodeIdMap.set(subheading.title, nodeId);
+
+    // Connect to parent
+    edges.push({
+      id: `edge-${parentId}-to-${nodeId}`,
+      source: parentId,
+      target: nodeId,
+      type: "smoothstep",
+      animated: false,
+      style: { strokeWidth: 2, stroke: "#333" },
+    });
+
+    let lastNodeY = currentY;
+    let additionalHeight = 0;
+
+    // Process visual references
+    if (
+      subheading.visual_references &&
+      subheading.visual_references.length > 0
+    ) {
+      const visualStartY = currentY + VERTICAL_SPACING / 2;
+      let visualY = visualStartY;
+
+      subheading.visual_references.forEach((visual, visualIndex) => {
+        const visualNodeId = `visual-${sectionIndex}-${level}-${subIndex}-${visualIndex}`;
+
+        nodes.push({
+          id: visualNodeId,
+          type: "custom",
+          position: {
+            x: xPos + HORIZONTAL_SPACING / 2,
+            y: visualY,
+          },
+          data: {
+            id: visualNodeId,
+            label: visual.image_caption || "Image",
+            level: level,
+            pageReference:
+              visual.page_reference || subheading.page_reference || 1,
+            type: "visual",
+          },
+          sourcePosition: "bottom",
+          targetPosition: "top",
+        });
+
+        edges.push({
+          id: `edge-${nodeId}-to-${visualNodeId}`,
+          source: nodeId,
+          target: visualNodeId,
+          type: "smoothstep",
+          animated: false,
+          style: {
+            strokeWidth: 2,
+            stroke: "#333",
+            strokeDasharray: "5,5",
+          },
+        });
+
+        visualY += VERTICAL_SPACING / 2;
       });
 
-      yOffset += VERTICAL_SPACING;
+      if (subheading.visual_references.length > 0) {
+        additionalHeight =
+          (subheading.visual_references.length * VERTICAL_SPACING) / 2;
+        lastNodeY = visualY - VERTICAL_SPACING / 2;
+      }
+    }
+
+    // Process nested subheadings recursively
+    if (subheading.subheadings && subheading.subheadings.length > 0) {
+      const { height, lastNodeY: childLastY } = processSubheadingSection(
+        subheading.subheadings,
+        nodeId,
+        sectionIndex,
+        currentY + VERTICAL_SPACING / 2,
+        level + 1,
+        xPos,
+        nodes,
+        edges,
+        nodeIdMap
+      );
+
+      additionalHeight = Math.max(additionalHeight, height);
+      lastNodeY = Math.max(lastNodeY, childLastY);
+    }
+
+    // Update maximum Y position
+    maxChildY = Math.max(maxChildY, lastNodeY);
+
+    // Move current Y position for next sibling
+    currentY = lastNodeY + VERTICAL_SPACING;
+    totalHeight += VERTICAL_SPACING + additionalHeight;
+  });
+
+  return {
+    height: totalHeight,
+    lastNodeY: maxChildY,
+  };
+}
+
+/**
+ * Optimize the layout to prevent edge-node overlaps and improve readability
+ */
+function optimizeLayout(nodes: Node<DocumentNodeData>[], edges: Edge[]) {
+  // Create a map of node positions to check for overlaps
+  const nodePositions = new Map<
+    string,
+    {
+      node: Node<DocumentNodeData>;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  >();
+
+  // Approximate node dimensions based on level/type
+  nodes.forEach((node) => {
+    const level = node.data.level || 0;
+    const isVisual = node.data.type === "visual";
+
+    // Estimate node dimensions based on content and type
+    const width = isVisual ? 150 : node.data.label.length * 10 + 40;
+    const height = isVisual ? 80 : 50;
+
+    nodePositions.set(node.id, {
+      node,
+      x: node.position.x,
+      y: node.position.y,
+      width,
+      height,
     });
+  });
+
+  // Check if any edges intersect with nodes and adjust node positions if needed
+  edges.forEach((edge) => {
+    const sourceNode = nodePositions.get(edge.source);
+    const targetNode = nodePositions.get(edge.target);
+
+    if (sourceNode && targetNode) {
+      // Simple bounding box for edge path (not perfect but a reasonable approximation)
+      const edgeMinX = Math.min(sourceNode.x, targetNode.x);
+      const edgeMaxX = Math.max(sourceNode.x, targetNode.x);
+      const edgeMinY = Math.min(sourceNode.y, targetNode.y);
+      const edgeMaxY = Math.max(sourceNode.y, targetNode.y);
+
+      // Check if any node (other than source and target) overlaps with this edge path
+      nodePositions.forEach((nodePos, nodeId) => {
+        if (nodeId !== edge.source && nodeId !== edge.target) {
+          // Simple overlap check (not perfect for curved edges but helps)
+          const nodeMinX = nodePos.x - nodePos.width / 2;
+          const nodeMaxX = nodePos.x + nodePos.width / 2;
+          const nodeMinY = nodePos.y - nodePos.height / 2;
+          const nodeMaxY = nodePos.y + nodePos.height / 2;
+
+          // Check if node bounding box intersects edge bounding box
+          if (
+            nodeMaxX > edgeMinX &&
+            nodeMinX < edgeMaxX &&
+            nodeMaxY > edgeMinY &&
+            nodeMinY < edgeMaxY
+          ) {
+            // Move the node slightly to avoid overlap
+            const isHorizontalOverlap =
+              edgeMaxX - edgeMinX > edgeMaxY - edgeMinY;
+
+            if (isHorizontalOverlap) {
+              // Move node vertically to avoid horizontal edge
+              nodePos.node.position.y += VERTICAL_SPACING / 3;
+            } else {
+              // Move node horizontally to avoid vertical edge
+              nodePos.node.position.x += HORIZONTAL_SPACING / 3;
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // Apply corrected positions back to the nodes
+  nodePositions.forEach((nodePos, nodeId) => {
+    const node = nodes.find((n) => n.id === nodeId);
+    if (node) {
+      node.position = {
+        x: nodePos.node.position.x,
+        y: nodePos.node.position.y,
+      };
+    }
+  });
 }
 
 /**
@@ -296,59 +398,4 @@ export function determineHeadingLevel(title: string): number {
   }
 
   return level;
-}
-
-/**
- * Create edges between related headings based on their numerical hierarchy
- */
-function createHierarchicalEdges(
-  headings: Subheading[],
-  nodeMap: Map<string, string>,
-  edges: Edge[]
-) {
-  // Create a map of heading prefix to heading object
-  // e.g., "3.2" -> heading with title "3.2 Method"
-  const headingPrefixMap = new Map<string, { title: string; nodeId: string }>();
-
-  headings.forEach((heading) => {
-    const nodeId = nodeMap.get(heading.title);
-    if (!nodeId) return;
-
-    const match = heading.title.match(/^(\d+(\.\d+)*)/);
-    if (match) {
-      const prefix = match[0];
-      headingPrefixMap.set(prefix, { title: heading.title, nodeId });
-    }
-  });
-
-  // Now connect each heading to its parent based on prefix
-  headings.forEach((heading) => {
-    const match = heading.title.match(/^(\d+(\.\d+)*)/);
-    if (!match) return;
-
-    const prefix = match[0];
-    const lastDotIndex = prefix.lastIndexOf(".");
-
-    // Skip if this is a top-level heading (no dots)
-    if (lastDotIndex === -1) return;
-
-    // Get parent prefix (e.g., for "3.2.1", parent is "3.2")
-    const parentPrefix = prefix.substring(0, lastDotIndex);
-    const parent = headingPrefixMap.get(parentPrefix);
-
-    if (parent && nodeMap.has(heading.title)) {
-      const sourceId = parent.nodeId;
-      const targetId = nodeMap.get(heading.title)!;
-
-      // Add edge from parent to this heading
-      edges.push({
-        id: `edge-${sourceId}-to-${targetId}`,
-        source: sourceId,
-        target: targetId,
-        type: "smoothstep",
-        animated: false,
-        style: { stroke: "#999" },
-      });
-    }
-  });
 }
