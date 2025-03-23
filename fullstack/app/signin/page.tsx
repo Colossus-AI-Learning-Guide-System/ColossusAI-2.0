@@ -19,6 +19,7 @@ export default function SignInPage() {
   const id = useId();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/chatpage";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,7 +89,7 @@ export default function SignInPage() {
       }
 
       if (data?.session) {
-        router.push("/chatpage");
+        router.push(redirectPath);
       }
     } catch (err: any) {
       console.error("Signin error:", err);
@@ -106,7 +107,7 @@ export default function SignInPage() {
     setLoading(true);
     
     try {
-      const { error } = await signInWithOAuth(provider);
+      const { error } = await signInWithOAuth(provider, redirectPath);
       if (error) {
         throw new Error(
           `Unable to sign in with ${provider}. Please try again or use another sign-in method.`

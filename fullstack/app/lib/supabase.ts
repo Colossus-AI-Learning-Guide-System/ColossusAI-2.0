@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js"
 export type UserProfile = {
   id: string
   full_name: string
-  username: string
   email: string
   avatar_url?: string
 }

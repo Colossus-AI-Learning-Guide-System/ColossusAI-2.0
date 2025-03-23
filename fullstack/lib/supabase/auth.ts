@@ -123,16 +123,23 @@ export const resendConfirmationEmail = async (email: string) => {
 };
 
 // OAuth Sign In (Google, GitHub)
-export const signInWithOAuth = async (provider: Provider) => {
+// OAuth Sign In (Google, GitHub)
+export const signInWithOAuth = async (provider: Provider, redirectUrl?: string) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
     
     try {
+      const baseRedirectTo = `${window.location.origin}/auth/callback`;
+      // Append a next parameter to the redirect URL
+      const finalRedirectTo = redirectUrl 
+        ? `${baseRedirectTo}?next=${encodeURIComponent(redirectUrl)}` 
+        : baseRedirectTo;
+        
       const result = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: finalRedirectTo,
         },
       });
       
