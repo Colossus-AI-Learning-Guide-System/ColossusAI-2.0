@@ -31,8 +31,32 @@ const API_BASE_URL = "http://127.0.0.1:5002";
 // Custom node component
 const CustomNode = ({ data }: { data: DocumentNodeData }) => {
   const level = data.level || 0;
-  const nodeClass = styles[`nodeLevel${level}`];
 
+  // Check if this is a visual reference node
+  if (data.type === "visual") {
+    return (
+      <div className={styles.nodeVisual}>
+        <Handle
+          type="target"
+          position={Position.Top}
+          id="target"
+          className={styles.targetHandle}
+        />
+        <div className={styles.nodeLabel} title={data.label}>
+          {data.label}
+        </div>
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="source"
+          className={styles.sourceHandle}
+        />
+      </div>
+    );
+  }
+
+  // Standard heading node
+  const nodeClass = styles[`nodeLevel${level}`];
   return (
     <div className={nodeClass}>
       <Handle
@@ -423,6 +447,12 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
               className={`${styles.legendColor} ${styles.legendLevel4}`}
             ></div>
             <div className={styles.legendText}>Level 4+ Heading</div>
+          </div>
+          <div className={styles.legendItem}>
+            <div
+              className={`${styles.legendColor} ${styles.legendVisual}`}
+            ></div>
+            <div className={styles.legendText}>Visual Reference</div>
           </div>
         </Panel>
         <Panel position="top-right">

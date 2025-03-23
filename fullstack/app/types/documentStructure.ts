@@ -3,6 +3,9 @@ import { Node, Edge } from "reactflow";
 // Backend API response types
 export interface DocumentStructureResponse {
   document_structure: DocumentStructure[];
+  document_name?: string;
+  enhanced?: boolean;
+  title?: string;
 }
 
 export interface DocumentStructure {
@@ -31,6 +34,8 @@ export interface DocumentNodeData {
   level: number;
   pageReference: number;
   type?: string;
+  context?: string;
+  visualReferences?: VisualReference[];
 }
 
 // Custom node types

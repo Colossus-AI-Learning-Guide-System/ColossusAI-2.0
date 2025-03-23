@@ -400,3 +400,53 @@
 .flowContainer :global(.react-flow__background) {
   opacity: 0.3;
 }
+
+/* Visual node styling - distinctive from standard nodes */
+.nodeVisual {
+  background-color: #fae8ff; /* Light purple bg */
+  border: 2px dashed #be185d; /* Pink dashed border */
+  border-radius: 8px;
+  padding: 10px;
+  color: #9d174d; /* Pink 800 */
+  font-weight: 400;
+  font-style: italic;
+  width: auto;
+  min-width: 150px;
+  max-width: 250px;
+  position: relative;
+  margin: 8px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+}
+
+.nodeVisual::before {
+  content: "📷";
+  position: absolute;
+  left: -5px;
+  top: -10px;
+  font-size: 16px;
+  background: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add visual node to legend */
+.legendVisual {
+  background-color: #fae8ff;
+  border: 2px dashed #be185d;
+  position: relative;
+}
+
+/* Style for dashed edges */
+.flowContainer :global(.react-flow__edge-path[stroke-dasharray]) {
+  animation: dash 15s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 100;
+  }
+}

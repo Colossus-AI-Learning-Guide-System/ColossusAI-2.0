@@ -6,7 +6,11 @@ import DocumentFlow from "./DocumentFlow/DocumentFlow";
 
 interface DocumentStructureProps {
   documentId: string | null;
-  onNodeClick?: (headingText: string, documentId: string) => void;
+  onNodeClick?: (
+    headingText: string,
+    documentId: string,
+    pageReference?: number
+  ) => void;
 }
 
 /**
@@ -26,7 +30,7 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
   const handleDocumentNodeClick = useCallback(
     (headingText: string, docId: string, page: number) => {
       if (onNodeClick) {
-        onNodeClick(headingText, docId);
+        onNodeClick(headingText, docId, page);
         console.log(
           `Node clicked: ${headingText}, Document: ${docId}, Page: ${page}`
         );

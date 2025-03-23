@@ -426,9 +426,11 @@ export default function DocumentAnalysisPage() {
 
   // Update heading click handler to extract context
   const handleHeadingClick = useCallback(
-    (headingText: string, documentId: string) => {
+    (headingText: string, documentId: string, pageReference?: number) => {
       console.log(
-        `Clicked on heading "${headingText}" in document ${documentId}`
+        `Clicked on heading "${headingText}" in document ${documentId}${
+          pageReference ? `, page ${pageReference}` : ""
+        }`
       );
       setCurrentHeading(headingText);
       setSelectedDocumentId(documentId);
