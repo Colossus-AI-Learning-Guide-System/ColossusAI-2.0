@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./page.module.css";
 import { PaperclipIcon, SendIcon, FileText } from "lucide-react";
 import { Sidebar } from "@/app/components/ui/sidebar";
 import DocumentStructureGraph from "./components/DocumentStructureGraph";
 import DocumentList from "../components/DocumentList";
+import dynamic from "next/dynamic";
+
+// Dynamically import PDF viewer components with SSR disabled
+const PDFViewer = dynamic(() => import("./components/PDFViewer"), {
+  ssr: false,
+});
 
 // API base URL constant
 const API_BASE_URL = "http://127.0.0.1:5002";
@@ -47,6 +53,178 @@ interface NodeContext {
   pageReference: number;
   visualReferences: VisualReference[];
 }
+
+// Modify PDFDocumentViewer to use the dynamic import
+const PDFDocumentViewer = ({ documentId }: { documentId: string | null }) => {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Local PDF URL for testing when backend is not available
+  const LOCAL_PDF_URL = "/Sample_test_pdf/attention.pdf";
+
+  // Define loadPdf function with useCallback to prevent infinite loops
+  const loadPdf = useCallback(async () => {
+    if (!documentId) {
+      setPdfUrl(null);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Construct the PDF URL
+      const url = `${API_BASE_URL}/api/document/${documentId}/pdf`;
+
+      console.log(`Attempting to fetch PDF from: ${url}`);
+
+      try {
+        // Check if the PDF is accessible
+        const response = await fetch(url, { method: "HEAD" });
+
+        if (response.ok) {
+          console.log("Backend PDF service returned OK status");
+          setPdfUrl(url);
+        } else {
+          console.warn(
+            `Backend PDF not available: ${response.status} ${response.statusText}`
+          );
+
+          // Check if local PDF file exists
+          try {
+            // Testing if local PDF file can be accessed
+            const localPdfResponse = await fetch(LOCAL_PDF_URL, {
+              method: "HEAD",
+              cache: "no-cache",
+            });
+
+            if (localPdfResponse.ok) {
+              console.log(`Local PDF file found at: ${LOCAL_PDF_URL}`);
+              setPdfUrl(LOCAL_PDF_URL);
+              setError(
+                `Backend PDF service not available. Using local test PDF for demo purposes.`
+              );
+            } else {
+              console.error(`Local PDF file not found at: ${LOCAL_PDF_URL}`);
+              setPdfUrl(null);
+              setError(
+                `Please copy the attention.pdf file to the public/Sample_test_pdf/ directory in your project.`
+              );
+            }
+          } catch (localErr) {
+            console.error("Error accessing local PDF:", localErr);
+            setPdfUrl(LOCAL_PDF_URL); // Still try to use it anyway
+            setError(
+              `Backend PDF service not available. Attempting to use local test PDF. If not visible, please copy attention.pdf to public/Sample_test_pdf/ directory.`
+            );
+          }
+        }
+      } catch (networkErr) {
+        // Network error - likely backend not running
+        console.error("Network error accessing backend:", networkErr);
+
+        // For development/testing - use a local PDF if backend isn't available
+        console.log(`Using local PDF instead: ${LOCAL_PDF_URL}`);
+        setPdfUrl(LOCAL_PDF_URL);
+
+        setError(
+          "Backend not accessible. Using local test PDF. If not visible, place attention.pdf in public/Sample_test_pdf/ directory."
+        );
+      }
+    } catch (err) {
+      console.error("Error in loadPdf function:", err);
+
+      // For development/testing - use a local PDF if backend isn't available
+      console.log(`Using local PDF instead: ${LOCAL_PDF_URL}`);
+      setPdfUrl(LOCAL_PDF_URL);
+
+      setError(
+        "Backend service error. Using local test PDF. If not visible, place attention.pdf in public/Sample_test_pdf/ directory."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [documentId]);
+
+  // Load PDF when document ID changes
+  useEffect(() => {
+    if (!documentId) {
+      setPdfUrl(null);
+      return;
+    }
+
+    loadPdf();
+  }, [documentId, loadPdf]);
+
+  if (isLoading) {
+    return (
+      <div className={styles["pdf-loading"]}>
+        <div className={styles["pdf-loading-spinner"]}></div>
+        <p>Loading document...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles["document-placeholder"]}>
+        <div style={{ color: "#ef4444", marginBottom: "1rem" }}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <h3 className={styles.placeholderTitle}>Error Loading Document</h3>
+        <p className={styles.placeholderText}>{error}</p>
+        <button
+          onClick={() => loadPdf()}
+          style={{
+            marginTop: "1rem",
+            padding: "0.5rem 1rem",
+            backgroundColor: "#3b82f6",
+            color: "white",
+            border: "none",
+            borderRadius: "0.25rem",
+            cursor: "pointer",
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!pdfUrl) {
+    return (
+      <div className={styles["document-placeholder"]}>
+        <FileText size={48} className={styles.placeholderIcon} />
+        <h3 className={styles.placeholderTitle}>No Document Selected</h3>
+        <p className={styles.placeholderText}>
+          Please select a document from the Document List panel to view its
+          contents.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles["pdf-container"]}>
+      <PDFViewer fileUrl={pdfUrl} />
+    </div>
+  );
+};
 
 export default function DocumentAnalysisPage() {
   // State for chat messages
@@ -695,22 +873,7 @@ export default function DocumentAnalysisPage() {
                   activeTab === "page-view" ? styles.active : ""
                 }`}
               >
-                <div className={styles["document-placeholder"]}>
-                  <FileText size={48} className={styles.placeholderIcon} />
-                  <h3 className={styles.placeholderTitle}>
-                    Document Viewer (Coming Soon)
-                  </h3>
-                  <p className={styles.placeholderText}>
-                    This feature is currently under development. When
-                    implemented, you'll be able to browse through all pages of
-                    your selected document.
-                  </p>
-                  <p className={styles.placeholderSubText}>
-                    The document viewer will show the entire PDF document with
-                    pagination, and will automatically load when you select a
-                    document from the Document List panel.
-                  </p>
-                </div>
+                <PDFDocumentViewer documentId={selectedDocumentId} />
               </div>
             </div>
           </div>
