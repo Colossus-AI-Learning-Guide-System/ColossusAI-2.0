@@ -1514,3 +1514,168 @@
   font-size: 0.875rem;
   color: #6b7280;
 }
+
+/* Add tabbed navigation for Context panel */
+.tab-navigation {
+  display: flex;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tab-item {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.tab-item.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: white;
+}
+
+.tab-hint {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-left: 0.5rem;
+  background-color: #f3f4f6;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  vertical-align: middle;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tab-content {
+  display: none;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* PDF page view styles */
+.pdf-view-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  background-color: #f5f5f5;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.pdf-page-wrapper {
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  position: relative;
+  margin-bottom: 1rem;
+  transition: transform 0.2s;
+}
+
+.pdf-page-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+.pdf-page-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pdf-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-top: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.pdf-page-number {
+  font-size: 0.875rem;
+  color: #4b5563;
+  min-width: 3rem;
+  text-align: center;
+}
+
+.pdf-nav-button {
+  padding: 0.25rem 0.5rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-nav-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.pdf-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading states for the PDF view */
+.pdf-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+}
+
+.pdf-loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

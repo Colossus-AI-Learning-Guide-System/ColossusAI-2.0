@@ -82,8 +82,51 @@ export default function DocumentAnalysisPage() {
   // Add state for node context information
   const [nodeContext, setNodeContext] = useState<NodeContext | null>(null);
 
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState<"context" | "page-view">(
+    "context"
+  );
+
+  // Add state for PDF page viewing
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
+
   // DocumentStructure state to store the document structure data
   const [documentStructure, setDocumentStructure] = useState<any>(null);
+
+  // Add function to fetch page image
+  const fetchPageImage = useCallback(
+    async (docId: string, pageNum: number) => {
+      if (!docId) return;
+
+      setIsLoadingPage(true);
+      try {
+        // Check if total pages is set, if not, fetch document metadata to get page count
+        if (totalPages === 0) {
+          const metadataResponse = await fetch(
+            `${API_BASE_URL}/api/document/${docId}/metadata`
+          );
+          if (metadataResponse.ok) {
+            const metadata = await metadataResponse.json();
+            setTotalPages(metadata.page_count || 1);
+          }
+        }
+
+        // When clicking on a node, switch to page view and show the referenced page
+        if (nodeContext?.pageReference && pageNum === 0) {
+          setCurrentPage(nodeContext.pageReference);
+        } else if (pageNum > 0) {
+          setCurrentPage(pageNum);
+        }
+      } catch (error) {
+        console.error("Error fetching page information:", error);
+      } finally {
+        setIsLoadingPage(false);
+      }
+    },
+    [nodeContext, totalPages]
+  );
 
   // Function to fetch document structure data
   const fetchDocumentStructure = async (docId: string) => {
@@ -424,7 +467,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Update heading click handler to extract context
+  // Update heading click handler to extract context and switch to Page View tab
   const handleHeadingClick = useCallback(
     (headingText: string, documentId: string, pageReference?: number) => {
       console.log(
@@ -437,9 +480,40 @@ export default function DocumentAnalysisPage() {
 
       // Extract context for the clicked heading
       extractNodeContext(headingText, documentId);
+
+      // If there's a page reference, automatically switch to the Page View tab
+      if (pageReference && pageReference > 0) {
+        setCurrentPage(pageReference);
+        // Use a short delay to make sure context is fetched first
+        setTimeout(() => {
+          setActiveTab("page-view");
+          fetchPageImage(documentId, pageReference);
+        }, 100);
+      }
     },
-    [extractNodeContext]
+    [extractNodeContext, fetchPageImage]
   );
+
+  // Handle tab change
+  const handleTabChange = (tab: "context" | "page-view") => {
+    setActiveTab(tab);
+
+    // If switching to page view and we have a selected document and page reference
+    if (
+      tab === "page-view" &&
+      selectedDocumentId &&
+      nodeContext?.pageReference
+    ) {
+      fetchPageImage(selectedDocumentId, nodeContext.pageReference);
+    }
+  };
+
+  // Handle page navigation
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || !selectedDocumentId) return;
+    setCurrentPage(newPage);
+    fetchPageImage(selectedDocumentId, newPage);
+  };
 
   return (
     <main className="chatpage-container" style={{ width: "100%" }}>
@@ -577,74 +651,178 @@ export default function DocumentAnalysisPage() {
             </div>
           </div>
 
-          {/* 3. Document Viewer Panel - updated to show node context */}
+          {/* 3. Document Viewer Panel - updated with tabs */}
           <div
             className={styles.panel + " " + styles["document-viewer-panel"]}
             ref={viewerRef}
           >
             <div className={styles["panel-header"]}>
-              <h2>Context</h2>
+              <h2>Document Navigator</h2>
             </div>
 
-            <div className={styles["document-viewer-container"]}>
-              {nodeContext ? (
-                <div className={styles["document-context"]}>
-                  <h3 className={styles["context-heading"]}>
-                    {nodeContext.headingText}
-                  </h3>
-
-                  {nodeContext.pageReference > 0 && (
-                    <div className={styles["context-page-reference"]}>
-                      Page: {nodeContext.pageReference}
-                    </div>
+            {/* Tab Navigation */}
+            <ul className={styles["tab-navigation"]}>
+              <li
+                className={`${styles["tab-item"]} ${
+                  activeTab === "context" ? styles.active : ""
+                }`}
+                onClick={() => handleTabChange("context")}
+              >
+                Context
+              </li>
+              <li
+                className={`${styles["tab-item"]} ${
+                  activeTab === "page-view" ? styles.active : ""
+                }`}
+                onClick={() => handleTabChange("page-view")}
+              >
+                Page View
+                {nodeContext?.pageReference &&
+                  nodeContext.pageReference > 0 && (
+                    <span className={styles["tab-hint"]}>
+                      Page {nodeContext.pageReference}
+                    </span>
                   )}
+              </li>
+            </ul>
 
-                  <div className={styles["context-content"]}>
-                    <h4>Content:</h4>
-                    <p>{nodeContext.context}</p>
-                  </div>
+            <div className={styles["document-viewer-container"]}>
+              {/* Context Tab Content */}
+              <div
+                className={`${styles["tab-content"]} ${
+                  activeTab === "context" ? styles.active : ""
+                }`}
+              >
+                {nodeContext ? (
+                  <div className={styles["document-context"]}>
+                    <h3 className={styles["context-heading"]}>
+                      {nodeContext.headingText}
+                    </h3>
 
-                  {nodeContext.visualReferences &&
-                    nodeContext.visualReferences.length > 0 && (
-                      <div className={styles["context-visual-references"]}>
-                        <h4>Visual References:</h4>
-                        <ul>
-                          {nodeContext.visualReferences.map((ref, index) => (
-                            <li
-                              key={index}
-                              className={styles["visual-reference-item"]}
-                            >
-                              {ref.image_caption && (
-                                <div className={styles["image-caption"]}>
-                                  <strong>Caption:</strong> {ref.image_caption}
-                                </div>
-                              )}
-                              {ref.page_reference && (
-                                <div className={styles["image-page"]}>
-                                  <strong>Page:</strong> {ref.page_reference}
-                                </div>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
+                    {nodeContext.pageReference > 0 && (
+                      <div className={styles["context-page-reference"]}>
+                        Page: {nodeContext.pageReference}
                       </div>
                     )}
-                </div>
-              ) : (
-                <div className={styles["document-placeholder"]}>
-                  <FileText size={48} className={styles.placeholderIcon} />
-                  <h3 className={styles.placeholderTitle}>
-                    Document Context Panel
-                  </h3>
-                  <p className={styles.placeholderText}>
-                    {currentHeading
-                      ? `Selected heading: "${currentHeading}"`
-                      : selectedDocumentId
-                      ? "Document selected. Click on a heading in the structure to navigate."
-                      : "Select a document to see context information."}
-                  </p>
-                </div>
-              )}
+
+                    <div className={styles["context-content"]}>
+                      <h4>Content:</h4>
+                      <p>{nodeContext.context}</p>
+                    </div>
+
+                    {nodeContext.visualReferences &&
+                      nodeContext.visualReferences.length > 0 && (
+                        <div className={styles["context-visual-references"]}>
+                          <h4>Visual References:</h4>
+                          <ul>
+                            {nodeContext.visualReferences.map((ref, index) => (
+                              <li
+                                key={index}
+                                className={styles["visual-reference-item"]}
+                              >
+                                {ref.image_caption && (
+                                  <div className={styles["image-caption"]}>
+                                    <strong>Caption:</strong>{" "}
+                                    {ref.image_caption}
+                                  </div>
+                                )}
+                                {ref.page_reference && (
+                                  <div className={styles["image-page"]}>
+                                    <strong>Page:</strong> {ref.page_reference}
+                                  </div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
+                ) : (
+                  <div className={styles["document-placeholder"]}>
+                    <FileText size={48} className={styles.placeholderIcon} />
+                    <h3 className={styles.placeholderTitle}>
+                      Document Context Panel
+                    </h3>
+                    <p className={styles.placeholderText}>
+                      {currentHeading
+                        ? `Selected heading: "${currentHeading}"`
+                        : selectedDocumentId
+                        ? "Document selected. Click on a heading in the structure to navigate."
+                        : "Select a document to see context information."}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Page View Tab Content */}
+              <div
+                className={`${styles["tab-content"]} ${
+                  activeTab === "page-view" ? styles.active : ""
+                }`}
+              >
+                {selectedDocumentId ? (
+                  <div className={styles["pdf-view-container"]}>
+                    {isLoadingPage ? (
+                      <div className={styles["pdf-loading"]}>
+                        <div className={styles["pdf-loading-spinner"]}></div>
+                        <p>Loading page {currentPage}...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className={styles["pdf-page-wrapper"]}>
+                          <img
+                            src={`${API_BASE_URL}/api/document/${selectedDocumentId}/page/${currentPage}/image`}
+                            alt={`Page ${currentPage}`}
+                            className={styles["pdf-page-image"]}
+                            onError={(e) => {
+                              // Hide broken image icon and show error
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                              const parent = (e.target as HTMLImageElement)
+                                .parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<div style="padding: 2rem; text-align: center; color: #ef4444;">
+                                  <p>Error loading page image</p>
+                                  <p>This may be due to server limitations or image not being available</p>
+                                </div>`;
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <div className={styles["pdf-navigation"]}>
+                          <button
+                            className={styles["pdf-nav-button"]}
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                          >
+                            Previous
+                          </button>
+                          <div className={styles["pdf-page-number"]}>
+                            {currentPage} / {totalPages || "?"}
+                          </div>
+                          <button
+                            className={styles["pdf-nav-button"]}
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles["document-placeholder"]}>
+                    <FileText size={48} className={styles.placeholderIcon} />
+                    <h3 className={styles.placeholderTitle}>Page View</h3>
+                    <p className={styles.placeholderText}>
+                      Select a document and click on a heading in the structure
+                      to view its page.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
