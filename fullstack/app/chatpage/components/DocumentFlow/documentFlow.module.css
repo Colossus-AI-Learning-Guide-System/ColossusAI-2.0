@@ -1,0 +1,452 @@
+.flowContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: transparent;
+}
+
+.documentFlow {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+}
+
+/* Node styling based on level */
+.nodeLevel0 {
+  background-color: #f3f4f6; /* bg-gray-100 */
+  border: 2px solid #6b7280; /* border-gray-500 */
+  border-radius: 8px;
+  padding: 10px;
+  color: #1f2937;
+  font-weight: 600;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  width: auto;
+  min-width: 150px;
+  max-width: 300px;
+  text-align: center;
+  position: relative;
+  margin: 8px 0;
+}
+
+.nodeLevel1 {
+  background-color: #dbeafe; /* bg-blue-100 */
+  border: 2px solid #3b82f6; /* border-blue-500 */
+  border-radius: 8px;
+  padding: 10px;
+  color: #1e40af;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: auto;
+  min-width: 150px;
+  max-width: 280px;
+  position: relative;
+  margin: 8px 0;
+}
+
+.nodeLevel2 {
+  background-color: #dcfce7; /* bg-green-100 */
+  border: 2px solid #22c55e; /* border-green-500 */
+  border-radius: 8px;
+  padding: 10px;
+  color: #166534;
+  font-weight: 400;
+  width: auto;
+  min-width: 150px;
+  max-width: 260px;
+  position: relative;
+  margin: 8px 0;
+}
+
+.nodeLevel3 {
+  background-color: #fef3c7; /* bg-amber-100 */
+  border: 2px solid #f59e0b; /* border-amber-500 */
+  border-radius: 8px;
+  padding: 10px;
+  color: #92400e;
+  font-weight: 400;
+  width: auto;
+  min-width: 150px;
+  max-width: 240px;
+  position: relative;
+  margin: 8px 0;
+}
+
+.nodeLevel4,
+.nodeLevel5 {
+  background-color: #f3e8ff; /* bg-purple-100 */
+  border: 2px solid #a855f7; /* border-purple-500 */
+  border-radius: 8px;
+  padding: 10px;
+  color: #6b21a8;
+  font-weight: 400;
+  width: auto;
+  min-width: 150px;
+  max-width: 220px;
+  position: relative;
+  margin: 8px 0;
+}
+
+/* Edge styling */
+.flowContainer :global(.react-flow__edge-path) {
+  stroke: #333;
+  stroke-width: 2px;
+  fill: none;
+}
+
+.flowContainer :global(.react-flow__edge:hover .react-flow__edge-path) {
+  stroke: #000;
+  stroke-width: 2.5px;
+}
+
+/* Add arrow to edges - make it more prominent */
+.flowContainer :global(.react-flow__edge-path) {
+  marker-end: url(#edgeArrowhead);
+}
+
+/* Update legend colors to match new node styles */
+.legendLevel0 {
+  background-color: #f3f4f6; /* bg-gray-100 */
+  border: 2px solid #6b7280; /* border-gray-500 */
+}
+
+.legendLevel1 {
+  background-color: #dbeafe; /* bg-blue-100 */
+  border: 2px solid #3b82f6; /* border-blue-500 */
+}
+
+.legendLevel2 {
+  background-color: #dcfce7; /* bg-green-100 */
+  border: 2px solid #22c55e; /* border-green-500 */
+}
+
+.legendLevel3 {
+  background-color: #fef3c7; /* bg-amber-100 */
+  border: 2px solid #f59e0b; /* border-amber-500 */
+}
+
+.legendLevel4,
+.legendLevel5 {
+  background-color: #f3e8ff; /* bg-purple-100 */
+  border: 2px solid #a855f7; /* border-purple-500 */
+}
+
+/* Update the marker styling in the SVG definition */
+.flowContainer :global(#edgeArrowhead path) {
+  fill: #333;
+}
+
+/* Adjust the marker dimensions */
+.flowContainer :global(#edgeArrowhead) {
+  markerwidth: 15;
+  markerheight: 15;
+}
+
+/* Controls and UI elements */
+.legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.legendTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+.legendText {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.noDocumentContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: #6b7280;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  color: #ef4444;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.retryButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background-color: #2563eb;
+}
+
+.nodeLabel {
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+  text-overflow: clip;
+  text-align: center;
+  font-weight: 500;
+  padding: 4px;
+  min-height: 20px;
+}
+
+/* Add responsiveness */
+@media (max-width: 768px) {
+  .legend {
+    bottom: 10px;
+    left: 10px;
+    padding: 6px;
+  }
+
+  .legendTitle {
+    font-size: 12px;
+  }
+
+  .legendItem {
+    margin-bottom: 3px;
+  }
+
+  .legendColor {
+    width: 12px;
+    height: 12px;
+  }
+
+  .legendText {
+    font-size: 10px;
+  }
+}
+
+/* Handle styles for ReactFlow handle components */
+.flowContainer :global(.react-flow__handle) {
+  width: 5px !important;
+  height: 5px !important;
+  background: rgba(170, 170, 170, 0.8) !important;
+  border: 1px solid #555 !important;
+  opacity: 0.7;
+  z-index: 5 !important;
+}
+
+.flowContainer :global(.react-flow__handle-top) {
+  top: -4px !important;
+}
+
+.flowContainer :global(.react-flow__handle-bottom) {
+  bottom: -4px !important;
+}
+
+/* Remove handleWrapper since we're using ReactFlow's native handles */
+.handleWrapper {
+  display: none;
+}
+
+/* Make sure nodes have some space for handles */
+.nodeLevel0,
+.nodeLevel1,
+.nodeLevel2,
+.nodeLevel3,
+.nodeLevel4,
+.nodeLevel5 {
+  position: relative;
+  margin: 6px 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 40px;
+  overflow: visible; /* Allow handles to extend outside the node */
+}
+
+/* Ensure minimum content size in all nodes */
+.nodeLevel0 .nodeLabel,
+.nodeLevel1 .nodeLabel,
+.nodeLevel2 .nodeLabel,
+.nodeLevel3 .nodeLabel,
+.nodeLevel4 .nodeLabel,
+.nodeLevel5 .nodeLabel {
+  min-width: 100px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add a subtle highlight on hover */
+.nodeLevel0:hover,
+.nodeLevel1:hover,
+.nodeLevel2:hover,
+.nodeLevel3:hover,
+.nodeLevel4:hover,
+.nodeLevel5:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+}
+
+/* Add source and target handle styles */
+.sourceHandle {
+  width: 6px;
+  height: 6px;
+  background: rgba(170, 170, 170, 0.8);
+  border: 1px solid #888;
+  border-radius: 100%;
+}
+
+.targetHandle {
+  width: 6px;
+  height: 6px;
+  background: rgba(170, 170, 170, 0.8);
+  border: 1px solid #888;
+  border-radius: 100%;
+}
+
+/* Add global styles to remove the ReactFlow container backgrounds and borders */
+.flowContainer :global(.react-flow) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__renderer) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__pane) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__background) {
+  background-color: transparent !important;
+}
+
+.flowContainer :global(.react-flow__controls) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.flowContainer :global(.react-flow__controls-button) {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+}
+
+.flowContainer :global(.react-flow__minimap) {
+  background-color: transparent !important;
+}
+
+/* Remove any default borders in ReactFlow */
+.flowContainer :global(.react-flow__container) {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.flowContainer :global(.react-flow__node) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.flowContainer :global(.react-flow__edge) {
+  background-color: transparent;
+}
+
+/* Change Background component properties */
+.flowContainer :global(.react-flow__background) {
+  opacity: 0.3;
+}
+
+/* Visual node styling - distinctive from standard nodes */
+.nodeVisual {
+  background-color: #fae8ff; /* Light purple bg */
+  border: 2px dashed #be185d; /* Pink dashed border */
+  border-radius: 8px;
+  padding: 10px;
+  color: #9d174d; /* Pink 800 */
+  font-weight: 400;
+  font-style: italic;
+  width: auto;
+  min-width: 150px;
+  max-width: 250px;
+  position: relative;
+  margin: 8px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+}
+
+.nodeVisual::before {
+  content: "📷";
+  position: absolute;
+  left: -5px;
+  top: -10px;
+  font-size: 16px;
+  background: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add visual node to legend */
+.legendVisual {
+  background-color: #fae8ff;
+  border: 2px dashed #be185d;
+  position: relative;
+}
+
+/* Style for dashed edges */
+.flowContainer :global(.react-flow__edge-path[stroke-dasharray]) {
+  animation: dash 15s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 100;
+  }
+}

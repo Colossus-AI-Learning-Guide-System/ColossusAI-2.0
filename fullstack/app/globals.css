@@ -4,66 +4,114 @@
 
 @layer base {
   :root {
+    --max-width: 1100px;
+    --border-radius: 12px;
+    --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
+      "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
+      "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+    --foreground-rgb: 0, 0, 0;
+    --background-rgb: 214, 219, 220;
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 222.2 47.4% 11.2%;
+
+    --primary: #1f2937;
     --primary-foreground: 210 40% 98%;
- 
-    --secondary: 210 40% 96.1%;
+
+    --secondary: #f3f4f6;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
- 
+
     --radius: 0.5rem;
     --sidebar-width: 280px;
+
+    /* Chatpage specific variables */
+    --border-color: #e5e7eb;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --background: #f9fafb;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --scrollbar-thumb: #e5e7eb;
+    --scrollbar-track: #ffffff;
+
+    /* Added variables */
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --error: #ef4444;
+    --foreground-primary: #1f2937;
+    --foreground-secondary: #6b7280;
   }
- 
+
   .dark {
+    --foreground-rgb: 255, 255, 255;
+    --background-rgb: 0, 0, 0;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
- 
+
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
- 
+
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
-    --primary: 210 40% 98%;
+
+    --primary: #f9fafb;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
+
+    --secondary: #1f2937;
     --secondary-foreground: 210 40% 98%;
- 
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
+
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
- 
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Chatpage specific variables - dark mode */
+    --border-color: #374151;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --background: #111827;
+    --accent-blue: #60a5fa;
+    --accent-green: #34d399;
+    --accent-amber: #fbbf24;
+    --accent-red: #f87171;
+    --scrollbar-thumb: #4b5563;
+    --scrollbar-track: #1f2937;
+
+    /* Added variables - dark mode */
+    --accent: #60a5fa;
+    --accent-hover: #3b82f6;
+    --error: #f87171;
+    --foreground-primary: #f3f4f6;
+    --foreground-secondary: #9ca3af;
   }
 }
 
@@ -75,8 +123,8 @@
 }
 
 body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
   font-family: system-ui, -apple-system, sans-serif;
   @apply min-h-screen bg-background text-foreground;
 }
@@ -98,12 +146,12 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #1e3a8a; /* Dark blue color */
+  background-color: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Remove white background */
+  background: var(--scrollbar-track);
 }
 
 /* Noise overlay for visual effect */
@@ -119,31 +167,76 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+/* Ensure html and body allow horizontal scrolling for chatpage */
+html,
+body {
+  overflow-x: visible;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Override any centering for chatpage */
+.chatpage-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  background-color: var(--background);
+  position: relative;
+  height: 100vh;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Horizontal scrollbar styling for chatpage */
+.chatpage-container::-webkit-scrollbar {
+  height: 10px; /* Slightly larger for better visibility */
+  width: 8px;
+}
+
+.chatpage-container::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.chatpage-container::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
 @layer utilities {
   .min-h-validation {
     min-height: 1rem;
     @apply flex items-center mb-0;
   }
-  
+
   .auth-form {
     @apply space-y-2 overflow-hidden max-h-[calc(100vh-170px)] lg:max-h-none;
   }
-  
+
   .auth-container {
     @apply w-full max-w-md space-y-2 overflow-hidden;
     padding-top: 0;
     margin-bottom: 1.5rem;
   }
-  
+
   .auth-header {
     @apply flex flex-col items-center;
     margin-bottom: 0.5rem;
   }
-  
+
   .auth-logo {
     @apply w-[40px] h-[40px] relative;
   }
-  
+
   .form-spacing-tight {
     @apply space-y-1 overflow-y-hidden;
   }
@@ -155,95 +248,95 @@ input {
   input {
     @apply border-2 border-[#9933FF] rounded-3xl focus:outline-none focus:border-[#9933FF] focus:ring-1 focus:ring-[#9933FF] h-10 px-4;
   }
-  
+
   /* Error state for inputs - to match the landing page form */
-  input.error, 
+  input.error,
   input[aria-invalid="true"],
   input[data-invalid="true"] {
     @apply border-2 border-red-500 ring-red-500/20;
   }
-  
+
   /* Error state focus styles */
-  input.error:focus, 
+  input.error:focus,
   input[aria-invalid="true"]:focus {
     @apply border-red-500 ring-1 ring-red-500/20;
   }
-  
+
   /* Dark theme specific error styles */
   .dark-theme input.error,
   .dark-theme input[aria-invalid="true"] {
     @apply border-2 border-red-500;
   }
-  
+
   .dark-theme input.error:focus,
   .dark-theme input[aria-invalid="true"]:focus {
     @apply border-red-500 ring-1 ring-red-500/20;
   }
-  
+
   .form-container {
     @apply flex items-start pt-1 lg:items-center justify-center p-3 lg:p-4;
   }
-  
+
   .signin-link {
     @apply text-sm font-medium mt-2 text-gray-700;
   }
-  
+
   .signin-link a {
     @apply text-purple-600 font-semibold hover:text-purple-500;
   }
-  
+
   /* Dark theme classes for right side */
   .dark-theme {
     @apply bg-[#121212] text-white;
   }
-  
+
   .dark-theme .auth-container {
     @apply border-[#333333];
   }
-  
+
   .dark-theme .auth-header {
     @apply pb-3 mb-4;
   }
-  
-  .dark-theme h1, 
+
+  .dark-theme h1,
   .dark-theme h2 {
     @apply text-white;
   }
-  
-  .dark-theme p, 
+
+  .dark-theme p,
   .dark-theme label {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme input {
     @apply bg-[#2D2D2D] text-white border-[#444444] focus:border-[#b066ff] placeholder-gray-500;
   }
-  
+
   .dark-theme input:focus {
     @apply ring-purple-400/30 shadow-[0_0_0_1px_rgba(176,102,255,0.3)];
   }
-  
+
   .dark-theme .signin-link {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme .signin-link a {
     @apply text-purple-400 hover:text-purple-300;
   }
-  
+
   .dark-theme .text-gray-500 {
     @apply text-[#E0E0E0]/70;
   }
-  
-  .dark-theme .text-gray-600, 
+
+  .dark-theme .text-gray-600,
   .dark-theme .text-gray-700 {
     @apply text-[#E0E0E0];
   }
-  
+
   .dark-theme .border-gray-300 {
     @apply border-[#444444];
   }
-  
+
   .dark-theme .text-red-500 {
     @apply text-[#FF6B6B];
   }
@@ -251,7 +344,142 @@ input {
   /* Divider styling in dark theme */
   .dark-theme .divider-text {
     background-color: #121212;
-    color: #E0E0E0;
+    color: #e0e0e0;
     font-weight: 500;
   }
-} 
+}
+
+/* Sidebar integration styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 30;
+  background-color: white;
+  border-right: 1px solid var(--border-color);
+  transition: width 0.2s ease;
+}
+
+/* Content wrapper for proper sidebar spacing */
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-x: auto;
+  width: calc(100% - 3.05rem);
+  transition: margin-left 0.2s ease, width 0.2s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.content-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.content-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.content-wrapper::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+/* Fix for fullscreen viewer */
+.fullscreen-document {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.graph-panel {
+  width: 870px; /* Increased from 580px to 870px (50% wider) */
+  min-width: 780px; /* Increased from 520px to 780px (50% wider) */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow graph to overflow */
+}
+
+@media (max-width: 1400px) {
+  .papers-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .panel {
+    min-width: 300px;
+  }
+
+  .chatbot-panel,
+  .document-management-panel {
+    width: 350px;
+    min-width: 300px;
+  }
+
+  .document-viewer-panel {
+    width: 450px;
+    min-width: 350px;
+  }
+
+  .document-list-container {
+    width: 316px;
+    min-width: 288px;
+    height: 100%;
+  }
+
+  .graph-panel {
+    width: 750px; /* Increased from 500px to 750px (50% wider) */
+    min-width: 675px; /* Increased from 450px to 675px (50% wider) */
+    height: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .graph-panel {
+    width: 675px; /* Increased from 450px to 675px (50% wider) */
+    min-width: 600px; /* Increased from 400px to 600px (50% wider) */
+    height: 100%;
+  }
+}
+
+/* Fix for React Flow CSS issues */
+.react-flow__container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.react-flow__node {
+  min-width: 100px;
+  background-color: white;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__edge-path {
+  stroke: #3b82f6;
+  stroke-width: 2px;
+}
+
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+.react-flow__minimap {
+  border-radius: 4px;
+}

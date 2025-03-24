@@ -7,17 +7,36 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    domains: ['iriktekmugp1hbdpwdzq.supabase.co'],
-    remotePatterns: [
+  async headers() {
+    return [
       {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
+        // Apply to all routes
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+        ],
       },
-    ],
-  }
+    ];
+  },
+  images: {
+    domains: ["unpkg.com", "arxiv.org", "www.w3.org"],
+  },
+  webpack: (config) => {
+    // Enable importing PDF files
+    config.module.rules.push({
+      test: /\.(pdf)$/i,
+      type: "asset/resource",
+    });
+
+    return config;
+  },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;
