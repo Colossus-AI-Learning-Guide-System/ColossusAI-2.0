@@ -3,6 +3,7 @@ import React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Toaster from "@/app/components/ui/toaster";
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,11 +30,13 @@ export default function RootLayout({
         className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
         suppressHydrationWarning
       >
-        <div className="noise-overlay" />
-        <main className="min-h-screen w-full overflow-x-visible p-0 m-0">
-          {children}
-        </main>
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="noise-overlay" />
+          <main className="min-h-screen w-full overflow-x-visible p-0 m-0">
+            {children}
+          </main>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -14,6 +14,14 @@ import Image from "next/image"
 import { Button } from "@/app/components/ui/button"
 import { useProfile } from "@/app/hooks/use-profile"
 import { useImageUpload } from "@/app/hooks/use-image-upload"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/app/components/ui/select";
+import { useTheme } from "next-themes";
 
 type SettingsTab = "general" | "upgrade" | "memory" | "security"
 export type PlanType = "free" | "pro" | "enterprise" | null
@@ -107,6 +115,10 @@ export function SettingsPanel({
     maxStorage: STORAGE_LIMITS.free,
     isMemoryEnabled: false,
   })
+
+  // Get the current theme
+  const { theme, setTheme } = useTheme();
+  const isDarkTheme = theme === "dark";
 
   // Update URL when tab changes
   useEffect(() => {
@@ -360,14 +372,28 @@ export function SettingsPanel({
 
         return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="flex w-full max-w-4xl h-[600px] overflow-hidden rounded-lg bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-xl">
+      <div className={`flex w-full max-w-4xl h-[600px] overflow-hidden rounded-lg shadow-xl ${
+        isDarkTheme 
+          ? "bg-gradient-to-br from-gray-900 to-gray-800 text-white" 
+          : "bg-gradient-to-br from-blue-900 to-blue-800 text-white"
+      }`}>
         {/* Navigation sidebar */}
-        <div className="w-64 border-r border-blue-700/50 p-4">
+        <div className={`w-64 p-4 ${
+          isDarkTheme 
+            ? "border-r border-gray-700/50" 
+            : "border-r border-blue-700/50"
+        }`}>
           <nav className="flex flex-col space-y-2">
             <button
               onClick={() => setActiveTab("general")}
               className={`rounded-lg p-4 text-left transition flex items-center ${
-                activeTab === "general" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+                activeTab === "general" 
+                  ? isDarkTheme 
+                    ? "bg-gradient-to-r from-gray-800 to-gray-700" 
+                    : "bg-gradient-to-r from-blue-800 to-blue-600" 
+                  : isDarkTheme 
+                    ? "hover:bg-gray-800/50" 
+                    : "hover:bg-blue-800/50"
               }`}
             >
               <User className="h-5 w-5 mr-3" />
@@ -405,7 +431,11 @@ export function SettingsPanel({
 
         {/* Content area */}
         <div className="flex flex-1 flex-col">
-          <div className="flex items-center justify-between border-b border-blue-700/50 p-6">
+          <div className={`flex items-center justify-between p-6 ${
+            isDarkTheme 
+              ? "border-b border-gray-700/50" 
+              : "border-b border-blue-700/50"
+          }`}>
             <h2 className="text-2xl font-bold">
               {activeTab === "general" && "Settings"}
               {activeTab === "upgrade" && "Change your Plan"}
@@ -702,11 +732,45 @@ export function SettingsPanel({
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
+                      <h3 className="text-xl">Theme</h3>
+                      <p className={`text-sm ${
+                        isDarkTheme ? "text-gray-300" : "text-blue-300"
+                      }`}>Choose your preferred appearance</p>
+                    </div>
+                    <Select
+                      value={theme}
+                      onValueChange={(value) => setTheme(value)}
+                    >
+                      <SelectTrigger className={`w-[120px] ${
+                        isDarkTheme 
+                          ? "bg-gray-700 text-white border-gray-600" 
+                          : "bg-white text-black"
+                      }`}>
+                        <SelectValue placeholder="Select theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="system">System</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="light">Light</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
                       <h3 className="text-xl">Change password</h3>
-                      <p className="text-sm text-blue-300">We'll send you an email with a link to reset your password</p>
+                      <p className={`text-sm ${
+                        isDarkTheme ? "text-gray-300" : "text-blue-300"
+                      }`}>We'll send you an email with a link to reset your password</p>
                     </div>
                     <button 
-                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      className={`rounded-md px-4 py-2 disabled:opacity-70 ${
+                        isDarkTheme 
+                          ? "bg-gray-200 text-gray-900 hover:bg-gray-300" 
+                          : "bg-white text-black hover:bg-gray-200"
+                      }`}
                       onClick={handleChangePassword}
                       disabled={isLoading || !formData.email}
                     >
@@ -719,10 +783,16 @@ export function SettingsPanel({
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl">Log out from All Devices</h3>
-                      <p className="text-sm text-blue-300">This will end all your active sessions and require re-login</p>
+                      <p className={`text-sm ${
+                        isDarkTheme ? "text-gray-300" : "text-blue-300"
+                      }`}>This will end all your active sessions and require re-login</p>
                     </div>
                     <button 
-                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      className={`rounded-md px-4 py-2 disabled:opacity-70 ${
+                        isDarkTheme 
+                          ? "bg-gray-200 text-gray-900 hover:bg-gray-300" 
+                          : "bg-white text-black hover:bg-gray-200"
+                      }`}
                       onClick={handleLogoutAllDevices}
                       disabled={isLoading}
                     >
@@ -735,10 +805,14 @@ export function SettingsPanel({
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl">Delete Account</h3>
-                      <p className="text-sm text-red-300">This will permanently remove all your data and cannot be undone</p>
+                      <p className={`text-sm ${
+                        isDarkTheme ? "text-gray-300" : "text-blue-300"
+                      }`}>This will permanently remove all your data and cannot be undone</p>
                     </div>
                     <button 
-                      className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
+                      className={`rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70 ${
+                        isDarkTheme ? "bg-gray-700 hover:bg-gray-800" : ""
+                      }`}
                       onClick={handleDeleteAccount}
                       disabled={isLoading}
                     >
@@ -750,7 +824,11 @@ export function SettingsPanel({
             )}
           </div>
 
-          <div className="border-t border-blue-700/50 p-6">
+          <div className={`p-6 ${
+            isDarkTheme 
+              ? "border-t border-gray-700/50" 
+              : "border-t border-blue-700/50"
+          }`}>
             {activeTab === "upgrade" ? (
               <button
                 className={`w-full h-12 rounded-md ${
@@ -770,8 +848,12 @@ export function SettingsPanel({
               </button>
             ) : activeTab === "general" && profile ? (
               <button
-                className={`w-full h-12 rounded-md bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white ${
+                className={`w-full h-12 rounded-md text-white ${
                   isLoading ? "opacity-70 cursor-not-allowed" : ""
+                } ${
+                  isDarkTheme 
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" 
+                    : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                 }`}
                 onClick={handleSaveChanges}
                 disabled={isLoading}
