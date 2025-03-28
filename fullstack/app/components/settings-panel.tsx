@@ -398,7 +398,7 @@ export function SettingsPanel({
               }`}
             >
               <Shield className="h-5 w-5 mr-3" />
-              Security
+              General
             </button>
           </nav>
         </div>
@@ -410,7 +410,7 @@ export function SettingsPanel({
               {activeTab === "general" && "Settings"}
               {activeTab === "upgrade" && "Change your Plan"}
               {activeTab === "memory" && "Data Controll"}
-              {activeTab === "security" && "Security"}
+              {activeTab === "security" && "General"}
             </h2>
             <button onClick={onClose} className="rounded-full p-1 hover:bg-blue-700/50">
               <X className="h-6 w-6" />
