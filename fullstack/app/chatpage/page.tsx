@@ -256,6 +256,9 @@ export default function DocumentAnalysisPage() {
   // DocumentStructure state to store the document structure data
   const [documentStructure, setDocumentStructure] = useState<any>(null);
 
+  // State for query mode
+  const [queryMode, setQueryMode] = useState<"text" | "graph">("text");
+
   // Function to fetch document structure data
   const fetchDocumentStructure = async (docId: string) => {
     try {
@@ -713,6 +716,26 @@ export default function DocumentAnalysisPage() {
                     </div>
                   </div>
                 )}
+              </div>
+              <div className={styles["query-mode-buttons"]}>
+                <button
+                  type="button"
+                  onClick={() => setQueryMode("text")}
+                  className={`${styles["mode-button"]} ${
+                    queryMode === "text" ? styles["mode-button-active"] : ""
+                  }`}
+                >
+                  Text
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQueryMode("graph")}
+                  className={`${styles["mode-button"]} ${
+                    queryMode === "graph" ? styles["mode-button-active"] : ""
+                  }`}
+                >
+                  Graph
+                </button>
               </div>
               <div className={styles["chat-input-container"]}>
                 <form

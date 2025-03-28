@@ -379,6 +379,35 @@
   gap: 1rem;
 }
 
+.query-mode-buttons {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+  background: white;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: none;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.mode-button:hover {
+  color: #3b82f6;
+  background-color: #f3f4f6;
+}
+
+.mode-button-active {
+  color: #3b82f6;
+  border-bottom: 2px solid #3b82f6;
+  font-weight: 500;
+}
+
 .message {
   max-width: 85%;
   padding: 0.75rem 1rem;
