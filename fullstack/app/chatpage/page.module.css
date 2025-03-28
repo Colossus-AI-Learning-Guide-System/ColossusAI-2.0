@@ -1072,13 +1072,23 @@
   top: 0;
   width: 100%;
   padding: 8px;
-  background-color: #f9fafb;
+  background-color: #f9fafb; /* Light theme background */
   text-align: center;
   border-bottom: 1px solid var(--border-color);
   font-size: 14px;
   color: #6b7280;
   z-index: 10;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Dark theme styles will be applied via the className in the component */
+:global(.dark-mode) .scroll-instruction,
+:global([data-theme="dark"]) .scroll-instruction {
+  background-color: #111827 !important; /* bg-gray-900 */
+  color: #9ca3af !important; /* text-gray-400 */
+  border-color: #374151 !important; /* border-gray-700 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .scroll-instruction span {

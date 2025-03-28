@@ -683,7 +683,7 @@ export default function DocumentAnalysisPage() {
       >
         {/* Small instruction for horizontal scroll */}
         <div className={`${styles["scroll-instruction"]} ${
-          isDarkTheme ? "text-gray-400" : ""
+          isDarkTheme ? "text-gray-400 bg-gray-900" : ""
         }`}>
           <span>Scroll horizontally to see all panels</span>
         </div>

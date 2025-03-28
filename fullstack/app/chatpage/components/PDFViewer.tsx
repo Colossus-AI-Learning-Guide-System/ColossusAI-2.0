@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 
 interface PDFViewerProps {
   base64Pdf?: string;
@@ -19,6 +20,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 }) => {
   // Create a blob URL from the base64 PDF data
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const isDarkTheme = theme === "dark";
 
   useEffect(() => {
     // Clean up previous URL if it exists
@@ -75,14 +78,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             justify-content: center;
             height: 100%;
             min-height: 500px;
+            background-color: var(--background);
+            color: var(--foreground);
           }
 
           .pdf-loading-spinner {
             width: 50px;
             height: 50px;
-            border: 5px solid rgba(0, 0, 0, 0.1);
+            border: 5px solid var(--muted);
             border-radius: 50%;
-            border-top-color: #3b82f6;
+            border-top-color: var(--primary);
             animation: spin 1s ease-in-out infinite;
             margin-bottom: 1rem;
           }
@@ -118,8 +123,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             min-height: 500px;
             padding: 2rem;
             text-align: center;
-            background-color: #fff5f5;
-            color: #e53e3e;
+            background-color: var(--background);
+            color: var(--destructive);
           }
 
           .pdf-error-icon {
@@ -130,8 +135,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           .pdf-retry-button {
             margin-top: 1rem;
             padding: 0.5rem 1.5rem;
-            background-color: #3182ce;
-            color: white;
+            background-color: var(--primary);
+            color: var(--primary-foreground);
             border: none;
             border-radius: 0.25rem;
             font-size: 0.875rem;
@@ -140,7 +145,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           }
 
           .pdf-retry-button:hover {
-            background-color: #2c5282;
+            opacity: 0.9;
           }
         `}</style>
       </div>
@@ -163,8 +168,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             min-height: 500px;
             padding: 2rem;
             text-align: center;
-            background-color: #f9fafb;
-            color: #4a5568;
+            background-color: var(--background);
+            color: var(--muted-foreground);
           }
 
           .pdf-empty-icon {
@@ -177,7 +182,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   }
 
   return (
-    <div className="pdf-container">
+    <div className={`pdf-container ${isDarkTheme ? 'dark-theme' : ''}`}>
       <div className="pdf-header">
         <h3>{filename}</h3>
         <div className="pdf-actions">
@@ -202,15 +207,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           height: 100%;
           display: flex;
           flex-direction: column;
-          border: 1px solid #e5e7eb;
+          border: 1px solid var(--border);
           border-radius: 4px;
           overflow: hidden;
         }
 
+        .dark-theme {
+          background-color: #1f2937;
+          color: #f3f4f6;
+        }
+
+        .dark-theme .pdf-iframe {
+          background-color: #1f2937;
+        }
+
         .pdf-header {
-          background-color: #f9fafb;
+          background-color: var(--card);
           padding: 0.75rem 1rem;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid var(--border);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -220,7 +234,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           margin: 0;
           font-size: 1rem;
           font-weight: 500;
-          color: #111827;
+          color: var(--foreground);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -235,22 +249,22 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         .pdf-button {
           padding: 0.375rem 0.75rem;
           font-size: 0.875rem;
-          background-color: #f3f4f6;
-          color: #374151;
-          border: 1px solid #d1d5db;
+          background-color: var(--accent);
+          color: var(--accent-foreground);
+          border: 1px solid var(--border);
           border-radius: 0.25rem;
           text-decoration: none;
           transition: all 0.2s;
         }
 
         .pdf-button:hover {
-          background-color: #e5e7eb;
+          opacity: 0.9;
         }
 
         .pdf-viewer {
           flex: 1;
           min-height: 600px;
-          background-color: #f3f4f6;
+          background-color: var(--muted);
         }
 
         .pdf-iframe {
