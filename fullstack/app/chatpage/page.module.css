@@ -66,7 +66,27 @@
   flex-direction: column;
   height: 100%;
   border-radius: 0.5rem;
-  overflow: hidden;
+  overflow: hidden; /* Keep this to prevent container overflow */
+}
+
+/* Add proper overflow handling for scroll area */
+.document-list-container :global(.documentListScrollArea) {
+  width: 100%;
+  overflow-x: auto !important; /* Force horizontal scrolling when needed */
+  scrollbar-width: thin;
+}
+
+.document-list-container :global(.documentListScrollArea::-webkit-scrollbar) {
+  height: 6px; /* Set proper height for horizontal scrollbar */
+}
+
+.document-list-container :global(.documentListScrollArea::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.document-list-container :global(.documentListScrollArea::-webkit-scrollbar-thumb) {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
 }
 
 .panel-header {

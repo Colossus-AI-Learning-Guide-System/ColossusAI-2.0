@@ -12,7 +12,7 @@ import {
   Text,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/app/components/ui/scroll-area";
 import styles from "./DocumentList.module.css";
 
 interface DocumentMetadata {
@@ -232,7 +232,7 @@ export default function DocumentList({
           )}
         </div>
       ) : (
-        <ScrollArea className={styles.documentListScrollArea}>
+        <ScrollArea className={styles.documentListScrollArea} style={{ minWidth: "100%", width: "100%" }}>
           <div className={styles.documentGrid}>
             {sortedDocuments.map((doc) => (
               <div
@@ -248,7 +248,12 @@ export default function DocumentList({
                   <FileText size={28} className={styles.documentIcon} />
                 </div>
                 <div className={styles.documentInfo}>
-                  <h3 className={styles.documentTitle}>{doc.title}</h3>
+                  <h3 
+                    className={styles.documentTitle}
+                    title={doc.title}
+                  >
+                    {doc.title}
+                  </h3>
                   <p className={styles.documentDate}>
                     <Clock size={14} />
                     {formatDistanceToNow(new Date(doc.upload_date), {
@@ -278,6 +283,7 @@ export default function DocumentList({
               </div>
             ))}
           </div>
+          <ScrollBar orientation="horizontal" className={styles.horizontalScrollbar} />
         </ScrollArea>
       )}
     </div>
