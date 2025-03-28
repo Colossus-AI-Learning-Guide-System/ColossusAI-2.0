@@ -270,3 +270,52 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
+
+/* Add these at the end of your CSS file */
+
+.darkTheme .documentCard {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.darkTheme .documentCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.darkTheme .emptyIcon,
+.darkTheme .searchIcon,
+.darkTheme .documentIcon {
+  color: var(--muted-foreground);
+}
+
+.darkTheme .selectedDocumentCard {
+  background-color: var(--accent);
+}
+
+.darkTheme .documentCardArrow.visibleArrow {
+  color: var(--primary);
+}
+
+/* Adjust scrollbar for dark theme */
+.darkTheme .horizontalScrollbar {
+  background-color: var(--accent);
+}
+
+/* Update the scrollInstruction class */
+.scrollInstruction {
+  position: sticky;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 8px;
+  background-color: var(--background);
+  text-align: center;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  z-index: 10;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.darkTheme .scrollInstruction {
+  background-color: hsl(224 71% 4%);
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+}

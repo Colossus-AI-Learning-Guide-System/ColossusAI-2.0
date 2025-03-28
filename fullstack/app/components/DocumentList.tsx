@@ -163,7 +163,7 @@ export default function DocumentList({
   }
 
   return (
-    <div className={styles.documentListContainer}>
+    <div className={`${styles.documentListContainer} ${theme === 'dark' ? styles.darkTheme : ''}`}>
       <div className={styles.documentListHeader}>
         <h2 className={styles.documentListTitle}>Documents</h2>
         <div className={styles.searchContainer}>
@@ -234,59 +234,65 @@ export default function DocumentList({
           )}
         </div>
       ) : (
-        <ScrollArea className={styles.documentListScrollArea} style={{ minWidth: "100%", width: "100%" }}>
-          <div className={styles.documentGrid}>
-            {sortedDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                className={`${styles.documentCard} ${
-                  doc.id === selectedDocumentId
-                    ? styles.selectedDocumentCard
-                    : ""
-                }`}
-                onClick={() => onSelectDocument(doc.id, doc.title)}
-              >
-                <div className={styles.documentIconContainer}>
-                  <FileText size={28} className={styles.documentIcon} />
-                </div>
-                <div className={styles.documentInfo}>
-                  <h3 
-                    className={styles.documentTitle}
-                    title={doc.title}
-                  >
-                    {doc.title}
-                  </h3>
-                  <p className={styles.documentDate}>
-                    <Clock size={14} />
-                    {formatDistanceToNow(new Date(doc.upload_date), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                  <div className={styles.documentMetadata}>
-                    <span className={styles.metadataItem}>
-                      <FileDigit size={14} />
-                      {doc.page_count} {doc.page_count === 1 ? "page" : "pages"}
-                    </span>
-                    {doc.heading_count !== undefined && (
-                      <span className={styles.metadataItem}>
-                        <Text size={14} />
-                        {doc.heading_count}{" "}
-                        {doc.heading_count === 1 ? "heading" : "headings"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <ChevronRight
-                  size={18}
-                  className={`${styles.documentCardArrow} ${
-                    doc.id === selectedDocumentId ? styles.visibleArrow : ""
+        <>
+          <ScrollArea className={styles.documentListScrollArea} style={{ minWidth: "100%", width: "100%" }}>
+            <div className={styles.documentGrid}>
+              {sortedDocuments.map((doc) => (
+                <div
+                  key={doc.id}
+                  className={`${styles.documentCard} ${
+                    doc.id === selectedDocumentId
+                      ? styles.selectedDocumentCard
+                      : ""
                   }`}
-                />
-              </div>
-            ))}
+                  onClick={() => onSelectDocument(doc.id, doc.title)}
+                >
+                  <div className={styles.documentIconContainer}>
+                    <FileText size={28} className={styles.documentIcon} />
+                  </div>
+                  <div className={styles.documentInfo}>
+                    <h3 
+                      className={styles.documentTitle}
+                      title={doc.title}
+                    >
+                      {doc.title}
+                    </h3>
+                    <p className={styles.documentDate}>
+                      <Clock size={14} />
+                      {formatDistanceToNow(new Date(doc.upload_date), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                    <div className={styles.documentMetadata}>
+                      <span className={styles.metadataItem}>
+                        <FileDigit size={14} />
+                        {doc.page_count} {doc.page_count === 1 ? "page" : "pages"}
+                      </span>
+                      {doc.heading_count !== undefined && (
+                        <span className={styles.metadataItem}>
+                          <Text size={14} />
+                          {doc.heading_count}{" "}
+                          {doc.heading_count === 1 ? "heading" : "headings"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className={`${styles.documentCardArrow} ${
+                      doc.id === selectedDocumentId ? styles.visibleArrow : ""
+                    }`}
+                  />
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" className={styles.horizontalScrollbar} />
+          </ScrollArea>
+          
+          <div className={`${styles.scrollInstruction} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+            <span>Scroll horizontally to see all documents</span>
           </div>
-          <ScrollBar orientation="horizontal" className={styles.horizontalScrollbar} />
-        </ScrollArea>
+        </>
       )}
     </div>
   );

@@ -484,7 +484,7 @@
 
 .chat-input {
   flex: 1;
-  padding: 0.75rem 3rem;
+  padding: 0.75rem 3.5rem 0.75rem 4rem;
   border: 1px solid var(--border-color);
   border-radius: 1.5rem;
   font-size: 0.875rem;
@@ -499,7 +499,7 @@
 
 .send-button {
   position: absolute;
-  right: 0.5rem;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -1915,4 +1915,19 @@
   background-color: #374151 !important; /* bg-gray-700 */
   color: #f3f4f6 !important; /* text-gray-100 */
   border-color: #4b5563 !important; /* border-gray-600 */
+}
+
+/* Adjust the attachment button position */
+.attachment-button {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
 }

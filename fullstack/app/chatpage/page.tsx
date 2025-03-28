@@ -784,7 +784,7 @@ export default function DocumentAnalysisPage() {
                     isDarkTheme ? "bg-gray-800 border-gray-700" : ""
                   }`}
                 >
-                  <div className={styles["chat-input-wrapper"]}>
+                  <div className={styles["chat-input-wrapper"]} style={{ position: "relative", width: "100%" }}>
                     <input
                       type="text"
                       className={`${styles["chat-input"]} ${
@@ -794,6 +794,7 @@ export default function DocumentAnalysisPage() {
                       value={userInput}
                       onChange={(e) => setUserInput(e.target.value)}
                       disabled={isUploading || isTyping}
+                      style={{ paddingRight: "60px" }}
                     />
                     <button
                       type="button"
@@ -812,6 +813,7 @@ export default function DocumentAnalysisPage() {
                       isDarkTheme ? "bg-blue-600 hover:bg-blue-700" : ""
                     }`}
                     disabled={!userInput.trim() || isUploading || isTyping}
+                    style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)" }}
                   >
                     <SendIcon className="h-5 w-5" />
                   </button>

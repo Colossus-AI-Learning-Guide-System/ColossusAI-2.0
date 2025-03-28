@@ -163,7 +163,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             min-height: 500px;
             padding: 2rem;
             text-align: center;
-            background-color: #f7fafc;
+            background-color: #f9fafb;
             color: #4a5568;
           }
 
