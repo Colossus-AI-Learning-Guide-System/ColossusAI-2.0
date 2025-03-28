@@ -483,3 +483,39 @@ body {
 .react-flow__minimap {
   border-radius: 4px;
 }
+
+/* Dark mode styles */
+.dark-mode {
+  @apply bg-gray-900 text-gray-100;
+}
+
+/* Add this to ensure dark mode is properly applied */
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Make sure your theme colors are properly defined */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+}
+
+[data-theme="dark"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+}
+
+/* Add these styles to your globals.css file */
+.dark .sidebar button:hover,
+[data-theme="dark"] .sidebar button:hover {
+  color: white !important;
+}
+
+.dark .sidebar .dropdown-item:hover,
+[data-theme="dark"] .sidebar .dropdown-item:hover {
+  color: white !important;
+}

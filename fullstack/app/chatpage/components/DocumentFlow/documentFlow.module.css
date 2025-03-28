@@ -450,3 +450,99 @@
     stroke-dashoffset: 100;
   }
 }
+
+/* Add these dark theme styles to your DocumentFlow module CSS */
+
+:global([data-theme="dark"]) .flowContainer,
+:global(.dark-mode) .flowContainer {
+  background-color: #111827; /* bg-gray-900 */
+}
+
+:global([data-theme="dark"]) .legend,
+:global(.dark-mode) .legend {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #374151; /* border-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .legendTitle,
+:global(.dark-mode) .legendTitle {
+  color: #f3f4f6; /* text-gray-100 */
+  border-bottom-color: #374151; /* border-gray-700 */
+}
+
+:global([data-theme="dark"]) .legendText,
+:global(.dark-mode) .legendText {
+  color: #d1d5db; /* text-gray-300 */
+}
+
+:global([data-theme="dark"]) .retryButton,
+:global(.dark-mode) .retryButton {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+  border-color: #4b5563; /* border-gray-600 */
+}
+
+:global([data-theme="dark"]) .retryButton:hover,
+:global(.dark-mode) .retryButton:hover {
+  background-color: #4b5563; /* bg-gray-600 */
+}
+
+:global([data-theme="dark"]) .loadingContainer,
+:global(.dark-mode) .loadingContainer,
+:global([data-theme="dark"]) .errorContainer,
+:global(.dark-mode) .errorContainer,
+:global([data-theme="dark"]) .noDocumentContainer,
+:global(.dark-mode) .noDocumentContainer {
+  background-color: #1f2937; /* bg-gray-800 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+/* Style the React Flow controls in dark mode */
+:global([data-theme="dark"]) .react-flow__controls,
+:global(.dark-mode) .react-flow__controls {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #374151; /* border-gray-700 */
+}
+
+:global([data-theme="dark"]) .react-flow__controls-button,
+:global(.dark-mode) .react-flow__controls-button {
+  background-color: #374151; /* bg-gray-700 */
+  border-color: #4b5563; /* border-gray-600 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .react-flow__controls-button:hover,
+:global(.dark-mode) .react-flow__controls-button:hover {
+  background-color: #4b5563; /* bg-gray-600 */
+}
+
+/* Style the document list in dark mode */
+:global([data-theme="dark"]) .documentList,
+:global(.dark-mode) .documentList {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .documentItem,
+:global(.dark-mode) .documentItem {
+  background-color: #374151; /* bg-gray-700 */
+  border-color: #4b5563; /* border-gray-600 */
+}
+
+:global([data-theme="dark"]) .documentItem:hover,
+:global(.dark-mode) .documentItem:hover {
+  background-color: #4b5563; /* bg-gray-600 */
+}
+
+:global([data-theme="dark"]) .documentItem.selected,
+:global(.dark-mode) .documentItem.selected {
+  background-color: #2563eb; /* bg-blue-600 */
+  color: white;
+}
+
+/* Style the sidebar in dark mode */
+:global([data-theme="dark"]) .sidebar,
+:global(.dark-mode) .sidebar {
+  background-color: #111827; /* bg-gray-900 */
+  border-color: #374151; /* border-gray-700 */
+}

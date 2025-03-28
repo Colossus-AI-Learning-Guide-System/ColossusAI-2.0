@@ -1669,3 +1669,214 @@
     transform: rotate(360deg);
   }
 }
+
+/* Dark mode overrides */
+:global([data-theme="dark"]) .panel,
+:global(.dark-mode) .panel {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #374151; /* border-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .panel-header,
+:global(.dark-mode) .panel-header {
+  background-color: #111827 !important; /* bg-gray-900 */
+  border-color: #374151 !important; /* border-gray-700 */
+  color: #f3f4f6 !important; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .panel-header h2,
+:global(.dark-mode) .panel-header h2 {
+  color: #f3f4f6 !important; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .message,
+:global(.dark-mode) .message {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .chat-form,
+:global(.dark-mode) .chat-form {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #374151; /* border-gray-700 */
+}
+
+:global([data-theme="dark"]) .chat-input,
+:global(.dark-mode) .chat-input {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+  border-color: #4b5563; /* border-gray-600 */
+}
+
+:global([data-theme="dark"]) .mode-button,
+:global(.dark-mode) .mode-button {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .mode-button-active,
+:global(.dark-mode) .mode-button-active {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #60a5fa; /* border-blue-400 */
+}
+
+:global([data-theme="dark"]) .tab-item,
+:global(.dark-mode) .tab-item {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .tab-item.active,
+:global(.dark-mode) .tab-item.active {
+  background-color: #1f2937; /* bg-gray-800 */
+  border-color: #60a5fa; /* border-blue-400 */
+}
+
+:global([data-theme="dark"]) .document-placeholder,
+:global(.dark-mode) .document-placeholder {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+/* Additional dark mode overrides for remaining white areas */
+:global([data-theme="dark"]) .document-structure-panel,
+:global(.dark-mode) .document-structure-panel {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .graph-container,
+:global(.dark-mode) .graph-container {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .react-flow__node,
+:global(.dark-mode) .react-flow__node {
+  background-color: #374151; /* bg-gray-700 */
+  color: #f3f4f6; /* text-gray-100 */
+  border-color: #4b5563; /* border-gray-600 */
+}
+
+:global([data-theme="dark"]) .react-flow__pane,
+:global(.dark-mode) .react-flow__pane {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .document-viewer-container,
+:global(.dark-mode) .document-viewer-container {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .pdf-view-container,
+:global(.dark-mode) .pdf-view-container {
+  background-color: #111827; /* bg-gray-900 */
+}
+
+:global([data-theme="dark"]) .pdf-page-wrapper,
+:global(.dark-mode) .pdf-page-wrapper {
+  background-color: #374151; /* bg-gray-700 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme="dark"]) .pdf-navigation,
+:global(.dark-mode) .pdf-navigation {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+:global([data-theme="dark"]) .pdf-nav-button,
+:global(.dark-mode) .pdf-nav-button {
+  background-color: #374151; /* bg-gray-700 */
+  border-color: #4b5563; /* border-gray-600 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+:global([data-theme="dark"]) .pdf-nav-button:hover:not(:disabled),
+:global(.dark-mode) .pdf-nav-button:hover:not(:disabled) {
+  background-color: #4b5563; /* bg-gray-600 */
+  color: #60a5fa; /* text-blue-400 */
+  border-color: #60a5fa; /* border-blue-400 */
+}
+
+/* Fix for the document structure area */
+:global([data-theme="dark"]) .document-structure-panel .graph-container,
+:global(.dark-mode) .document-structure-panel .graph-container {
+  background-color: #111827; /* bg-gray-900 */
+}
+
+/* Fix for the "Select a document" text */
+:global([data-theme="dark"]) .document-structure-placeholder,
+:global(.dark-mode) .document-structure-placeholder {
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+/* Add this to your page.module.css file */
+:global([data-theme="dark"]) .noDocumentContainer,
+:global(.dark-mode) .noDocumentContainer {
+  background-color: #1f2937; /* bg-gray-800 */
+  color: #f3f4f6; /* text-gray-100 */
+  border-color: #374151; /* border-gray-700 */
+}
+
+:global([data-theme="dark"]) .graph-container,
+:global(.dark-mode) .graph-container {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+/* This targets the specific white area in your screenshot */
+:global([data-theme="dark"]) .document-structure-panel > div,
+:global(.dark-mode) .document-structure-panel > div {
+  background-color: #1f2937; /* bg-gray-800 */
+  color: #f3f4f6; /* text-gray-100 */
+}
+
+/* Make sure the "Select a document" text is visible */
+:global([data-theme="dark"]) .document-structure-panel div div,
+:global(.dark-mode) .document-structure-panel div div {
+  color: #d1d5db; /* text-gray-300 */
+}
+
+/* Target the specific white background in the document structure panel */
+:global([data-theme="dark"]) .graphWrapper,
+:global(.dark-mode) .graphWrapper {
+  background-color: #1f2937 !important; /* bg-gray-800 with !important to override */
+  color: #f3f4f6;
+}
+
+/* Target all divs inside the document structure panel */
+:global([data-theme="dark"]) .document-structure-panel div,
+:global(.dark-mode) .document-structure-panel div {
+  background-color: #1f2937; /* bg-gray-800 */
+}
+
+/* Target the specific placeholder text */
+:global([data-theme="dark"]) .noDocumentContainer,
+:global(.dark-mode) .noDocumentContainer {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  color: #d1d5db !important; /* text-gray-300 */
+}
+
+/* Target the document structure header bar specifically */
+:global([data-theme="dark"]) .document-structure-panel .panel-header,
+:global(.dark-mode) .document-structure-panel .panel-header {
+  background-color: #111827 !important; /* bg-gray-900 */
+  border-color: #374151 !important; /* border-gray-700 */
+  color: #f3f4f6 !important; /* text-gray-100 */
+}
+
+/* Target the header text specifically */
+:global([data-theme="dark"]) .document-structure-panel .panel-header h2,
+:global(.dark-mode) .document-structure-panel .panel-header h2 {
+  color: #f3f4f6 !important; /* text-gray-100 */
+}
+
+/* Target the document structure panel background */
+:global([data-theme="dark"]) .document-structure-panel,
+:global(.dark-mode) .document-structure-panel {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  border-color: #374151 !important; /* border-gray-700 */
+}
+
+/* Target the document structure panel content */
+:global([data-theme="dark"]) .document-structure-panel > div,
+:global(.dark-mode) .document-structure-panel > div {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+}
