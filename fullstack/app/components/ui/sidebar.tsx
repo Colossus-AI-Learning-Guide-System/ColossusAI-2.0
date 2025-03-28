@@ -442,19 +442,6 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                     <Settings className="h-4 w-4" />
                     {!isCollapsed && <span className="text-sm">Settings</span>}
                   </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex w-full items-center justify-start gap-2 px-2 hover:text-white dark:hover:text-white"
-                    onClick={() => {
-                      setDefaultSettingsTab("general");
-                      setIsSettingsOpen(true);
-                    }}
-                  >
-                    <UserCircle className="h-4 w-4" />
-                    {!isCollapsed && <span className="text-sm">Profile</span>}
-                  </Button>
                 </div>
               </div>
             </div>

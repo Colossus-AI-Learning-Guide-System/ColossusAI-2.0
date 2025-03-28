@@ -24,12 +24,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   const isDarkTheme = theme === "dark";
 
   useEffect(() => {
-    // Clean up previous URL if it exists
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(null);
-    }
-
+    let currentUrl = null;
+    
     // Create a new URL if base64 data is provided
     if (base64Pdf) {
       try {
@@ -48,19 +44,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         const blob = new Blob([bytes], { type: "application/pdf" });
         console.log("Blob created, size:", blob.size);
 
-        const url = URL.createObjectURL(blob);
-        console.log("Blob URL created:", url);
+        currentUrl = URL.createObjectURL(blob);
+        console.log("Blob URL created:", currentUrl);
 
-        setPdfUrl(url);
+        setPdfUrl(currentUrl);
       } catch (e) {
         console.error("Error processing base64 PDF data:", e);
       }
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when dependency changes
     return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl);
       }
     };
   }, [base64Pdf]);
