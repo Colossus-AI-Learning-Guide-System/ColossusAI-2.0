@@ -14,6 +14,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea, ScrollBar } from "@/app/components/ui/scroll-area";
 import styles from "./DocumentList.module.css";
+import { useTheme } from "next-themes";
 
 interface DocumentMetadata {
   id: string;
@@ -47,6 +48,7 @@ export default function DocumentList({
     "date"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const { theme } = useTheme();
 
   // Fetch documents from the API
   useEffect(() => {
