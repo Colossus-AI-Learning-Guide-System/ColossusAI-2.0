@@ -3,10 +3,13 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-// Replace the import with this type definition
+// Define the Attribute type
+type Attribute = "class" | "data-theme" | "data-mode";
+
+// Update the ThemeProviderProps type
 type ThemeProviderProps = {
   children: React.ReactNode;
-  attribute?: string;
+  attribute?: Attribute | Attribute[];
   defaultTheme?: string;
   enableSystem?: boolean;
   disableTransitionOnChange?: boolean;

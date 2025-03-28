@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import styles from "../page.module.css";
 import DocumentFlow from "./DocumentFlow/DocumentFlow";
 
@@ -62,6 +62,20 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
       />
     );
   }, [documentId, handleDocumentNodeClick, isDarkTheme]);
+
+  useEffect(() => {
+    // Add null checks before manipulating DOM elements
+    const container = document.getElementById('graph-container');
+    if (!container) return;
+    
+    // When cleaning up, make sure the element still exists
+    return () => {
+      const container = document.getElementById('graph-container');
+      if (container && container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+    };
+  }, [documentId]);
 
   return (
     <div 

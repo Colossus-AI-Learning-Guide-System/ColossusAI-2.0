@@ -1880,3 +1880,39 @@
 :global(.dark-mode) .document-structure-panel > div {
   background-color: #1f2937 !important; /* bg-gray-800 */
 }
+
+/* Target the chat input area in dark mode */
+:global([data-theme="dark"]) .chat-input-container,
+:global(.dark-mode) .chat-input-container {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  border-color: #374151 !important; /* border-gray-700 */
+}
+
+/* Target the input field in dark mode */
+:global([data-theme="dark"]) .chat-input,
+:global(.dark-mode) .chat-input {
+  background-color: #374151 !important; /* bg-gray-700 */
+  color: #f3f4f6 !important; /* text-gray-100 */
+  border-color: #4b5563 !important; /* border-gray-600 */
+}
+
+/* Target the tab container in dark mode */
+:global([data-theme="dark"]) .tab-container,
+:global(.dark-mode) .tab-container {
+  background-color: #1f2937 !important; /* bg-gray-800 */
+  border-color: #374151 !important; /* border-gray-700 */
+}
+
+/* Target the tabs in dark mode */
+:global([data-theme="dark"]) .tab,
+:global(.dark-mode) .tab {
+  color: #d1d5db !important; /* text-gray-300 */
+  border-color: #374151 !important; /* border-gray-700 */
+}
+
+:global([data-theme="dark"]) .tab.active,
+:global(.dark-mode) .tab.active {
+  background-color: #374151 !important; /* bg-gray-700 */
+  color: #f3f4f6 !important; /* text-gray-100 */
+  border-color: #4b5563 !important; /* border-gray-600 */
+}
