@@ -26,7 +26,12 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ["unpkg.com", "arxiv.org", "www.w3.org"],
+    domains: [
+      "unpkg.com", 
+      "arxiv.org", 
+      "www.w3.org", 
+      "iriktekmugplhbdpwdzq.supabase.co"
+    ],
   },
   webpack: (config) => {
     // Enable importing PDF files

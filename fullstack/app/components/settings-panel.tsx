@@ -402,7 +402,13 @@ export function SettingsPanel({
             <button
               onClick={() => setActiveTab("upgrade")}
               className={`rounded-lg p-4 text-left transition flex items-center ${
-                activeTab === "upgrade" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+                activeTab === "upgrade"
+                  ? isDarkTheme 
+                    ? "bg-gradient-to-r from-gray-800 to-gray-700" 
+                    : "bg-gradient-to-r from-blue-800 to-blue-600" 
+                  : isDarkTheme 
+                    ? "hover:bg-gray-800/50" 
+                    : "hover:bg-blue-800/50"
               }`}
             >
               <CreditCard className="h-5 w-5 mr-3" />
@@ -411,7 +417,13 @@ export function SettingsPanel({
             <button
               onClick={() => setActiveTab("memory")}
               className={`rounded-lg p-4 text-left transition flex items-center ${
-                activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
+                activeTab === "memory" 
+                  ? isDarkTheme 
+                    ? "bg-gradient-to-r from-gray-800 to-gray-700" 
+                    : "bg-gradient-to-r from-blue-800 to-blue-600" 
+                  : isDarkTheme 
+                    ? "hover:bg-gray-800/50" 
+                    : "hover:bg-blue-800/50"
               }`}
             >
               <Database className="h-5 w-5 mr-3" />
@@ -420,8 +432,14 @@ export function SettingsPanel({
             <button
               onClick={() => setActiveTab("security")}
               className={`rounded-lg p-4 text-left transition flex items-center ${
-                activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
-              }`}
+                activeTab === "security" 
+                  ? isDarkTheme 
+                    ? "bg-gradient-to-r from-gray-800 to-gray-700" 
+                    : "bg-gradient-to-r from-blue-800 to-blue-600" 
+                  : isDarkTheme 
+                    ? "hover:bg-gray-800/50" 
+                    : "hover:bg-blue-800/50"
+                  }`}
             >
               <Shield className="h-5 w-5 mr-3" />
               General
