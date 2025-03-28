@@ -122,7 +122,7 @@ export function SettingsPanel({
 
   // Update URL when tab changes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && searchParams) {
       const params = new URLSearchParams(searchParams.toString())
       params.set("settings", activeTab)
       router.push(`?${params.toString()}`, { scroll: false })
@@ -131,7 +131,7 @@ export function SettingsPanel({
 
   // Set active tab from URL when opening
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && searchParams) {
       const tab = searchParams.get("settings")
       if (tab && ["general", "upgrade", "memory", "security"].includes(tab)) {
         setActiveTab(tab as SettingsTab)
