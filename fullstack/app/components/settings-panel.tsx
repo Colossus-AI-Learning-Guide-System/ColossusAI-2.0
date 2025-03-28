@@ -4,13 +4,16 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { X, Camera, Check } from "lucide-react"
+import { X, Camera, Check, User, CreditCard, Database, Shield } from "lucide-react"
 import { Input } from "@/app/components/ui/input"
-import { supabase } from "../lib/utils/supabaseClient"
+import { supabase } from "@/app/lib/utils/supabaseClient"
 import { getStorageStats, toggleMemory, clearUserData } from "@/app/actions/storage"
+import { deleteUserAccount } from "@/app/actions/user"
 import { type StorageStats, STORAGE_LIMITS } from "@/app/types/storage"
 import Image from "next/image"
 import { Button } from "@/app/components/ui/button"
+import { useProfile } from "@/app/hooks/use-profile"
+import { useImageUpload } from "@/app/hooks/use-image-upload"
 
 type SettingsTab = "general" | "upgrade" | "memory" | "security"
 export type PlanType = "free" | "pro" | "enterprise" | null
@@ -26,8 +29,6 @@ interface SettingsPanelProps {
   }
   fullName?: string
   setFullName?: (value: string) => void
-  username?: string
-  setUsername?: (value: string) => void
   email?: string
   setEmail?: (value: string) => void
   cardData?: any
@@ -48,8 +49,6 @@ export function SettingsPanel({
   featureFlags = { securitySettings: true, memoryManagement: true }, // Ensure memoryManagement is true by default
   fullName,
   setFullName,
-  username,
-  setUsername,
   email,
   setEmail,
   cardData,
@@ -65,23 +64,44 @@ export function SettingsPanel({
   const [activeTab, setActiveTab] = useState<SettingsTab>("general")
   const [memoryEnabled, setMemoryEnabled] = useState(true)
   const [storageUsed, setStorageUsed] = useState(45) // percentage
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("free")
-  const [isLoading, setIsLoading] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
+  
+  // Update the profile hook usage
+  const { 
+    profile, 
+    loading: profileLoading, 
+    error: profileError, 
+    isAuthenticated,
+    updateProfile, 
+    fetchProfile 
+  } = useProfile()
+  
+  // Use the image upload hook with profile refresh callback
+  const imageUploadResult = useImageUpload(
+    null, // Don't rely on profile.avatar_url 
+    { onSuccess: () => fetchProfile() }
+  );
+  
+  const avatarUrl = imageUploadResult.previewUrl;
+  const fileInputRef = imageUploadResult.fileInputRef;
+  const isUploading = imageUploadResult.isUploading;
+  const handlePhotoUpload = imageUploadResult.handleThumbnailClick;
+  const handleFileChange = imageUploadResult.handleFileChange;
+
+  // Combined loading state for UI
+  const isLoading = profileLoading || isUploading || saveLoading;
 
   const [formData, setFormData] = useState({
     fullName: "",
-    username: "",
     email: "",
   })
 
   const [formErrors, setFormErrors] = useState({
     fullName: "",
-    username: "",
     email: "",
   })
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [storageStats, setStorageStats] = useState<StorageStats>({
     usedStorage: 0,
     maxStorage: STORAGE_LIMITS.free,
@@ -109,94 +129,25 @@ export function SettingsPanel({
     }
   }, [isOpen, searchParams])
 
-  // Fetch user data from Supabase
+  // Update form data when profile is loaded
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        setIsLoading(true)
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (user) {
-          const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-          if (data) {
-            setFormData({
-              fullName: data.full_name || "",
-              username: data.username || "",
-              email: data.email || user.email || "",
-            })
-          } else {
-            // If no profile exists yet, just use the email from auth
-            setFormData((prev) => ({
-              ...prev,
-              email: user.email || "",
-            }))
-          }
-        } else {
-          // For demo purposes, set some placeholder data
-          setFormData({
-            fullName: "Demo User",
-            username: "demouser",
-            email: "demo@example.com",
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-        // For demo purposes, set some placeholder data
-        setFormData({
-          fullName: "Demo User",
-          username: "demouser",
-          email: "demo@example.com",
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    if (profile) {
+      setFormData({
+        fullName: profile.full_name || "",
+        email: profile.email || "",
+      })
     }
-
-    if (isOpen && activeTab === "general") {
-      fetchUserData()
-    }
-  }, [isOpen, activeTab])
-
-  useEffect(() => {
-    async function fetchAvatar() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (user) {
-          const { data } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
-
-          if (data?.avatar_url) {
-            setAvatarUrl(data.avatar_url)
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching avatar:", error)
-      }
-    }
-
-    if (isOpen && activeTab === "general") {
-      fetchAvatar()
-    }
-  }, [isOpen, activeTab])
+  }, [profile])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error when user types
-    if (formErrors[name as keyof typeof formErrors]) {
-      setFormErrors((prev) => ({ ...prev, [name]: "" }))
-    }
+    setFormErrors((prev) => ({ ...prev, [name]: "" })) // Clear error on change
   }
 
   const validateForm = () => {
     let isValid = true
-    const errors = { fullName: "", username: "", email: "" }
+    const errors = { fullName: "", email: "" }
 
     // Validate full name
     if (!formData.fullName.trim()) {
@@ -205,28 +156,16 @@ export function SettingsPanel({
     } else if (formData.fullName.length < 2) {
       errors.fullName = "Full name must be at least 2 characters"
       isValid = false
+    } else {
+      // Check if full name contains at least 2 words (first and last name)
+      const nameWords = formData.fullName.trim().split(/\s+/).filter(word => word.length > 0)
+      if (nameWords.length < 2) {
+        errors.fullName = "Please enter both first and last name"
+        isValid = false
+      }
     }
 
-    // Validate username
-    if (!formData.username.trim()) {
-      errors.username = "Username is required"
-      isValid = false
-    } else if (formData.username.length < 3) {
-      errors.username = "Username must be at least 3 characters"
-      isValid = false
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      errors.username = "Username can only contain letters, numbers, and underscores"
-      isValid = false
-    }
-
-    // Validate email
-    if (!formData.email.trim()) {
-      errors.email = "Email is required"
-      isValid = false
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Please enter a valid email address"
-      isValid = false
-    }
+    // Email validation removed as it's now display-only
 
     setFormErrors(errors)
     return isValid
@@ -273,89 +212,32 @@ export function SettingsPanel({
   const handleSaveChanges = async () => {
     if (activeTab === "general") {
       if (!validateForm()) return
+      
+      // Check if profile exists (user is authenticated)
+      if (!profile) {
+        showToast("Authentication required", "Please sign in to save changes.", "destructive")
+        return
+      }
 
       try {
-        setIsLoading(true)
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+        setSaveLoading(true)
+        
+        const updatedProfile = await updateProfile({
+          full_name: formData.fullName,
+          // email field removed from update as it's now display-only
+        })
 
-        if (user) {
-          const { error } = await supabase.from("profiles").upsert({
-            id: user.id,
-            full_name: formData.fullName,
-            username: formData.username,
-            email: formData.email,
-            updated_at: new Date().toISOString(),
-          })
-
-          if (error) throw error
-
+        if (updatedProfile) {
           showToast("Profile updated", "Your profile information has been updated successfully.")
         } else {
-          // For demo purposes, show success anyway
-          showToast("Demo mode", "In a real app, your profile would be updated now.")
+          throw new Error("Failed to update profile")
         }
       } catch (error) {
         console.error("Error updating profile:", error)
         showToast("Update failed", "There was a problem updating your profile.", "destructive")
       } finally {
-        setIsLoading(false)
+        setSaveLoading(false)
       }
-    }
-  }
-
-  const handlePhotoUpload = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      setIsLoading(true)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (user) {
-        // First, upload to local storage
-        const reader = new FileReader()
-        reader.onload = async (event) => {
-          const dataUrl = event.target?.result as string
-          setAvatarUrl(dataUrl) // Update UI immediately
-
-          // Then upload to Supabase
-          const fileExt = file.name.split(".").pop()
-          const fileName = `${user.id}-${Date.now()}.${fileExt}`
-
-          const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file)
-
-          if (uploadError) throw uploadError
-
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("avatars").getPublicUrl(fileName)
-
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({ avatar_url: publicUrl })
-            .eq("id", user.id)
-
-          if (updateError) throw updateError
-
-          setAvatarUrl(publicUrl)
-          showToast("Photo uploaded", "Your profile photo has been updated successfully.")
-        }
-
-        reader.readAsDataURL(file)
-      }
-    } catch (error) {
-      console.error("Error uploading photo:", error)
-      showToast("Upload failed", "There was a problem uploading your photo.", "destructive")
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -371,7 +253,7 @@ export function SettingsPanel({
   }, [activeTab])
 
   const handleMemoryToggle = async (enabled: boolean) => {
-    setIsLoading(true)
+    setSaveLoading(true)
     try {
       const success = await toggleMemory(enabled)
       if (success) {
@@ -382,12 +264,12 @@ export function SettingsPanel({
       console.error("Error toggling memory:", error)
       showToast("Update failed", "Could not update memory settings.", "destructive")
     } finally {
-      setIsLoading(false)
+      setSaveLoading(false)
     }
   }
 
   const handleClearData = async () => {
-    setIsLoading(true)
+    setSaveLoading(true)
     try {
       const success = await clearUserData()
       if (success) {
@@ -398,7 +280,79 @@ export function SettingsPanel({
       console.error("Error clearing data:", error)
       showToast("Clear failed", "Could not clear uploaded data.", "destructive")
     } finally {
-      setIsLoading(false)
+      setSaveLoading(false)
+    }
+  }
+
+  // Create a wrapper for handleFileChange to show toast on success
+  const handleFileChangeWithToast = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const result = await handleFileChange(e);
+      if (result) {
+        showToast("Photo uploaded", "Your profile photo has been updated successfully.");
+      }
+    } catch (error) {
+      console.error("Error in handleFileChangeWithToast:", error);
+      // Check if error is related to avatar_url column
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('avatar_url')) {
+        // The profile was updated successfully but the avatar_url column doesn't exist
+        showToast("Photo uploaded", "Your profile photo has been updated successfully.");
+      } else {
+        showToast("Upload failed", "There was a problem uploading your photo.", "destructive");
+      }
+    }
+  };
+
+  const handleChangePassword = async () => {
+    // Redirect to forget password page
+    router.push('/forgot-password');
+  }
+  
+  const handleLogoutAllDevices = async () => {
+    setSaveLoading(true)
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'global' })
+      if (error) throw error
+      
+      // Redirect to sign-in page
+      router.push('/signin')
+    } catch (error) {
+      console.error("Error logging out from all devices:", error)
+      showToast(
+        "Logout failed", 
+        "Could not log out from all devices. Please try again.", 
+        "destructive"
+      )
+      setSaveLoading(false)
+    }
+  }
+  
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return
+    }
+    
+    setSaveLoading(true)
+    try {
+      // Call server action to delete account
+      const result = await deleteUserAccount()
+      
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete account")
+      }
+      
+      // Sign out and redirect to signin page
+      await supabase.auth.signOut()
+      router.push('/signin')
+    } catch (error) {
+      console.error("Error deleting account:", error)
+      showToast(
+        "Account deletion failed", 
+        "Please try again or contact support.", 
+        "destructive"
+      )
+      setSaveLoading(false)
     }
   }
 
@@ -412,34 +366,38 @@ export function SettingsPanel({
           <nav className="flex flex-col space-y-2">
             <button
               onClick={() => setActiveTab("general")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "general" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <User className="h-5 w-5 mr-3" />
               Profile
             </button>
             <button
               onClick={() => setActiveTab("upgrade")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "upgrade" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <CreditCard className="h-5 w-5 mr-3" />
               Upgrade Plan
             </button>
             <button
               onClick={() => setActiveTab("memory")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "memory" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <Database className="h-5 w-5 mr-3" />
               Memory
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              className={`rounded-lg p-4 text-left transition ${
+              className={`rounded-lg p-4 text-left transition flex items-center ${
                 activeTab === "security" ? "bg-gradient-to-r from-blue-800 to-blue-600" : "hover:bg-blue-800/50"
               }`}
             >
+              <Shield className="h-5 w-5 mr-3" />
               Security
             </button>
           </nav>
@@ -461,70 +419,118 @@ export function SettingsPanel({
 
           <div className="flex-1 overflow-auto p-6">
             {activeTab === "general" && (
-              <div className="flex flex-col space-y-6">
-                <div className="flex justify-center">
-              <div className="relative">
-                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
-                      {avatarUrl ? (
-                        <Image
-                          src={avatarUrl || "/placeholder.svg"}
-                          alt="Profile"
-                          width={96}
-                          height={96}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span>No image</span>
-                  )}
-                </div>
-                <button
-                      onClick={handlePhotoUpload}
-                      className="absolute bottom-0 right-0 rounded-full bg-white p-2 text-black"
-                    >
-                      <Camera className="h-4 w-4" />
-                </button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-              </div>
-            </div>
-
-                <div className="space-y-4">
-              <div>
-                    <label className="mb-2 block">Full Name</label>
-                <Input
-                  name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
-              </div>
-              <div>
-                    <label className="mb-2 block">Username</label>
-                <Input
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.username && <p className="mt-1 text-sm text-red-400">{formErrors.username}</p>}
-              </div>
-              <div>
-                    <label className="mb-2 block">Email</label>
-                <Input
-                  name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="h-12 bg-gradient-to-r from-blue-700 to-purple-600 border-none text-white placeholder-white/70"
-                    />
-                    {formErrors.email && <p className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
+              <div className="space-y-8 pt-2 pb-6 px-6">
+                {profileLoading ? (
+                  <div className="flex justify-center items-center h-48">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                   </div>
-                </div>
+                ) : profileError ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <div className="text-red-400 mb-2">Failed to load profile</div>
+                    <p className="text-sm text-blue-300 mb-4">Please try refreshing the page</p>
+                    <Button 
+                      onClick={() => fetchProfile()}
+                      disabled={isLoading}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : !isAuthenticated ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <div className="text-yellow-400 mb-2">Not signed in</div>
+                    <p className="text-sm text-blue-300 mb-4">Please sign in to view and edit your profile</p>
+                    <a href={`/signin?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`}>
+                      <Button>
+                        Sign In
+                      </Button>
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChangeWithToast}
+                        />
+                        {avatarUrl ? (
+                          <Image
+                            src={avatarUrl}
+                            alt="Profile"
+                            width={96}
+                            height={96}
+                            className="h-24 w-24 rounded-full object-cover"
+                            onClick={handlePhotoUpload}
+                            onError={(e) => {
+                              // Debug information
+                              console.error("Failed to load image:", avatarUrl);
+                              
+                              // If image fails to load, replace with placeholder
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.closest('.relative');
+                              if (parent) {
+                                const div = document.createElement('div');
+                                div.className = "flex h-24 w-24 items-center justify-center rounded-full bg-blue-700 text-3xl font-bold";
+                                div.innerHTML = formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U";
+                                div.onclick = () => handlePhotoUpload();
+                                parent.appendChild(div);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-700 text-3xl font-bold"
+                            onClick={handlePhotoUpload}
+                          >
+                            {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U"}
+                          </div>
+                        )}
+                        <button
+                          onClick={handlePhotoUpload}
+                          className="absolute bottom-0 right-0 rounded-full bg-blue-600 p-2 shadow-lg hover:bg-blue-500"
+                        >
+                          <Camera className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">{formData.fullName || "User"}</h3>
+                        <p className="text-blue-300">{formData.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="fullName" className="block text-sm font-medium text-blue-200">
+                          Full Name
+                        </label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="mt-1 bg-blue-950/50 border-blue-800"
+                          placeholder="Enter your full name"
+                        />
+                        {formErrors.fullName && <p className="mt-1 text-sm text-red-400">{formErrors.fullName}</p>}
+                      </div>
+
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-blue-200">
+                          Email
+                        </label>
+                        <div 
+                          className="mt-1 p-2 bg-blue-950/50 border border-blue-800 rounded-md text-gray-200"
+                        >
+                          {formData.email}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -693,19 +699,52 @@ export function SettingsPanel({
 
             {activeTab === "security" && (
               <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Change passsword</h3>
-                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Change</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Change password</h3>
+                      <p className="text-sm text-blue-300">We'll send you an email with a link to reset your password</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      onClick={handleChangePassword}
+                      disabled={isLoading || !formData.email}
+                    >
+                      {isLoading ? "Sending..." : "Change"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Log out from All Devices</h3>
-                  <button className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200">Logout</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Log out from All Devices</h3>
+                      <p className="text-sm text-blue-300">This will end all your active sessions and require re-login</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:opacity-70"
+                      onClick={handleLogoutAllDevices}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Processing..." : "Logout"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl">Delete Accounts</h3>
-                  <button className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600">Delete</button>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl">Delete Account</h3>
+                      <p className="text-sm text-red-300">This will permanently remove all your data and cannot be undone</p>
+                    </div>
+                    <button 
+                      className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
+                      onClick={handleDeleteAccount}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Processing..." : "Delete"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -729,7 +768,7 @@ export function SettingsPanel({
               >
                 Proceed to Payment
               </button>
-            ) : (
+            ) : activeTab === "general" && profile ? (
               <button
                 className={`w-full h-12 rounded-md bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white ${
                   isLoading ? "opacity-70 cursor-not-allowed" : ""
@@ -737,13 +776,21 @@ export function SettingsPanel({
                 onClick={handleSaveChanges}
                 disabled={isLoading}
               >
-                {isLoading ? "Saving..." : "Save Changes"}
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Changes"
+                )}
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
     </div>
   )
 }
+
 

@@ -15,5 +15,6 @@ export const config = {
     '/forgot-password/:path*',
     '/reset-password/:path*',
     '/dashboard/:path*',
+    '/chatpage/:path*',
   ],
 };

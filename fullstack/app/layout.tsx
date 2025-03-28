@@ -14,8 +14,8 @@ const inter = Inter({
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Colossus AI | Settings Panel App",
-  description: "A Next.js application with settings panel and AI features",
+  title: "Colossus AI",
+  description: "Colossus AI",
 };
 
 export default function RootLayout({
@@ -27,6 +27,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}
+        suppressHydrationWarning
       >
         <div className="noise-overlay" />
         <main className="min-h-screen w-full overflow-x-visible p-0 m-0">

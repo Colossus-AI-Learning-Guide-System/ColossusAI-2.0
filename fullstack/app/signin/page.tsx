@@ -1,13 +1,13 @@
 "use client";
 
+import { PasswordInput } from "@/app/components/ui/PasswordInput";
 import { Button } from "@/app/components/ui/signin/button";
-import { Checkbox } from "@/app/components/ui/signin/checkbox";
 import { Input } from "@/app/components/ui/signin/input";
 import { Label } from "@/app/components/ui/signin/label";
 import {
-  resendConfirmationEmail,
-  signInWithEmail,
-  signInWithOAuth,
+    resendConfirmationEmail,
+    signInWithEmail,
+    signInWithOAuth,
 } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,6 +19,8 @@ export default function SignInPage() {
   const id = useId();
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Set default redirect to absolute URL
+  const redirectPath = searchParams.get("redirect") || "https://app.colossusai.net/chatpage";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await signInWithEmail(email, password);
+      const { data, error } = await signInWithEmail(email, password, isRememberMe);
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = error.message as string;
         
@@ -88,7 +90,12 @@ export default function SignInPage() {
       }
 
       if (data?.session) {
-        router.push("/chatpage");
+        // Use absolute URL here for client-side navigation
+        if (redirectPath.startsWith("http")) {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
       }
     } catch (err: any) {
       console.error("Signin error:", err);
@@ -101,12 +108,13 @@ export default function SignInPage() {
     }
   };
 
+  // Update OAuth sign-in to use absolute URL
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setFormStatus(null);
     setLoading(true);
     
     try {
-      const { error } = await signInWithOAuth(provider);
+      const { error } = await signInWithOAuth(provider, redirectPath);
       if (error) {
         throw new Error(
           `Unable to sign in with ${provider}. Please try again or use another sign-in method.`
@@ -318,10 +326,9 @@ export default function SignInPage() {
                 <Label htmlFor={`${id}-password`} className="text-sm font-medium">
                   Password<span className="text-red-500">*</span>
                 </Label>
-                <Input
+                <PasswordInput
                   id={`${id}-password`}
                   placeholder="Enter your password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => handleBlur('password')}
@@ -338,19 +345,21 @@ export default function SignInPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  id={`${id}-remember`} 
-                  className="rounded border-2 border-[#b066ff] text-purple-600 focus:ring-2 focus:ring-purple-300"
-                  checked={isRememberMe}
-                  onCheckedChange={(checked) => setIsRememberMe(checked as boolean)}
-                />
-                <Label
-                  htmlFor={`${id}-remember`}
-                  className="text-sm text-gray-600"
-                >
-                  Remember me
-                </Label>
+              <div className="flex items-start">
+                <div className="flex h-5 items-center">
+                  <input
+                    id={`${id}-remember`}
+                    type="checkbox"
+                    checked={isRememberMe}
+                    onChange={(e) => setIsRememberMe(e.target.checked)}
+                    className="h-4 w-4 rounded border-2 border-purple-500 text-purple-600 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="ml-2">
+                  <label htmlFor={`${id}-remember`} className="text-sm text-gray-500">
+                    Remember me
+                  </label>
+                </div>
               </div>
               <Link
                 href="/forgot-password"

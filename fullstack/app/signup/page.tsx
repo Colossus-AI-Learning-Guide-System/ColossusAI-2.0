@@ -1,17 +1,19 @@
 "use client";
 
+import { PasswordInput } from "@/app/components/ui/PasswordInput";
 import { Button } from "@/app/components/ui/signup/button";
 import { Input } from "@/app/components/ui/signup/input";
 import { Label } from "@/app/components/ui/signup/label";
 import {
-  resendConfirmationEmail,
-  signInWithOAuth,
-  signUpWithEmail,
+    resendConfirmationEmail,
+    signInWithOAuth,
+    signUpWithEmail,
 } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useId, useState } from "react";
+import OTPVerification from "../components/OTPVerification";
 import { TermsModal } from "../components/PrivacyModal";
 import { TermsOfServiceModal } from "../components/TermsModal";
 import { ValidationMessage } from "../components/validation";
@@ -38,6 +40,7 @@ export default function SignUpPage() {
   });
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
 
   // Password validation requirements
   const passwordRequirements = [
@@ -100,7 +103,7 @@ export default function SignUpPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Set all fields as touched to trigger validation outlines
+    // Mark all fields as touched
     setTouchedFields({
       fullName: true,
       email: true,
@@ -152,10 +155,8 @@ export default function SignUpPage() {
         );
       }
 
-      setFormStatus({
-        type: 'success',
-        message: "Registration successful! Please check your email for a confirmation link.",
-      });
+      // Show OTP verification instead of success message
+      setShowOTPVerification(true);
     } catch (err) {
       console.error("Sign up error:", err);
       setFormStatus({
@@ -213,6 +214,19 @@ export default function SignUpPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerificationComplete = () => {
+    // User has successfully verified their email
+    setFormStatus({
+      type: 'success',
+      message: "Registration complete! Redirecting to login..."
+    });
+    
+    // Redirect to login page
+    setTimeout(() => {
+      window.location.href = "/signin";
+    }, 2000);
   };
 
   // Helper function to show only the first failing password requirement
@@ -378,170 +392,175 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <form onSubmit={handleEmailSignUp} className="space-y-3 mt-3" noValidate>
-            {formStatus && (
-              <div className="min-h-validation">
-                <ValidationMessage
-                  type={formStatus.type}
-                  message={formStatus.message}
-                />
-              </div>
-            )}
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor={`${id}-fullName`} className="text-sm font-medium">
-                  Full Name<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`${id}-fullName`}
-                  placeholder="Enter your full name"
-                  value={fullName}
-                  onChange={handleFullNameChange}
-                  onBlur={() => handleBlur('fullName')}
-                  required
-                  error={touchedFields.fullName && !!getNameValidationMessage()}
-                />
-                {touchedFields.fullName && !!getNameValidationMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getNameValidationMessage()}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${id}-email`} className="text-sm font-medium">
-                  Email<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`${id}-email`}
-                  placeholder="Enter your email"
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={() => handleBlur('email')}
-                  required
-                  error={touchedFields.email && !!getEmailValidationMessage()}
-                />
-                {touchedFields.email && !!getEmailValidationMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getEmailValidationMessage() || ""}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
-                  Password<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`${id}-password`}
-                  placeholder="Create a password"
-                  type="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onBlur={() => handleBlur('password')}
-                  required
-                  error={touchedFields.password && !!getFailingRequirementMessage()}
-                />
-                {touchedFields.password && password && getFailingRequirementMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getFailingRequirementMessage() || ""}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${id}-confirmPassword`} className="text-sm font-medium">
-                  Confirm Password<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`${id}-confirmPassword`}
-                  placeholder="Confirm your password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onBlur={() => handleBlur('confirmPassword')}
-                  required
-                  error={touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword)}
-                />
-                {touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword) && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message="Passwords do not match"
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-start">
-                  <div className="flex h-5 items-center">
-                    <input
-                      id={`${id}-terms`}
-                      type="checkbox"
-                      checked={isTermsAccepted}
-                      onChange={(e) => setIsTermsAccepted(e.target.checked)}
-                      onBlur={() => {
-                        setTouchedFields((prev) => ({
-                          ...prev,
-                          terms: true,
-                        }));
-                      }}
-                      className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                    />
-                  </div>
-                  <div className="ml-2">
-                    <label htmlFor={`${id}-terms`} className="text-sm text-gray-500">
-                      I agree to the{" "}
-                      <button
-                        type="button"
-                        className="text-purple-600 font-medium hover:text-purple-500"
-                        onClick={() => setIsTermsModalOpen(true)}
-                      >
-                        Terms of Service
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        type="button"
-                        className="text-purple-600 font-medium hover:text-purple-500"
-                        onClick={() => setIsPrivacyModalOpen(true)}
-                      >
-                        Privacy Policy
-                      </button>
-                    </label>
-                  </div>
+          {showOTPVerification ? (
+            <OTPVerification
+              email={email}
+              onVerificationComplete={handleVerificationComplete}
+            />
+          ) : (
+            <form onSubmit={handleEmailSignUp} className="space-y-3 mt-3" noValidate>
+              {formStatus && (
+                <div className="min-h-validation">
+                  <ValidationMessage
+                    type={formStatus.type}
+                    message={formStatus.message}
+                  />
                 </div>
-                {touchedFields.terms && !isTermsAccepted && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message="You must accept the terms and privacy policy"
-                    />
+              )}
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-fullName`} className="text-sm font-medium">
+                    Full Name<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id={`${id}-fullName`}
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={handleFullNameChange}
+                    onBlur={() => handleBlur('fullName')}
+                    required
+                    error={touchedFields.fullName && !!getNameValidationMessage()}
+                  />
+                  {touchedFields.fullName && !!getNameValidationMessage() && (
+                    <div className="min-h-validation">
+                      <ValidationMessage
+                        type="error"
+                        message={getNameValidationMessage()}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-email`} className="text-sm font-medium">
+                    Email<span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id={`${id}-email`}
+                    placeholder="Enter your email"
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={() => handleBlur('email')}
+                    required
+                    error={touchedFields.email && !!getEmailValidationMessage()}
+                  />
+                  {touchedFields.email && !!getEmailValidationMessage() && (
+                    <div className="min-h-validation">
+                      <ValidationMessage
+                        type="error"
+                        message={getEmailValidationMessage() || ""}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-password`} className="text-sm font-medium">
+                    Password<span className="text-red-500">*</span>
+                  </Label>
+                  <PasswordInput
+                    id={`${id}-password`}
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    onBlur={() => handleBlur('password')}
+                    required
+                    error={touchedFields.password && !!getFailingRequirementMessage()}
+                  />
+                  {touchedFields.password && password && getFailingRequirementMessage() && (
+                    <div className="min-h-validation">
+                      <ValidationMessage
+                        type="error"
+                        message={getFailingRequirementMessage() || ""}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-confirmPassword`} className="text-sm font-medium">
+                    Confirm Password<span className="text-red-500">*</span>
+                  </Label>
+                  <PasswordInput
+                    id={`${id}-confirmPassword`}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={() => handleBlur('confirmPassword')}
+                    required
+                    error={touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword)}
+                  />
+                  {touchedFields.confirmPassword && (password !== confirmPassword || !confirmPassword) && (
+                    <div className="min-h-validation">
+                      <ValidationMessage
+                        type="error"
+                        message="Passwords do not match"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-start">
+                    <div className="flex h-5 items-center">
+                      <input
+                        id={`${id}-terms`}
+                        type="checkbox"
+                        checked={isTermsAccepted}
+                        onChange={(e) => setIsTermsAccepted(e.target.checked)}
+                        onBlur={() => {
+                          setTouchedFields((prev) => ({
+                            ...prev,
+                            terms: true,
+                          }));
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div className="ml-2">
+                      <label htmlFor={`${id}-terms`} className="text-sm text-gray-500">
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          className="text-purple-600 font-medium hover:text-purple-500"
+                          onClick={() => setIsTermsModalOpen(true)}
+                        >
+                          Terms of Service
+                        </button>{" "}
+                        and{" "}
+                        <button
+                          type="button"
+                          className="text-purple-600 font-medium hover:text-purple-500"
+                          onClick={() => setIsPrivacyModalOpen(true)}
+                        >
+                          Privacy Policy
+                        </button>
+                      </label>
+                    </div>
                   </div>
-                )}
+                  {touchedFields.terms && !isTermsAccepted && (
+                    <div className="min-h-validation">
+                      <ValidationMessage
+                        type="error"
+                        message="You must accept the terms and privacy policy"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl mt-2 mb-2"
-              disabled={loading}
-            >
-              {loading ? "Creating account..." : "Create account"}
-            </Button>
-            
-            <p className="text-center text-sm font-medium text-gray-700 mt-4">
-              Already have an account?{" "}
-              <Link href="/signin" className="text-purple-600 hover:text-purple-500 font-medium">
-                Sign in
-              </Link>
-            </p>
-          </form>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl mt-2 mb-2"
+                disabled={loading}
+              >
+                {loading ? "Creating account..." : "Create account"}
+              </Button>
+              
+              <p className="text-center text-sm font-medium text-gray-700 mt-4">
+                Already have an account?{" "}
+                <Link href="/signin" className="text-purple-600 hover:text-purple-500 font-medium">
+                  Sign in
+                </Link>
+              </p>
+            </form>
+          )}
         </div>
       </div>
 
