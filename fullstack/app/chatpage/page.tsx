@@ -9,6 +9,7 @@ import DocumentList from "../components/DocumentList";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { useProfile } from "@/app/hooks/use-profile";
+import { MobileWarning } from "@/app/components/MobileWarning";
 
 // Dynamically import PDF viewer components with SSR disabled
 const PDFViewer = dynamic(() => import("./components/PDFViewer"), {
@@ -761,11 +762,8 @@ export default function DocumentAnalysisPage() {
   }
 
   return (
-    <main
-      className={`chatpage-container ${
-        isDarkTheme ? "dark-mode bg-gray-900" : ""
-      }`}
-    >
+    <main className={`${styles.main} ${isDarkTheme ? "dark" : ""}`}>
+      <MobileWarning isAuthenticated={!!isAuthenticated} />
       <Sidebar onDocumentUpload={handleDocumentUpload} />
       <div
         className={`content-wrapper ${

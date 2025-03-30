@@ -329,8 +329,8 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       animate={isCollapsed ? "closed" : "open"}
       variants={sidebarVariants}
       transition={transitionProps}
-      onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
+      onMouseEnter={() => !isSettingsOpen && setIsCollapsed(false)}
+      onMouseLeave={() => !isSettingsOpen && setIsCollapsed(true)}
     >
       <motion.div
         className={`relative z-30 flex text-muted-foreground h-full shrink-0 flex-col bg-white dark:bg-gray-950 dark:border-gray-800 transition-all shadow-sm`}
@@ -505,7 +505,10 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       {/* Settings Panel */}
       <SettingsPanel
         isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+        onClose={() => {
+          setIsSettingsOpen(false);
+          setIsCollapsed(true); // Ensure sidebar collapses when settings panel closes
+        }}
         userPermissions={["general", "upgrade"]}
         userSubscription="free"
         featureFlags={{ securitySettings: true, memoryManagement: true }}
