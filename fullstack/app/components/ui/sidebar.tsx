@@ -476,7 +476,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex w-full items-center justify-start gap-2 px-2 hover:text-white dark:hover:text-white"
+                    className="flex w-full items-center justify-start gap-2 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
                     onClick={() => {
                       setDefaultSettingsTab("security");
                       setIsSettingsOpen(true);
@@ -484,6 +484,16 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   >
                     <Settings className="h-4 w-4" />
                     {!isCollapsed && <span className="text-sm">Settings</span>}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex w-full items-center justify-start gap-2 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {!isCollapsed && <span className="text-sm">Sign out</span>}
                   </Button>
                 </div>
               </div>
