@@ -838,7 +838,7 @@ export function SettingsPanel({
 
                 <div
                   className={`grid ${
-                    isMobileView ? "grid-cols-1 gap-8" : "grid-cols-3 gap-4"
+                    isMobileView ? "grid-cols-1 gap-8" : "grid-cols-1 gap-8"
                   }`}
                 >
                   {/* Free Plan */}
@@ -847,39 +847,41 @@ export function SettingsPanel({
                       selectedPlan === "free"
                         ? "border-white"
                         : "border-white/30"
-                    } bg-blue-950/50 p-6 flex flex-col cursor-pointer transition-all h-full`}
+                    } bg-blue-950/50 p-8 flex flex-col cursor-pointer transition-all hover:shadow-lg hover:shadow-blue-900/30`}
                     onClick={() => setSelectedPlan("free")}
                   >
-                    <h3 className="text-xl font-bold text-center mb-2">Free</h3>
-                    <div className="text-center border-b border-white/20 pb-4 mb-4">
-                      <span className="text-3xl font-bold">$0</span>
-                      <span className="text-xl">.00</span>
-                      <p className="text-sm text-white/70 mt-1">monthly</p>
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/20">
+                      <h3 className="text-3xl font-bold">Free</h3>
+                      <div className="text-right">
+                        <span className="text-4xl font-bold">$0</span>
+                        <span className="text-2xl">.00</span>
+                        <p className="text-sm text-white/70 mt-1">monthly</p>
+                      </div>
                     </div>
-                    <ul className="space-y-3 flex-1 mb-6">
+                    <ul className="space-y-4 mb-6">
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Limited Access</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Limited Access</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>2 Documents Limit</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">2 Documents Limit</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Up to 10MB Storage</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Up to 10MB Storage</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>RoadMap Generation</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">RoadMap Generation</span>
                       </li>
                     </ul>
                     <button
-                      className={`rounded-md w-full py-2.5 mt-auto font-medium ${
+                      className={`rounded-md w-full py-4 mt-auto font-medium ${
                         selectedPlan === "free"
                           ? "bg-gray-500 cursor-not-allowed"
                           : "bg-purple-600 hover:bg-purple-700"
-                      } text-white transition-all`}
+                      } text-white transition-all text-xl`}
                       disabled={selectedPlan === "free"}
                     >
                       Current Plan
@@ -892,48 +894,48 @@ export function SettingsPanel({
                       selectedPlan === "pro"
                         ? "border-white"
                         : "border-purple-500"
-                    } bg-blue-950/50 p-6 flex flex-col relative cursor-pointer transition-all h-full`}
+                    } bg-blue-950/50 p-8 flex flex-col relative cursor-pointer transition-all hover:shadow-lg hover:shadow-purple-900/30`}
                     onClick={() => setSelectedPlan("pro")}
                   >
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap">
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-500 px-6 py-2 rounded-full text-lg font-bold whitespace-nowrap">
                       Most Popular
                     </div>
-                    <h3 className="text-xl font-bold text-center mb-2 mt-2">
-                      Pro
-                    </h3>
-                    <div className="text-center border-b border-white/20 pb-4 mb-4">
-                      <span className="text-3xl font-bold">$9</span>
-                      <span className="text-xl">.99</span>
-                      <p className="text-sm text-white/70 mt-1">monthly</p>
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/20 mt-2">
+                      <h3 className="text-3xl font-bold">Pro</h3>
+                      <div className="text-right">
+                        <span className="text-4xl font-bold">$9</span>
+                        <span className="text-2xl">.99</span>
+                        <p className="text-sm text-white/70 mt-1">monthly</p>
+                      </div>
                     </div>
-                    <ul className="space-y-3 flex-1 mb-6">
+                    <ul className="space-y-4 mb-6">
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Additional Access</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Additional Access</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>10 Documents Limit</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">10 Documents Limit</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Up to 100MB Storage</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Up to 100MB Storage</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Document History</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Document History</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>RoadMap Generation</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">RoadMap Generation</span>
                       </li>
                     </ul>
                     <button
-                      className={`rounded-md w-full py-2.5 mt-auto font-medium ${
+                      className={`rounded-md w-full py-4 mt-auto font-medium ${
                         isDarkTheme
                           ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                           : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                      } text-white transition-all`}
+                      } text-white transition-all text-xl`}
                     >
                       Upgrade Now
                     </button>
@@ -945,49 +947,49 @@ export function SettingsPanel({
                       selectedPlan === "enterprise"
                         ? "border-white"
                         : "border-white/30"
-                    } bg-blue-950/50 p-6 flex flex-col cursor-pointer transition-all h-full`}
+                    } bg-blue-950/50 p-8 flex flex-col cursor-pointer transition-all hover:shadow-lg hover:shadow-blue-900/30`}
                     onClick={() => setSelectedPlan("enterprise")}
                   >
-                    <h3 className="text-xl font-bold text-center mb-2">
-                      Enterprise
-                    </h3>
-                    <div className="text-center border-b border-white/20 pb-4 mb-4">
-                      <span className="text-3xl font-bold">$14</span>
-                      <span className="text-xl">.99</span>
-                      <p className="text-sm text-white/70 mt-1">monthly</p>
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/20">
+                      <h3 className="text-3xl font-bold">Enterprise</h3>
+                      <div className="text-right">
+                        <span className="text-4xl font-bold">$14</span>
+                        <span className="text-2xl">.99</span>
+                        <p className="text-sm text-white/70 mt-1">monthly</p>
+                      </div>
                     </div>
-                    <ul className="space-y-3 flex-1 mb-6">
+                    <ul className="space-y-4 mb-6">
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Additional Access</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Additional Access</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>30 Documents Limit</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">30 Documents Limit</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Up to 500MB Storage</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Up to 500MB Storage</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Document History</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Document History</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>RoadMap Generation</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">RoadMap Generation</span>
                       </li>
                       <li className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-purple-400 shrink-0 mt-0.5" />
-                        <span>Priority Support</span>
+                        <Check className="h-6 w-6 mr-3 text-purple-400 shrink-0 mt-0.5" />
+                        <span className="text-lg">Priority Support</span>
                       </li>
                     </ul>
                     <button
-                      className={`rounded-md w-full py-2.5 mt-auto font-medium ${
+                      className={`rounded-md w-full py-4 mt-auto font-medium ${
                         isDarkTheme
                           ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                           : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                      } text-white transition-all`}
+                      } text-white transition-all text-xl`}
                     >
                       Upgrade Now
                     </button>
