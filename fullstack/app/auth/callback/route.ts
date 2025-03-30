@@ -5,8 +5,9 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  // Change the default redirect to the absolute URL
-  const next = requestUrl.searchParams.get("next") ?? "https://app.colossusai.net/chatpage";
+  // Use dynamic redirect based on request origin
+  const next =
+    requestUrl.searchParams.get("next") ?? `${requestUrl.origin}/chatpage`;
 
   if (code) {
     const cookieStore = cookies();
@@ -63,14 +64,12 @@ export async function GET(request: Request) {
       if (profileError && profileError.code === "PGRST116") {
         console.log("Auth callback: Creating new profile for user");
         // No profile found, create one
-        const { error: createError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            full_name: user.user_metadata?.full_name || "",
-            email: user.email,
-            updated_at: new Date().toISOString(),
-          });
+        const { error: createError } = await supabase.from("profiles").insert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || "",
+          email: user.email,
+          updated_at: new Date().toISOString(),
+        });
 
         if (createError) {
           console.error("Profile creation error:", createError);
@@ -87,7 +86,9 @@ export async function GET(request: Request) {
 
       // When redirecting, use the absolute URL instead of relative path
       console.log(`Auth callback: Redirecting to ${next}`);
-      return NextResponse.redirect(next.startsWith("http") ? next : new URL(next, "https://app.colossusai.net"));
+      return NextResponse.redirect(
+        next.startsWith("http") ? next : new URL(next, requestUrl.origin)
+      );
     } catch (error: unknown) {
       console.error("Auth callback error:", error);
       const errorMessage =

@@ -5,9 +5,9 @@ import { Button } from "@/app/components/ui/signin/button";
 import { Input } from "@/app/components/ui/signin/input";
 import { Label } from "@/app/components/ui/signin/label";
 import {
-    resendConfirmationEmail,
-    signInWithEmail,
-    signInWithOAuth,
+  resendConfirmationEmail,
+  signInWithEmail,
+  signInWithOAuth,
 } from "@/lib/supabase/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,15 +19,20 @@ export default function SignInPage() {
   const id = useId();
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Set default redirect to absolute URL
-  const redirectPath = searchParams.get("redirect") || "https://app.colossusai.net/chatpage";
+  // Use dynamic redirect based on current window origin
+  const redirectPath =
+    searchParams.get("redirect") ||
+    `${typeof window !== "undefined" ? window.location.origin : ""}/chatpage`;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRememberMe, setIsRememberMe] = useState(false);
-  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(
-    searchParams.get("message") 
-      ? { type: 'warning', message: searchParams.get("message")! }
+  const [formStatus, setFormStatus] = useState<{
+    type: "success" | "error" | "warning";
+    message: string;
+  } | null>(
+    searchParams.get("message")
+      ? { type: "warning", message: searchParams.get("message")! }
       : null
   );
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({
@@ -36,7 +41,7 @@ export default function SignInPage() {
   });
 
   const handleBlur = (field: string) => {
-    setTouchedFields(prev => ({ ...prev, [field]: true }));
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
   };
 
   const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +51,7 @@ export default function SignInPage() {
 
   const handleEmailSignIn = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // Mark all fields as touched
     setTouchedFields({
       email: true,
@@ -57,7 +62,7 @@ export default function SignInPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const hasEmailError = !emailRegex.test(email);
     const hasPasswordError = !password;
-    
+
     // Return early if there are field-level errors
     // These will be shown by the field-specific validation messages
     if (hasEmailError || hasPasswordError) {
@@ -68,20 +73,26 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await signInWithEmail(email, password, isRememberMe);
-      if (error && typeof error === 'object' && 'message' in error) {
+      const { data, error } = await signInWithEmail(
+        email,
+        password,
+        isRememberMe
+      );
+      if (error && typeof error === "object" && "message" in error) {
         const errorMessage = error.message as string;
-        
+
         if (errorMessage.includes("Email not confirmed")) {
           setFormStatus({
-            type: 'warning',
-            message: "Your email address hasn't been verified. Please check your inbox and click the verification link."
+            type: "warning",
+            message:
+              "Your email address hasn't been verified. Please check your inbox and click the verification link.",
           });
           return;
         } else if (errorMessage.includes("Invalid login credentials")) {
           setFormStatus({
-            type: 'error',
-            message: "The email or password you entered is incorrect. Please try again."
+            type: "error",
+            message:
+              "The email or password you entered is incorrect. Please try again.",
           });
           return;
         } else {
@@ -100,8 +111,10 @@ export default function SignInPage() {
     } catch (err: any) {
       console.error("Signin error:", err);
       setFormStatus({
-        type: 'error',
-        message: err.message || "We couldn't sign you in. Please check your credentials and try again."
+        type: "error",
+        message:
+          err.message ||
+          "We couldn't sign you in. Please check your credentials and try again.",
       });
     } finally {
       setLoading(false);
@@ -112,7 +125,7 @@ export default function SignInPage() {
   const handleOAuthSignIn = async (provider: "github" | "google") => {
     setFormStatus(null);
     setLoading(true);
-    
+
     try {
       const { error } = await signInWithOAuth(provider, redirectPath);
       if (error) {
@@ -122,8 +135,10 @@ export default function SignInPage() {
       }
     } catch (err: any) {
       setFormStatus({
-        type: 'error',
-        message: err.message || `We couldn't complete your ${provider} sign-in. Please try again later.`
+        type: "error",
+        message:
+          err.message ||
+          `We couldn't complete your ${provider} sign-in. Please try again later.`,
       });
     } finally {
       setLoading(false);
@@ -139,13 +154,13 @@ export default function SignInPage() {
       const { error } = await resendConfirmationEmail(email);
       if (error) throw error;
       setFormStatus({
-        type: 'success',
-        message: "Confirmation email has been resent. Please check your inbox."
+        type: "success",
+        message: "Confirmation email has been resent. Please check your inbox.",
       });
     } catch (err: any) {
       setFormStatus({
-        type: 'error',
-        message: err.message || "Failed to resend confirmation email"
+        type: "error",
+        message: err.message || "Failed to resend confirmation email",
       });
     } finally {
       setLoading(false);
@@ -158,10 +173,12 @@ export default function SignInPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-800 via-purple-700 to-blue-600 p-4 lg:p-8 overflow-hidden">
         <div className="flex flex-col justify-between text-white max-w-xl w-full h-full">
           <div>
-            <h1 className="text-8xl font-bold tracking-tight text-white/90 mt-8">Sign-in</h1>
+            <h1 className="text-8xl font-bold tracking-tight text-white/90 mt-8">
+              Sign-in
+            </h1>
           </div>
         </div>
-        
+
         {/* Instruction content positioned to avoid logo overlap */}
         <div className="absolute top-1/2 right-14 max-w-md space-y-6 text-white/80">
           <h2 className="text-2xl font-semibold">Welcome Back</h2>
@@ -169,24 +186,40 @@ export default function SignInPage() {
             <p className="text-lg">Unlock the power of Colossus AI:</p>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
-                <span>Transform unstructured documents into clear, AI-powered study roadmaps</span>
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">
+                  ✓
+                </span>
+                <span>
+                  Transform unstructured documents into clear, AI-powered study
+                  roadmaps
+                </span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">
+                  ✓
+                </span>
                 <span>Extract key insights and organize them efficiently</span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>                <span>Access step-by-step learning plans for focused studying</span>
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">
+                  ✓
+                </span>{" "}
+                <span>
+                  Access step-by-step learning plans for focused studying
+                </span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">✓</span>
-                <span>Collaborate with AI to enhance your learning journey</span>
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 mr-3 text-sm mt-0.5">
+                  ✓
+                </span>
+                <span>
+                  Collaborate with AI to enhance your learning journey
+                </span>
               </li>
             </ul>
           </div>
         </div>
-        
+
         {/* Large wheel logo positioned to show only half */}
         <div className="absolute -left-64 bottom-0 w-[500px] h-[500px]">
           <Image
@@ -196,17 +229,17 @@ export default function SignInPage() {
             className="object-contain logo-rotate"
           />
         </div>
-        
+
         {/* Decorative circles */}
         <div className="absolute bottom-0 left-0 w-16 lg:w-32 h-16 lg:h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
         <div className="absolute top-1/4 right-0 w-12 lg:w-24 h-12 lg:h-24 bg-white/10 rounded-full translate-x-1/2"></div>
-        
+
         {/* Add logo rotation animation */}
         <style jsx global>{`
           .logo-rotate {
             animation: rotate 10s linear infinite;
           }
-          
+
           @keyframes rotate {
             from {
               transform: rotate(0deg);
@@ -232,7 +265,9 @@ export default function SignInPage() {
               />
             </div>
             <div className="space-y-1.5 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Welcome back
+              </h1>
               <p className="text-sm text-gray-500">
                 Sign in to continue to your account
               </p>
@@ -243,7 +278,7 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => handleOAuthSignIn("google")}
-                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path
@@ -269,9 +304,14 @@ export default function SignInPage() {
             <button
               type="button"
               onClick={() => handleOAuthSignIn("github")}
-                className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-3xl h-11 bg-[#2D2D2D] border border-[#444444] text-white hover:bg-[#3a3a3a] transition-colors"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
               </svg>
               <span className="text-sm font-medium">GitHub</span>
@@ -283,7 +323,9 @@ export default function SignInPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 text-gray-500 bg-[#FFFFFF] divider-text">Or Continue with email</span>
+              <span className="px-2 text-gray-500 bg-[#FFFFFF] divider-text">
+                Or Continue with email
+              </span>
             </div>
           </div>
 
@@ -305,25 +347,30 @@ export default function SignInPage() {
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
-                  onBlur={() => handleBlur('email')}
+                  onBlur={() => handleBlur("email")}
                   className="h-11 rounded-3xl"
-                  error={touchedFields.email && (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))}
+                  error={
+                    touchedFields.email &&
+                    (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+                  }
                 />
                 {touchedFields.email && !email && (
-                  <ValidationMessage
-                    type="error"
-                    message="Email is required"
-                  />
+                  <ValidationMessage type="error" message="Email is required" />
                 )}
-                {touchedFields.email && email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && (
-                  <ValidationMessage
-                    type="error"
-                    message="Please enter a valid email address"
-                  />
-                )}
+                {touchedFields.email &&
+                  email &&
+                  !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && (
+                    <ValidationMessage
+                      type="error"
+                      message="Please enter a valid email address"
+                    />
+                  )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`${id}-password`} className="text-sm font-medium">
+                <Label
+                  htmlFor={`${id}-password`}
+                  className="text-sm font-medium"
+                >
                   Password<span className="text-red-500">*</span>
                 </Label>
                 <PasswordInput
@@ -331,7 +378,7 @@ export default function SignInPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => handleBlur('password')}
+                  onBlur={() => handleBlur("password")}
                   className="h-11 rounded-3xl"
                   error={touchedFields.password && !password}
                 />
@@ -356,7 +403,10 @@ export default function SignInPage() {
                   />
                 </div>
                 <div className="ml-2">
-                  <label htmlFor={`${id}-remember`} className="text-sm text-gray-500">
+                  <label
+                    htmlFor={`${id}-remember`}
+                    className="text-sm text-gray-500"
+                  >
                     Remember me
                   </label>
                 </div>
@@ -369,8 +419,8 @@ export default function SignInPage() {
               </Link>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl"
               disabled={loading}
             >
@@ -378,10 +428,7 @@ export default function SignInPage() {
             </Button>
 
             <p className="signin-link text-center">
-              Don't have an account?{" "}
-              <Link href="/signup">
-                Sign up
-              </Link>
+              Don't have an account? <Link href="/signup">Sign up</Link>
             </p>
           </form>
         </div>

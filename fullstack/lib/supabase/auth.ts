@@ -13,21 +13,19 @@ export const signUpWithEmail = async (
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let signUpData, signUpError;
-    
+
     try {
-      const result = await supabase.auth.signUp(
-        {
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-            },
-            emailRedirectTo: undefined,
+      const result = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
           },
-        }
-      );
-      
+          emailRedirectTo: undefined,
+        },
+      });
+
       signUpData = result.data;
       signUpError = result.error;
     } catch (supabaseError) {
@@ -49,24 +47,28 @@ export const signUpWithEmail = async (
 };
 
 // Email/Password Sign In
-export const signInWithEmail = async (email: string, password: string, rememberMe: boolean = false) => {
+export const signInWithEmail = async (
+  email: string,
+  password: string,
+  rememberMe: boolean = false
+) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
-    
+
     try {
       // If rememberMe is true, we want to keep the session longer
       const result = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       // If rememberMe is true and sign in was successful, extend the session
       if (rememberMe && result.data.session) {
         // Log that we're remembering the user
         console.log("Remember me enabled, session will persist");
       }
-      
+
       data = result.data;
       error = result.error;
     } catch (supabaseError) {
@@ -92,7 +94,7 @@ export const resendConfirmationEmail = async (email: string) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
-    
+
     try {
       const result = await supabase.auth.resend({
         type: "signup",
@@ -101,7 +103,7 @@ export const resendConfirmationEmail = async (email: string) => {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      
+
       data = result.data;
       error = result.error;
     } catch (supabaseError) {
@@ -109,7 +111,7 @@ export const resendConfirmationEmail = async (email: string) => {
       console.log("Caught Supabase error:", supabaseError);
       error = supabaseError;
     }
-    
+
     if (error) {
       console.log("Resend confirmation email error handled:", error);
       return { data: null, error };
@@ -123,25 +125,36 @@ export const resendConfirmationEmail = async (email: string) => {
 };
 
 // OAuth Sign In (Google, GitHub)
-export const signInWithOAuth = async (provider: "github" | "google", redirectUrl?: string) => {
+export const signInWithOAuth = async (
+  provider: "github" | "google",
+  redirectUrl?: string
+) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
-    
+
     try {
       const baseRedirectTo = `${window.location.origin}/auth/callback`;
       // Append a next parameter to the redirect URL
-      const finalRedirectTo = redirectUrl 
-        ? `${baseRedirectTo}?next=${encodeURIComponent(redirectUrl)}` 
+      const finalRedirectTo = redirectUrl
+        ? `${baseRedirectTo}?next=${encodeURIComponent(redirectUrl)}`
         : baseRedirectTo;
-        
+
       const result = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: finalRedirectTo,
+          queryParams:
+            provider === "google"
+              ? {
+                  // This will show the app name during authentication instead of the Supabase project name
+                  prompt: "select_account",
+                  access_type: "offline",
+                }
+              : undefined,
         },
       });
-      
+
       data = result.data;
       error = result.error;
     } catch (supabaseError) {
@@ -149,12 +162,12 @@ export const signInWithOAuth = async (provider: "github" | "google", redirectUrl
       console.log("Caught Supabase OAuth error:", supabaseError);
       error = supabaseError;
     }
-    
+
     if (error) {
       console.log("OAuth sign in error handled:", error);
       return { data: null, error };
     }
-    
+
     return { data, error: null };
   } catch (error) {
     console.log("Unexpected error in signInWithOAuth:", error);
@@ -219,31 +232,31 @@ export const verifyOTP = async (email: string, token: string) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
-    
+
     try {
       const result = await supabase.auth.verifyOtp({
         email,
         token,
-        type: 'signup',
+        type: "signup",
       });
-      
+
       data = result.data;
       error = result.error;
-      
+
       // Enhanced error classification for better user feedback
       if (error) {
         // Log the exact error for debugging purposes
         console.log("Original OTP verification error:", error);
-        
+
         // Check if we can determine more specifically what went wrong
-        if (typeof error === 'object' && error !== null && 'message' in error) {
+        if (typeof error === "object" && error !== null && "message" in error) {
           const errorMessage = String(error.message).toLowerCase();
-          
+
           // Add more context to the error based on the message
-          if (errorMessage.includes('token is invalid')) {
-            error = { ...error, errorType: 'invalid_code' };
-          } else if (errorMessage.includes('token has expired')) {
-            error = { ...error, errorType: 'expired_code' };
+          if (errorMessage.includes("token is invalid")) {
+            error = { ...error, errorType: "invalid_code" };
+          } else if (errorMessage.includes("token has expired")) {
+            error = { ...error, errorType: "expired_code" };
           }
         }
       }
@@ -252,7 +265,7 @@ export const verifyOTP = async (email: string, token: string) => {
       console.log("Caught Supabase error:", supabaseError);
       error = supabaseError;
     }
-    
+
     if (error) {
       console.log("OTP verification error handled:", error);
       return { data: null, error };
@@ -270,16 +283,16 @@ export const resendOTP = async (email: string) => {
   try {
     // Use a try-catch inside to catch and completely suppress the AuthApiError
     let data, error;
-    
+
     try {
       const result = await supabase.auth.resend({
-        type: 'signup',
+        type: "signup",
         email,
         options: {
           emailRedirectTo: undefined,
         },
       });
-      
+
       data = result.data;
       error = result.error;
     } catch (supabaseError) {
@@ -287,7 +300,7 @@ export const resendOTP = async (email: string) => {
       console.log("Caught Supabase error:", supabaseError);
       error = supabaseError;
     }
-    
+
     if (error) {
       console.log("Resend OTP error handled:", error);
       return { data: null, error };
