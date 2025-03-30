@@ -2,7 +2,10 @@
     "cSpell.words": [
         "cooldown",
         "Didn",
+        "fkey",
+        "pkey",
         "roadmaps",
-        "supabase"
+        "supabase",
+        "TABLESPACE"
     ]
 }
