@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import styles from "../page.module.css";
 import DocumentFlow from "./DocumentFlow/DocumentFlow";
 
@@ -11,6 +11,7 @@ interface DocumentStructureProps {
     documentId: string,
     pageReference?: number
   ) => void;
+  isDarkTheme: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ interface DocumentStructureProps {
 const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
   documentId,
   onNodeClick,
+  isDarkTheme,
 }) => {
   // Handle node click in the document flow - memoized to prevent re-renders
   const handleDocumentNodeClick = useCallback(
@@ -44,7 +46,9 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
     if (!documentId) {
       return (
         <div className={styles.noDocumentContainer || ""}>
-          <div>Select a document to view its structure</div>
+          <div className={`${isDarkTheme ? "text-gray-400" : "text-gray-500"}`}>
+            Select a document to view its structure
+          </div>
         </div>
       );
     }
@@ -53,12 +57,38 @@ const DocumentStructureGraph: React.FC<DocumentStructureProps> = ({
       <DocumentFlow
         documentId={documentId}
         onNodeClick={handleDocumentNodeClick}
+        isDarkTheme={isDarkTheme}
         key={documentId} // Use key to force re-mount on document change
       />
     );
-  }, [documentId, handleDocumentNodeClick]);
+  }, [documentId, handleDocumentNodeClick, isDarkTheme]);
 
-  return <div className={styles.graphWrapper}>{documentFlow}</div>;
+  useEffect(() => {
+    // Add null checks before manipulating DOM elements
+    const container = document.getElementById('graph-container');
+    if (!container) return;
+    
+    // When cleaning up, make sure the element still exists
+    return () => {
+      const container = document.getElementById('graph-container');
+      if (container && container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+    };
+  }, [documentId]);
+
+  return (
+    <div 
+      className={styles.graphWrapper} 
+      style={{ 
+        backgroundColor: isDarkTheme ? '#1f2937' : 'white',
+        height: '100%', 
+        width: '100%' 
+      }}
+    >
+      {documentFlow}
+    </div>
+  );
 };
 
 export default React.memo(DocumentStructureGraph);

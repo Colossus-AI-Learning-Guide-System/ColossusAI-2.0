@@ -305,12 +305,12 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       onMouseLeave={() => setIsCollapsed(true)}
     >
       <motion.div
-        className={`relative z-30 flex text-muted-foreground h-full shrink-0 flex-col bg-white dark:bg-black transition-all shadow-sm`}
+        className={`relative z-30 flex text-muted-foreground h-full shrink-0 flex-col bg-white dark:bg-gray-950 dark:border-gray-800 transition-all shadow-sm`}
         variants={contentVariants}
       >
         <motion.ul variants={staggerVariants} className="flex h-full flex-col">
           <div className="flex grow flex-col items-center">
-            <div className="flex h-[54px] w-full shrink-0 border-b p-2">
+            <div className="flex h-[54px] w-full shrink-0 border-b dark:border-gray-800 p-2">
               <div className="mt-[1.5px] flex w-full">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger className="w-full" asChild>
@@ -348,7 +348,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                       </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="flex items-center gap-2">
+                    <DropdownMenuItem className="flex items-center gap-2 hover:text-white dark:hover:text-white">
                       <LogOut className="h-4 w-4" /> Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -366,8 +366,8 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                         className={cn(
                           "flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-all duration-200",
                           isDragging
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300",
+                            ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20"
+                            : "border-gray-300 dark:border-gray-600",
                           "min-h-[120px] cursor-pointer"
                         )}
                         onDragOver={handleDragOver}
@@ -377,8 +377,8 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                           document.getElementById("file-upload")?.click()
                         }
                       >
-                        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-center text-gray-500">
+                        <Upload className="h-8 w-8 text-gray-400 dark:text-gray-500 mb-2" />
+                        <p className="text-sm text-center text-gray-500 dark:text-gray-400">
                           Drag & drop files here or click to browse
                         </p>
                         <input
@@ -400,11 +400,11 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                             {documents.map((file, index) => (
                               <div
                                 key={index}
-                                className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200"
+                                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
                               >
                                 <div className="flex items-center gap-2 overflow-hidden">
-                                  <FileText className="h-4 w-4 text-blue-500 shrink-0" />
-                                  <span className="text-xs truncate">
+                                  <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400 shrink-0" />
+                                  <span className="text-xs truncate dark:text-gray-300">
                                     {file.name}
                                   </span>
                                 </div>
@@ -413,7 +413,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                                     e.stopPropagation();
                                     removeDocument(index);
                                   }}
-                                  className="text-gray-400 hover:text-red-500"
+                                  className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
                                 >
                                   <X className="h-4 w-4" />
                                 </button>
@@ -433,7 +433,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex w-full items-center justify-start gap-2 px-2"
+                    className="flex w-full items-center justify-start gap-2 px-2 hover:text-white dark:hover:text-white"
                     onClick={() => {
                       setDefaultSettingsTab("security");
                       setIsSettingsOpen(true);
@@ -441,19 +441,6 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   >
                     <Settings className="h-4 w-4" />
                     {!isCollapsed && <span className="text-sm">Settings</span>}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex w-full items-center justify-start gap-2 px-2"
-                    onClick={() => {
-                      setDefaultSettingsTab("general");
-                      setIsSettingsOpen(true);
-                    }}
-                  >
-                    <UserCircle className="h-4 w-4" />
-                    {!isCollapsed && <span className="text-sm">Profile</span>}
                   </Button>
                 </div>
               </div>

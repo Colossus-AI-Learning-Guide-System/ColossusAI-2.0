@@ -48,6 +48,7 @@ export interface DocumentNode extends Node<DocumentNodeData> {
 
 // Utility type for the document flow component
 export interface DocumentFlowProps {
-  documentId: string | null;
-  onNodeClick?: (headingText: string, documentId: string, page: number) => void;
+  documentId: string;
+  onNodeClick?: (headingText: string, docId: string, page: number) => void;
+  isDarkTheme: boolean;
 }

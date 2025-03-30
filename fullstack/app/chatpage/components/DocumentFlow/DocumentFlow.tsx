@@ -96,6 +96,7 @@ const fitViewOptions = {
 const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
   documentId,
   onNodeClick,
+  isDarkTheme,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<DocumentNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -347,6 +348,12 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
     );
   }
 
+  // Apply dark theme styles to your flow
+  const flowStyles = isDarkTheme ? {
+    backgroundColor: '#111827',
+    color: '#f3f4f6'
+  } : {};
+
   return (
     <div className={styles.flowContainer}>
       <ReactFlow
@@ -374,6 +381,7 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
         zoomOnDoubleClick={true}
         multiSelectionKeyCode={null}
         panActivationKeyCode={null}
+        style={flowStyles}
       >
         <svg style={{ position: "absolute", width: 0, height: 0 }}>
           <defs>
@@ -390,30 +398,12 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
             </marker>
           </defs>
         </svg>
-        <Background color="#aaa" gap={16} style={{ opacity: 0.3 }} />
-        <Controls showZoom={true} showFitView={true} showInteractive={false} />
+        <Background color={isDarkTheme ? '#4b5563' : '#e5e7eb'} gap={16} style={{ opacity: 0.3 }} />
+        <Controls showZoom={true} showFitView={true} showInteractive={false} className={isDarkTheme ? "dark-controls" : ""} />
         <MiniMap
           nodeStrokeColor={() => "#333"}
-          nodeColor={(n) => {
-            const level = (n.data as DocumentNodeData)?.level || 0;
-            switch (level) {
-              case 0:
-                return "#f3f4f6"; // bg-gray-100
-              case 1:
-                return "#dbeafe"; // bg-blue-100
-              case 2:
-                return "#dcfce7"; // bg-green-100
-              case 3:
-                return "#fef3c7"; // bg-amber-100
-              default:
-                return "#f3e8ff"; // bg-purple-100
-            }
-          }}
-          style={{
-            backgroundColor: "transparent",
-            border: "none",
-            boxShadow: "none",
-          }}
+          nodeColor={isDarkTheme ? '#4b5563' : '#e5e7eb'}
+          style={isDarkTheme ? { backgroundColor: '#1f2937' } : {}}
           maskColor="rgba(240, 240, 240, 0.1)"
         />
         <Panel position="bottom-left" className={styles.legend}>
