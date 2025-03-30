@@ -1,6 +1,5 @@
 "use client";
 
-
 import { Button } from "@/app/components/ui/signup/button";
 import { Input } from "@/app/components/ui/signup/input";
 import { Label } from "@/app/components/ui/signup/label";
@@ -14,7 +13,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useId, useState } from "react";
-
 import { TermsModal } from "../components/PrivacyModal";
 import { TermsOfServiceModal } from "../components/TermsModal";
 import { ValidationMessage } from "../components/validation";
@@ -116,15 +114,6 @@ export default function SignUpPage() {
       terms: true
     });
     
-
-
-
-
-
-
-
-
-
     // Check for empty required fields only at the form level
     // Field-specific validations (like invalid email format) will show at field level
     let formIsValid = true;
@@ -261,26 +250,6 @@ export default function SignUpPage() {
     return null;
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div className="flex min-h-screen w-full">
       {/* Left section with gradient background */}
@@ -407,7 +376,7 @@ export default function SignUpPage() {
 
           <form onSubmit={handleEmailSignUp} className="space-y-3 mt-3" noValidate>
             {formStatus && (
-              <div className="min-h-validation">
+              <div className="validation-message">
                 <ValidationMessage
                   type={formStatus.type}
                   message={formStatus.message}
@@ -429,12 +398,10 @@ export default function SignUpPage() {
                   error={formSubmitted && !!getNameValidationMessage()}
                 />
                 {formSubmitted && !!getNameValidationMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getNameValidationMessage()}
-                    />
-                  </div>
+                  <ValidationMessage
+                    type="error"
+                    message={getNameValidationMessage()}
+                  />
                 )}
               </div>
               <div className="space-y-1">
@@ -452,12 +419,10 @@ export default function SignUpPage() {
                   error={formSubmitted && !!getEmailValidationMessage()}
                 />
                 {formSubmitted && !!getEmailValidationMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getEmailValidationMessage() || ""}
-                    />
-                  </div>
+                  <ValidationMessage
+                    type="error"
+                    message={getEmailValidationMessage() || ""}
+                  />
                 )}
               </div>
               <div className="space-y-1">
@@ -474,12 +439,10 @@ export default function SignUpPage() {
                   error={formSubmitted && !!getFailingRequirementMessage()}
                 />
                 {formSubmitted && !!getFailingRequirementMessage() && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={getFailingRequirementMessage() || ""}
-                    />
-                  </div>
+                  <ValidationMessage
+                    type="error"
+                    message={getFailingRequirementMessage() || ""}
+                  />
                 )}
               </div>
               <div className="space-y-1">
@@ -496,14 +459,12 @@ export default function SignUpPage() {
                   error={formSubmitted && (password !== confirmPassword || !confirmPassword)}
                 />
                 {formSubmitted && (password !== confirmPassword || !confirmPassword) && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message={!confirmPassword 
-                        ? "Please re-enter your password for confirmation." 
-                        : "Passwords do not match."}
-                    />
-                  </div>
+                  <ValidationMessage
+                    type="error"
+                    message={!confirmPassword 
+                      ? "Please re-enter your password for confirmation." 
+                      : "Passwords do not match."}
+                  />
                 )}
               </div>
               <div className="space-y-1">
@@ -545,24 +506,22 @@ export default function SignUpPage() {
                   </div>
                 </div>
                 {formSubmitted && !isTermsAccepted && (
-                  <div className="min-h-validation">
-                    <ValidationMessage
-                      type="error"
-                      message="Please accept the terms and privacy policy."
-                    />
-                  </div>
+                  <ValidationMessage
+                    type="error"
+                    message="Please accept the terms and privacy policy."
+                  />
                 )}
               </div>
             </div>
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl mt-2 mb-2"
+              className="w-full h-10 bg-gradient-to-r from-[#FF6B6B] to-[#9933FF] hover:opacity-90 text-white rounded-3xl mt-2"
               disabled={loading}
             >
               {loading ? "Creating account..." : "Create account"}
             </Button>
             
-            <p className="text-center text-sm font-medium text-gray-700 mt-4">
+            <p className="text-center text-sm font-medium text-gray-700 mt-2">
               Already have an account?{" "}
               <Link href="/signin" className="text-purple-600 hover:text-purple-500 font-medium">
                 Sign in
