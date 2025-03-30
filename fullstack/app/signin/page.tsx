@@ -21,7 +21,7 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   // Use dynamic redirect based on current window origin
   const redirectPath =
-    searchParams.get("redirect") ||
+    searchParams?.get("redirect") ||
     `${typeof window !== "undefined" ? window.location.origin : ""}/chatpage`;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,8 +31,8 @@ export default function SignInPage() {
     type: "success" | "error" | "warning";
     message: string;
   } | null>(
-    searchParams.get("message")
-      ? { type: "warning", message: searchParams.get("message")! }
+    searchParams?.get("message")
+      ? { type: "warning", message: searchParams?.get("message")! }
       : null
   );
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({
@@ -127,7 +127,16 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const { error } = await signInWithOAuth(provider, redirectPath);
+      // For Google auth, always use /chatpage as the path to avoid URL issues
+      const finalRedirectPath =
+        provider === "google"
+          ? "/chatpage" // Use a simple path for Google auth
+          : redirectPath;
+
+      console.log(
+        `Starting ${provider} auth with redirect to: ${finalRedirectPath}`
+      );
+      const { error } = await signInWithOAuth(provider, finalRedirectPath);
       if (error) {
         throw new Error(
           `Unable to sign in with ${provider}. Please try again or use another sign-in method.`

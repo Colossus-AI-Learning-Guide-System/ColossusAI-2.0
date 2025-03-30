@@ -6,8 +6,18 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   // Use dynamic redirect based on request origin
-  const next =
-    requestUrl.searchParams.get("next") ?? `${requestUrl.origin}/chatpage`;
+  const nextParam = requestUrl.searchParams.get("next");
+
+  // Default redirect to chatpage, ensuring we use the full origin
+  const defaultNextUrl = `${requestUrl.origin}/chatpage`;
+  const next = nextParam ?? defaultNextUrl;
+
+  // Log the callback parameters to help with debugging
+  console.log("Auth callback params:", {
+    url: request.url,
+    code: code ? "exists" : "missing",
+    next: next,
+  });
 
   if (code) {
     const cookieStore = cookies();
@@ -43,7 +53,8 @@ export async function GET(request: Request) {
 
       console.log("Auth callback: User authenticated:", user.id);
 
-      if (!user?.email_confirmed_at) {
+      // Skip email confirmation check for OAuth providers since they're pre-verified
+      if (!user?.app_metadata?.provider && !user?.email_confirmed_at) {
         console.log("Auth callback: Email not confirmed");
         return NextResponse.redirect(
           new URL(
@@ -85,10 +96,22 @@ export async function GET(request: Request) {
       }
 
       // When redirecting, use the absolute URL instead of relative path
-      console.log(`Auth callback: Redirecting to ${next}`);
-      return NextResponse.redirect(
-        next.startsWith("http") ? next : new URL(next, requestUrl.origin)
-      );
+      let redirectUrl: URL;
+
+      // Handle different redirect URL formats
+      if (next.startsWith("http")) {
+        // If it's already a full URL, use it directly
+        redirectUrl = new URL(next);
+      } else if (next.startsWith("/")) {
+        // If it's a path starting with /, use it with the current origin
+        redirectUrl = new URL(next, requestUrl.origin);
+      } else {
+        // Otherwise assume it's a relative path and add / prefix
+        redirectUrl = new URL(`/${next}`, requestUrl.origin);
+      }
+
+      console.log(`Auth callback: Redirecting to ${redirectUrl.toString()}`);
+      return NextResponse.redirect(redirectUrl.toString());
     } catch (error: unknown) {
       console.error("Auth callback error:", error);
       const errorMessage =

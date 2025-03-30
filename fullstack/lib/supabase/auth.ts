@@ -135,10 +135,18 @@ export const signInWithOAuth = async (
 
     try {
       const baseRedirectTo = `${window.location.origin}/auth/callback`;
-      // Append a next parameter to the redirect URL
-      const finalRedirectTo = redirectUrl
-        ? `${baseRedirectTo}?next=${encodeURIComponent(redirectUrl)}`
-        : baseRedirectTo;
+
+      // Simplify redirect handling for more predictable behavior
+      let finalRedirectTo = baseRedirectTo;
+
+      // Only add next parameter if redirectUrl is provided and not empty
+      if (redirectUrl && redirectUrl.trim() !== "") {
+        finalRedirectTo = `${baseRedirectTo}?next=${encodeURIComponent(
+          redirectUrl
+        )}`;
+      }
+
+      console.log(`OAuth redirect configured to: ${finalRedirectTo}`);
 
       const result = await supabase.auth.signInWithOAuth({
         provider,
