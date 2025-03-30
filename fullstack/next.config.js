@@ -26,11 +26,23 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: [
-      "unpkg.com", 
-      "arxiv.org", 
-      "www.w3.org", 
-      "iriktekmugplhbdpwdzq.supabase.co"
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'unpkg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'arxiv.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.w3.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'iriktekmugplhbdpwdzq.supabase.co',
+      },
     ],
   },
   webpack: (config) => {
