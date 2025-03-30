@@ -13,7 +13,7 @@ interface ValidationListProps {
 
 export function ValidationMessage({ type, message }: ValidationMessageProps) {
   return (
-    <div className="h-0 text-xs">
+    <div className="validation-message">
       {message && (
         <div
           className={cn(
