@@ -218,18 +218,12 @@ body {
     @apply flex items-center mb-0;
   }
 
-  .validation-message {
-    height: 16px;
-    @apply text-xs flex items-center mb-1;
-  }
-    
   .auth-form {
     @apply space-y-2 overflow-hidden max-h-[calc(100vh-170px)] lg:max-h-none;
   }
 
   .auth-container {
     @apply w-full max-w-md space-y-2 overflow-hidden;
-    max-height: 100vh;
     padding-top: 0;
     margin-bottom: 1.5rem;
   }
@@ -237,7 +231,6 @@ body {
   .auth-header {
     @apply flex flex-col items-center;
     margin-bottom: 0.5rem;
-    padding-top: 0.5rem;
   }
 
   .auth-logo {
