@@ -264,7 +264,7 @@ export default function DocumentAnalysisPage() {
   const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
   const isDarkTheme = mounted && theme === "dark";
-  
+
   // This ensures we only access theme on the client
   useEffect(() => {
     setMounted(true);
@@ -503,7 +503,7 @@ export default function DocumentAnalysisPage() {
     }
   };
 
-  // Update handleSendMessage function - only remove references to polling
+  // Update handleSendMessage function
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -529,6 +529,22 @@ export default function DocumentAnalysisPage() {
     setIsTyping(true);
 
     try {
+      // Check if there's a selected document to query against
+      if (!selectedDocumentId) {
+        // If no document is selected, show an error message
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content: "Please select a document before asking questions.",
+          },
+        ]);
+        setIsTyping(false);
+        return;
+      }
+
+      console.log("Sending query with document ID:", selectedDocumentId);
+
       const response = await fetch(`${API_BASE_URL}/api/query/query`, {
         method: "POST",
         headers: {
@@ -536,16 +552,38 @@ export default function DocumentAnalysisPage() {
         },
         body: JSON.stringify({
           query: currentInput,
-          document_ids: activeDocuments,
+          document_id: selectedDocumentId, // Use singular document_id with the selected document
           k: 4, // Number of results to return
         }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Query error response:", errorData);
+        throw new Error(
+          errorData?.error ||
+            `Query failed: ${response.status} ${response.statusText}`
+        );
+      }
+
       const data = await response.json();
+      console.log("Query response:", data);
 
-      // Format the response with citations
-      let formattedResponse = data.answer;
+      // Extract the response from the new structure
+      let formattedResponse =
+        data.response || "No response received from the server.";
 
+      // Add model information if available
+      if (data.model_used) {
+        formattedResponse += `\n\nModel used: ${data.model_used}`;
+      }
+
+      // Add page count information if available
+      if (data.page_count !== undefined) {
+        formattedResponse += `\nPages referenced: ${data.page_count}`;
+      }
+
+      // Add citations if available (keeping existing citation logic)
       if (data.citations && data.citations.length > 0) {
         formattedResponse += "\n\nSources:";
         data.citations.forEach((citation: Citation, index: number) => {
@@ -571,13 +609,15 @@ export default function DocumentAnalysisPage() {
           setSelectedDocumentId(firstCitation.doc_id);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Query error:", error);
       setMessages([
         ...newMessages,
         {
           role: "assistant",
-          content: "Sorry, I encountered an error processing your request.",
+          content: `Sorry, I encountered an error processing your request: ${
+            error.message || "Unknown error"
+          }`,
         },
       ]);
     } finally {
@@ -668,7 +708,11 @@ export default function DocumentAnalysisPage() {
   }
 
   return (
-    <main className={`chatpage-container ${isDarkTheme ? "dark-mode bg-gray-900" : ""}`}>
+    <main
+      className={`chatpage-container ${
+        isDarkTheme ? "dark-mode bg-gray-900" : ""
+      }`}
+    >
       <Sidebar onDocumentUpload={handleDocumentUpload} />
       <div
         className={`content-wrapper ${
@@ -682,20 +726,26 @@ export default function DocumentAnalysisPage() {
         }}
       >
         {/* Small instruction for horizontal scroll */}
-        <div className={`${styles["scroll-instruction"]} ${
-          isDarkTheme ? "text-gray-400 bg-gray-900" : ""
-        }`}>
+        <div
+          className={`${styles["scroll-instruction"]} ${
+            isDarkTheme ? "text-gray-400 bg-gray-900" : ""
+          }`}
+        >
           <span>Scroll horizontally to see all panels</span>
         </div>
 
         <div className={styles["papers-container"]}>
           {/* 1. Chatbot Conversation Container */}
-          <div className={`${styles.panel} ${styles["chatbot-panel"]} ${
-            isDarkTheme ? "bg-gray-900 border-gray-700" : ""
-          }`}>
-            <div className={`${styles["panel-header"]} ${
-              isDarkTheme ? "bg-gray-800 border-gray-700" : ""
-            }`}>
+          <div
+            className={`${styles.panel} ${styles["chatbot-panel"]} ${
+              isDarkTheme ? "bg-gray-900 border-gray-700" : ""
+            }`}
+          >
+            <div
+              className={`${styles["panel-header"]} ${
+                isDarkTheme ? "bg-gray-800 border-gray-700" : ""
+              }`}
+            >
               <h2>AI Document Assistant</h2>
             </div>
             <div className={styles["chat-container"]}>
@@ -704,7 +754,9 @@ export default function DocumentAnalysisPage() {
                   <div
                     key={index}
                     className={`${styles["message"]} ${styles[message.role]} ${
-                      isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                      isDarkTheme
+                        ? "bg-gray-700 text-gray-100"
+                        : "bg-white text-gray-900"
                     }`}
                   >
                     <div className={styles["message-content"]}>
@@ -715,16 +767,26 @@ export default function DocumentAnalysisPage() {
                 {isTyping && (
                   <div
                     className={`${styles["message"]} ${styles["assistant"]} ${
-                      isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                      isDarkTheme
+                        ? "bg-gray-700 text-gray-100"
+                        : "bg-white text-gray-900"
                     }`}
                   >
                     <div className={styles["message-content"]}>
-                      <div className={`${styles["typing-indicator"]} ${
-                        isDarkTheme ? "bg-gray-700" : ""
-                      }`}>
-                        <span className={isDarkTheme ? "bg-gray-400" : ""}></span>
-                        <span className={isDarkTheme ? "bg-gray-400" : ""}></span>
-                        <span className={isDarkTheme ? "bg-gray-400" : ""}></span>
+                      <div
+                        className={`${styles["typing-indicator"]} ${
+                          isDarkTheme ? "bg-gray-700" : ""
+                        }`}
+                      >
+                        <span
+                          className={isDarkTheme ? "bg-gray-400" : ""}
+                        ></span>
+                        <span
+                          className={isDarkTheme ? "bg-gray-400" : ""}
+                        ></span>
+                        <span
+                          className={isDarkTheme ? "bg-gray-400" : ""}
+                        ></span>
                       </div>
                     </div>
                   </div>
@@ -732,13 +794,17 @@ export default function DocumentAnalysisPage() {
                 {isUploading && (
                   <div
                     className={`${styles["message"]} ${styles["assistant"]} ${
-                      isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                      isDarkTheme
+                        ? "bg-gray-700 text-gray-100"
+                        : "bg-white text-gray-900"
                     }`}
                   >
                     <div className={styles["message-content"]}>
-                      <div className={`${styles["upload-progress"]} ${
-                        isDarkTheme ? "bg-gray-700" : ""
-                      }`}>
+                      <div
+                        className={`${styles["upload-progress"]} ${
+                          isDarkTheme ? "bg-gray-700" : ""
+                        }`}
+                      >
                         <div
                           className={`${styles["upload-progress-bar"]} ${
                             isDarkTheme ? "bg-blue-600" : ""
@@ -760,7 +826,9 @@ export default function DocumentAnalysisPage() {
                   className={`${styles["mode-button"]} ${
                     queryMode === "text" ? styles["mode-button-active"] : ""
                   } ${
-                    isDarkTheme ? "bg-gray-700 hover:bg-gray-600" : "bg-white hover:bg-gray-200"
+                    isDarkTheme
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-white hover:bg-gray-200"
                   }`}
                 >
                   Text
@@ -771,7 +839,9 @@ export default function DocumentAnalysisPage() {
                   className={`${styles["mode-button"]} ${
                     queryMode === "graph" ? styles["mode-button-active"] : ""
                   } ${
-                    isDarkTheme ? "bg-gray-700 hover:bg-gray-600" : "bg-white hover:bg-gray-200"
+                    isDarkTheme
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-white hover:bg-gray-200"
                   }`}
                 >
                   Graph
@@ -784,11 +854,16 @@ export default function DocumentAnalysisPage() {
                     isDarkTheme ? "bg-gray-800 border-gray-700" : ""
                   }`}
                 >
-                  <div className={styles["chat-input-wrapper"]} style={{ position: "relative", width: "100%" }}>
+                  <div
+                    className={styles["chat-input-wrapper"]}
+                    style={{ position: "relative", width: "100%" }}
+                  >
                     <input
                       type="text"
                       className={`${styles["chat-input"]} ${
-                        isDarkTheme ? "bg-gray-700 text-gray-100 border-gray-600" : ""
+                        isDarkTheme
+                          ? "bg-gray-700 text-gray-100 border-gray-600"
+                          : ""
                       }`}
                       placeholder="Ask about your documents..."
                       value={userInput}
@@ -804,7 +879,11 @@ export default function DocumentAnalysisPage() {
                       }}
                       disabled={isUploading || isTyping}
                     >
-                      <PaperclipIcon className={`h-5 w-5 ${isDarkTheme ? "text-gray-400" : "text-gray-500"}`} />
+                      <PaperclipIcon
+                        className={`h-5 w-5 ${
+                          isDarkTheme ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      />
                     </button>
                   </div>
                   <button
@@ -813,7 +892,12 @@ export default function DocumentAnalysisPage() {
                       isDarkTheme ? "bg-blue-600 hover:bg-blue-700" : ""
                     }`}
                     disabled={!userInput.trim() || isUploading || isTyping}
-                    style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)" }}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                    }}
                   >
                     <SendIcon className="h-5 w-5" />
                   </button>
@@ -857,14 +941,18 @@ export default function DocumentAnalysisPage() {
             </div>
 
             {/* Tab Navigation */}
-            <ul className={`${styles["tab-navigation"]} ${
-              isDarkTheme ? "bg-gray-800 border-gray-700" : ""
-            }`}>
+            <ul
+              className={`${styles["tab-navigation"]} ${
+                isDarkTheme ? "bg-gray-800 border-gray-700" : ""
+              }`}
+            >
               <li
                 className={`${styles["tab-item"]} ${
                   activeTab === "context" ? styles.active : ""
                 } ${
-                  isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                  isDarkTheme
+                    ? "bg-gray-700 text-gray-100"
+                    : "bg-white text-gray-900"
                 }`}
                 onClick={() => handleTabChange("context")}
               >
@@ -874,7 +962,9 @@ export default function DocumentAnalysisPage() {
                 className={`${styles["tab-item"]} ${
                   activeTab === "page-view" ? styles.active : ""
                 } ${
-                  isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                  isDarkTheme
+                    ? "bg-gray-700 text-gray-100"
+                    : "bg-white text-gray-900"
                 }`}
                 onClick={() => handleTabChange("page-view")}
               >
@@ -888,7 +978,9 @@ export default function DocumentAnalysisPage() {
                 className={`${styles["tab-content"]} ${
                   activeTab === "context" ? styles.active : ""
                 } ${
-                  isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                  isDarkTheme
+                    ? "bg-gray-700 text-gray-100"
+                    : "bg-white text-gray-900"
                 }`}
               >
                 {nodeContext ? (
@@ -936,20 +1028,29 @@ export default function DocumentAnalysisPage() {
                       )}
                   </div>
                 ) : (
-                  <div className={`${styles["document-placeholder"]} ${
-                    isDarkTheme ? "bg-gray-800" : ""
-                  }`}>
-                    <FileText size={48} className={`${styles.placeholderIcon} ${
-                      isDarkTheme ? "text-gray-400" : ""
-                    }`} />
-                    <h3 className={`${styles.placeholderTitle} ${
-                      isDarkTheme ? "text-gray-200" : ""
-                    }`}>
+                  <div
+                    className={`${styles["document-placeholder"]} ${
+                      isDarkTheme ? "bg-gray-800" : ""
+                    }`}
+                  >
+                    <FileText
+                      size={48}
+                      className={`${styles.placeholderIcon} ${
+                        isDarkTheme ? "text-gray-400" : ""
+                      }`}
+                    />
+                    <h3
+                      className={`${styles.placeholderTitle} ${
+                        isDarkTheme ? "text-gray-200" : ""
+                      }`}
+                    >
                       Document Context Panel
                     </h3>
-                    <p className={`${styles.placeholderText} ${
-                      isDarkTheme ? "text-gray-400" : ""
-                    }`}>
+                    <p
+                      className={`${styles.placeholderText} ${
+                        isDarkTheme ? "text-gray-400" : ""
+                      }`}
+                    >
                       {currentHeading
                         ? `Selected heading: "${currentHeading}"`
                         : selectedDocumentId
@@ -965,7 +1066,9 @@ export default function DocumentAnalysisPage() {
                 className={`${styles["tab-content"]} ${
                   activeTab === "page-view" ? styles.active : ""
                 } ${
-                  isDarkTheme ? "bg-gray-700 text-gray-100" : "bg-white text-gray-900"
+                  isDarkTheme
+                    ? "bg-gray-700 text-gray-100"
+                    : "bg-white text-gray-900"
                 }`}
               >
                 <PDFDocumentViewer
