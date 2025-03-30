@@ -2,12 +2,14 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./page.module.css";
-import { PaperclipIcon, SendIcon, FileText } from "lucide-react";
+import { PaperclipIcon, SendIcon, FileText, Layers } from "lucide-react";
 import { Sidebar } from "@/app/components/ui/sidebar";
 import DocumentStructureGraph from "./components/DocumentStructureGraph";
 import DocumentList from "../components/DocumentList";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
+import { useProfile } from "@/app/hooks/use-profile";
+import { MobileWarning } from "@/app/components/MobileWarning";
 
 // Dynamically import PDF viewer components with SSR disabled
 const PDFViewer = dynamic(() => import("./components/PDFViewer"), {
@@ -211,6 +213,15 @@ const PDFDocumentViewer = ({
 };
 
 export default function DocumentAnalysisPage() {
+  // Add the profile hook for authentication state
+  const { profile, loading: profileLoading, isAuthenticated } = useProfile();
+
+  // Debug effect to monitor auth state
+  useEffect(() => {
+    console.log("ChatPage - Profile data:", profile);
+    console.log("ChatPage - Authentication status:", isAuthenticated);
+  }, [profile, isAuthenticated]);
+
   // State for chat messages
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -702,17 +713,57 @@ export default function DocumentAnalysisPage() {
     setActiveTab(tab);
   };
 
+  // Add these states inside the DocumentAnalysisPage component
+  const [activeMobilePanel, setActiveMobilePanel] = useState<string | null>(
+    "chat"
+  );
+  const [showMobilePanelToggle, setShowMobilePanelToggle] = useState(false);
+
+  // Add this useEffect to detect mobile screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setShowMobilePanelToggle(window.innerWidth <= 1024);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Clean up
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Add a function to toggle active mobile panel
+  const toggleMobilePanel = (panelId: string) => {
+    setActiveMobilePanel((prev) => (prev === panelId ? null : panelId));
+  };
+
+  // Add this helper function inside the DocumentAnalysisPage component
+  const getMobilePanelName = (panelId: string) => {
+    switch (panelId) {
+      case "chat":
+        return "Chat";
+      case "viewer":
+        return "Document";
+      case "structure":
+        return "Structure";
+      case "list":
+        return "Files";
+      default:
+        return "Chat";
+    }
+  };
+
   // Use this conditional rendering to prevent hydration errors
   if (!mounted) {
     return <div className="loading-container">Loading...</div>; // Simple loading state
   }
 
   return (
-    <main
-      className={`chatpage-container ${
-        isDarkTheme ? "dark-mode bg-gray-900" : ""
-      }`}
-    >
+    <main className={`${styles.main} ${isDarkTheme ? "dark" : ""}`}>
+      <MobileWarning isAuthenticated={!!isAuthenticated} />
       <Sidebar onDocumentUpload={handleDocumentUpload} />
       <div
         className={`content-wrapper ${
@@ -722,16 +773,15 @@ export default function DocumentAnalysisPage() {
           marginLeft: "3.05rem",
           width: "calc(100% - 3.05rem)",
           transition: "margin-left 0.2s ease",
-          overflowX: "auto",
         }}
       >
-        {/* Small instruction for horizontal scroll */}
+        {/* Small instruction for horizontal scroll - only visible on desktop */}
         <div
           className={`${styles["scroll-instruction"]} ${
             isDarkTheme ? "text-gray-400 bg-gray-900" : ""
           }`}
         >
-          <span>Scroll horizontally to see all panels</span>
+          <span>Scroll horizontally to view all panels</span>
         </div>
 
         <div className={styles["papers-container"]}>
@@ -739,6 +789,10 @@ export default function DocumentAnalysisPage() {
           <div
             className={`${styles.panel} ${styles["chatbot-panel"]} ${
               isDarkTheme ? "bg-gray-900 border-gray-700" : ""
+            } ${
+              activeMobilePanel === "chat" || !showMobilePanelToggle
+                ? styles.active
+                : ""
             }`}
           >
             <div
@@ -885,6 +939,14 @@ export default function DocumentAnalysisPage() {
                         }`}
                       />
                     </button>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      className={styles["file-input"]}
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                    />
                   </div>
                   <button
                     type="submit"
@@ -910,7 +972,7 @@ export default function DocumentAnalysisPage() {
           <div
             className={`${styles.panel} ${styles["document-structure-panel"]} ${
               isDarkTheme ? "bg-gray-900 border-gray-700" : ""
-            }`}
+            } ${activeMobilePanel === "structure" ? styles.active : ""}`}
           >
             <div className={styles["panel-header"]}>
               <h2>Document Structure</h2>
@@ -921,11 +983,40 @@ export default function DocumentAnalysisPage() {
               }`}
               style={{ minHeight: "600px" }}
             >
-              <DocumentStructureGraph
-                documentId={selectedDocumentId}
-                onNodeClick={handleHeadingClick}
-                isDarkTheme={isDarkTheme}
-              />
+              {selectedDocumentId ? (
+                <DocumentStructureGraph
+                  documentId={selectedDocumentId}
+                  onNodeClick={handleHeadingClick}
+                  isDarkTheme={isDarkTheme}
+                />
+              ) : (
+                <div
+                  className={`${styles["document-placeholder"]} ${
+                    isDarkTheme ? "bg-gray-800" : ""
+                  }`}
+                >
+                  <FileText
+                    size={48}
+                    className={`${styles.placeholderIcon} ${
+                      isDarkTheme ? "text-gray-400" : ""
+                    }`}
+                  />
+                  <h3
+                    className={`${styles.placeholderTitle} ${
+                      isDarkTheme ? "text-gray-200" : ""
+                    }`}
+                  >
+                    Document Structure
+                  </h3>
+                  <p
+                    className={`${styles.placeholderText} ${
+                      isDarkTheme ? "text-gray-400" : ""
+                    }`}
+                  >
+                    Select a document to view its structure
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -933,7 +1024,7 @@ export default function DocumentAnalysisPage() {
           <div
             className={`${styles.panel} ${styles["document-viewer-panel"]} ${
               isDarkTheme ? "bg-gray-900 border-gray-700" : ""
-            }`}
+            } ${activeMobilePanel === "viewer" ? styles.active : ""}`}
             ref={viewerRef}
           >
             <div className={styles["panel-header"]}>
@@ -1087,7 +1178,7 @@ export default function DocumentAnalysisPage() {
           <div
             className={`${styles.panel} ${styles["document-list-container"]} ${
               isDarkTheme ? "bg-gray-900 border-gray-700" : ""
-            }`}
+            } ${activeMobilePanel === "list" ? styles.active : ""}`}
           >
             <DocumentList
               onSelectDocument={handleSelectDocument}
@@ -1096,6 +1187,25 @@ export default function DocumentAnalysisPage() {
           </div>
         </div>
       </div>
+      {showMobilePanelToggle && (
+        <>
+          <div className={styles["mobile-panel-label"]}>
+            {getMobilePanelName(activeMobilePanel || "chat")}
+          </div>
+          <div
+            className={styles["mobile-panel-toggle"]}
+            onClick={() => {
+              // Cycle through panels
+              const panels = ["chat", "viewer", "structure", "list"];
+              const currentIndex = panels.indexOf(activeMobilePanel || "chat");
+              const nextIndex = (currentIndex + 1) % panels.length;
+              setActiveMobilePanel(panels[nextIndex]);
+            }}
+          >
+            <Layers size={24} />
+          </div>
+        </>
+      )}
     </main>
   );
 }

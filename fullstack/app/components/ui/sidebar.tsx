@@ -13,8 +13,8 @@ import {
   X,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/app/components/ui/avatar";
-import { usePathname } from "next/navigation";
-import { useState, useCallback } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -25,6 +25,8 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { Separator } from "@/app/components/ui/separator";
 import { SettingsPanel } from "@/app/components/settings-panel";
+import { useProfile } from "@/app/hooks/use-profile";
+import { signOut } from "@/lib/supabase/auth";
 
 // TODO: Replace with real user data from authentication system in production
 // This temporary placeholder is used for demonstration purposes only
@@ -89,10 +91,26 @@ interface SidebarProps {
 export function Sidebar({ onDocumentUpload }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [documents, setDocuments] = useState<File[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [defaultSettingsTab, setDefaultSettingsTab] = useState("general");
+
+  // Use the profile hook to get user data
+  const { profile, loading, isAuthenticated, fetchProfile } = useProfile();
+
+  // Debug effect to monitor profile changes
+  useEffect(() => {
+    console.log("Sidebar - Profile data changed:", profile);
+    console.log("Sidebar - Authentication status:", isAuthenticated);
+  }, [profile, isAuthenticated]);
+
+  // Force refresh profile when sidebar mounts
+  useEffect(() => {
+    console.log("Sidebar - Component mounted, fetching profile");
+    fetchProfile();
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -294,6 +312,16 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      router.push("/signin");
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+  };
+
   return (
     <motion.div
       className={cn("sidebar fixed left-0 z-30 h-full shrink-0 border-r")}
@@ -301,8 +329,8 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       animate={isCollapsed ? "closed" : "open"}
       variants={sidebarVariants}
       transition={transitionProps}
-      onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
+      onMouseEnter={() => !isSettingsOpen && setIsCollapsed(false)}
+      onMouseLeave={() => !isSettingsOpen && setIsCollapsed(true)}
     >
       <motion.div
         className={`relative z-30 flex text-muted-foreground h-full shrink-0 flex-col bg-white dark:bg-gray-950 dark:border-gray-800 transition-all shadow-sm`}
@@ -320,7 +348,11 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                       className="flex w-fit items-center gap-2 px-2"
                     >
                       <Avatar className="rounded size-4">
-                        <AvatarFallback>U</AvatarFallback>
+                        <AvatarFallback>
+                          {profile?.full_name
+                            ? profile.full_name.charAt(0).toUpperCase()
+                            : "U"}
+                        </AvatarFallback>
                       </Avatar>
                       <motion.li
                         variants={variants}
@@ -328,7 +360,9 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                       >
                         {!isCollapsed && (
                           <>
-                            <p className="text-sm font-medium">User</p>
+                            <p className="text-sm font-medium">
+                              {profile?.full_name || "User"}
+                            </p>
                             <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
                           </>
                         )}
@@ -338,17 +372,26 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   <DropdownMenuContent align="start">
                     <div className="flex flex-row items-center gap-2 p-2">
                       <Avatar className="size-6">
-                        <AvatarFallback>U</AvatarFallback>
+                        <AvatarFallback>
+                          {profile?.full_name
+                            ? profile.full_name.charAt(0).toUpperCase()
+                            : "U"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col text-left">
-                        <span className="text-sm font-medium">User</span>
+                        <span className="text-sm font-medium">
+                          {profile?.full_name || "User"}
+                        </span>
                         <span className="line-clamp-1 text-xs text-muted-foreground">
-                          user@example.com
+                          {profile?.email || "user@example.com"}
                         </span>
                       </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="flex items-center gap-2 hover:text-white dark:hover:text-white">
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 hover:text-white dark:hover:text-white"
+                      onClick={handleSignOut}
+                    >
                       <LogOut className="h-4 w-4" /> Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -433,7 +476,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex w-full items-center justify-start gap-2 px-2 hover:text-white dark:hover:text-white"
+                    className="flex w-full items-center justify-start gap-2 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
                     onClick={() => {
                       setDefaultSettingsTab("security");
                       setIsSettingsOpen(true);
@@ -441,6 +484,16 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
                   >
                     <Settings className="h-4 w-4" />
                     {!isCollapsed && <span className="text-sm">Settings</span>}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex w-full items-center justify-start gap-2 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {!isCollapsed && <span className="text-sm">Sign out</span>}
                   </Button>
                 </div>
               </div>
@@ -452,11 +505,16 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       {/* Settings Panel */}
       <SettingsPanel
         isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        userPermissions={mockUserData.permissions}
-        userSubscription={mockUserData.subscription}
-        featureFlags={mockUserData.featureFlags}
+        onClose={() => {
+          setIsSettingsOpen(false);
+          setIsCollapsed(true); // Ensure sidebar collapses when settings panel closes
+        }}
+        userPermissions={["general", "upgrade"]}
+        userSubscription="free"
+        featureFlags={{ securitySettings: true, memoryManagement: true }}
         defaultPanel={defaultSettingsTab}
+        fullName={profile?.full_name || ""}
+        email={profile?.email || ""}
       />
     </motion.div>
   );
