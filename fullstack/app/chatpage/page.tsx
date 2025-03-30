@@ -8,6 +8,7 @@ import DocumentStructureGraph from "./components/DocumentStructureGraph";
 import DocumentList from "../components/DocumentList";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
+import { useProfile } from "@/app/hooks/use-profile";
 
 // Dynamically import PDF viewer components with SSR disabled
 const PDFViewer = dynamic(() => import("./components/PDFViewer"), {
@@ -211,6 +212,15 @@ const PDFDocumentViewer = ({
 };
 
 export default function DocumentAnalysisPage() {
+  // Add the profile hook for authentication state
+  const { profile, loading: profileLoading, isAuthenticated } = useProfile();
+
+  // Debug effect to monitor auth state
+  useEffect(() => {
+    console.log("ChatPage - Profile data:", profile);
+    console.log("ChatPage - Authentication status:", isAuthenticated);
+  }, [profile, isAuthenticated]);
+
   // State for chat messages
   const [messages, setMessages] = useState<Message[]>([
     {
