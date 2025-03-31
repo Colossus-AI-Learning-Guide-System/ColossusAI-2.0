@@ -73,12 +73,14 @@ const teamMembers = [
     name: "Ruhan",
     designation: "Team Leader",
     image: "/team/ruhan.jpg",
+    image: "/team/ruhan.png",
   },
   {
     id: 2,
     name: "Tharana",
     designation: "Fullstack Developer",
     image: "/team/tharana.png",
+    image: "/team/tharana.jpg",
   },
   {
     id: 3,
@@ -89,6 +91,7 @@ const teamMembers = [
   {
     id: 4,
     name: "Pasindu",
+    name: "Pasidu",
     designation: "Fullstack Developer",
     image: "/team/pasidu.jpg",
   },

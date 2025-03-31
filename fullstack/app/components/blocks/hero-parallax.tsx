@@ -108,6 +108,7 @@ export const Header = () => {
       </h1>
       <p className="max-w-2xl text-base md:text-xl mt-8 text-neutral-200">
       We are a team of undergradute students working together to revolutionize learning with Colossus.AI. Our system analyzes documents to generate structured study roadmaps, making learning more efficient and accessible.
+      We are a team of students working together to revolutionize learning with Colossus.AI. Our system analyzes documents to generate structured study roadmaps, making learning more efficient and accessible.
       </p>
     </div>
   );

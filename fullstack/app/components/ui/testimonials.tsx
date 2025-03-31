@@ -32,6 +32,7 @@ export function Testimonials({
 
   return (
     <div className={cn("max-w-7xl mx-auto px-4", className)}>
+    <div className={cn("max-w-7xl mx-10 px-10", className)}>
       <div className="flex flex-col items-center justify-center pt-5">
         <div className="flex flex-col gap-5 mb-8">
           <h2 className="text-center text-4xl font-medium">{title}</h2>
