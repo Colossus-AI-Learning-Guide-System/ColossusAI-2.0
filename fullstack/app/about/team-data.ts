@@ -8,37 +8,37 @@ interface TeamMember {
 export const teamMembers: TeamMember[] = [
   {
     name: "Ruhan Nandalal",
-    role: "Team Lead",
-    image: "/team/ruhan.jpg",
-    linkedin: "https://www.linkedin.com/in/ruhan-nandalal-4405842b7/"
+    role: "Back-end Coordinator | Back-end Developer",
+    image: "/team/ruhan.png",
+    linkedin: "https://www.linkedin.com/in/ruhan-nandalal-683387320/"
   },
   {
     name: "Tharana Bopearachchi",
-    role: "Project Manager",
-    image: "/team/tharana.png",
+    role: "Project Manager | Back-end Developer",
+    image: "/team/tharana.jpg",
     linkedin: "https://www.linkedin.com/in/tharana-bopearachchi/"
   },
   {
+    name: "Chiran Senarath",
+    role: "Back-end Developer | UI Designer",
+    image: "/team/chiran.jpg",
+    linkedin: "https://www.linkedin.com/in/chiran-senarath-088524235/"
+  },
+  {
     name: "Sudesh Seneviratne",
-    role: "Frontend-end Lead",
+    role: "Frontend-end Coordinator | Front-end Developer",
     image: "/team/sudesh.jpg",
     linkedin: "https://www.linkedin.com/in/sudesharoshaseneviratne/"
   },
   {
     name: "Akila Senanayake",
-    role: "Marketing Manager",
+    role: "Front-end Developer | UI Designer",
     image: "/team/akila.png",
     linkedin: "https://www.linkedin.com/in/akila-senanayake-23aab42a7/"
   },
   {
-    name: "Chiran Senarath",
-    role: "Business Analyst",
-    image: "/team/chiran.jpg",
-    linkedin: "https://www.linkedin.com/in/chiran-senarath-088524235/"
-  },
-  {
-    name: "Pasindu Gamage",
-    role: "UI Designer",
+    name: "Pasidu",
+    role: "Front-end Developer | UI Designer",
     image: "/team/pasidu.jpg",
     linkedin: "https://www.linkedin.com/in/pasindu-gamage-14442015a/"
   }

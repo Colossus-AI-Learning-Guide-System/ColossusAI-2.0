@@ -14,12 +14,10 @@ export const ContainerScroll = ({
     target: containerRef,
   });
   const [isMobile, setIsMobile] = React.useState(false);
-  const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
-      setIsLoaded(true);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -29,7 +27,6 @@ export const ContainerScroll = ({
   }, []);
 
   const scaleDimensions = () => {
-    if (!isLoaded) return [1.05, 1]; // Default to desktop size during SSR
     return isMobile ? [0.7, 0.9] : [1.05, 1];
   };
 
@@ -39,7 +36,7 @@ export const ContainerScroll = ({
 
   return (
     <div
-      className="h-[10rem] md:h-[45rem] flex items-center justify-center relative p-2 md:p-20"
+      className="h-[60rem] md:h-[80rem] flex items-center justify-center relative p-2 md:p-20"
       ref={containerRef}
     >
       <div
@@ -49,7 +46,7 @@ export const ContainerScroll = ({
         }}
       >
         <Header translate={translate} titleComponent={titleComponent} />
-        <Card rotate={rotate} scale={scale}>
+        <Card rotate={rotate} translate={translate} scale={scale}>
           {children}
         </Card>
       </div>
@@ -57,13 +54,7 @@ export const ContainerScroll = ({
   );
 };
 
-export const Header = ({
-  translate,
-  titleComponent,
-}: {
-  translate: MotionValue<number>;
-  titleComponent: string | React.ReactNode;
-}) => {
+export const Header = ({ translate, titleComponent }: any) => {
   return (
     <motion.div
       style={{
@@ -79,10 +70,12 @@ export const Header = ({
 export const Card = ({
   rotate,
   scale,
+  translate,
   children,
 }: {
   rotate: MotionValue<number>;
   scale: MotionValue<number>;
+  translate: MotionValue<number>;
   children: React.ReactNode;
 }) => {
   return (

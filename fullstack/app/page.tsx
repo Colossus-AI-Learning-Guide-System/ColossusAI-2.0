@@ -1,284 +1,389 @@
 "use client";
 
-import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { HeroScrollDemo } from "./components/block/code-demo";
-import { Particles } from "./components/ui/particles";
-import { FeaturePopup } from "./components/ui/feature-popup";
-import { TestimonialsDemo } from "./components/ui/testimonials.demo";
-import { Faq3Demo } from "./components/blocks/faq3";
-import { PageLayout } from "./components/layout/page-layout";
+import {
+  ArrowRightIcon,
+  DocumentTextIcon,
+  ShareIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+import { TestimonialsSection } from "@/app/components/block/testimonials-with-marquee";
+import { HeroScrollDemo } from "@/app/components/block/code-demo";
+import Link from "next/link";
+import {
+  Facebook,
+  Youtube,
+  Instagram,
+  Linkedin,
+  Twitter,
+  MessageCircle,
+  Github
+} from "lucide-react";
+import { AnimatedBackground } from "@/app/components/ui/animated-background";
 
-// Feature data structure
-interface Feature {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  shortDescription: string;
-}
-
-const features: Feature[] = [
+const testimonials = [
   {
-    title: "AI-Powered Knowledge Graphs",
-    description:
-      "Process documents and generate structured, interactive visual roadmaps, making learning more engaging and intuitive.\n\nKey Features:\n• Automated graph generation\n• Interactive visualization\n• Semantic relationship mapping\n• Real-time updates",
-    icon: (
-      <div className="relative w-16 h-16">
-        <Image
-          src="/icons/Knowledge Graph.png"
-          alt="Knowledge Graph Icon"
-          fill
-          className="object-contain invert brightness-0"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
-      </div>
-    ),
-    shortDescription: "Visual roadmaps from documents for easier learning",
+    author: {
+      name: "Sudesh Senevirathne",
+      handle: "@profanderson",
+      avatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    },
+    text: "The knowledge graph visualization has completely transformed how I teach complex subjects. My students grasp concepts much faster now.",
+    href: "https://twitter.com/profanderson",
   },
   {
-    title: "Intelligent Search & Query",
-    description:
-      "Enter natural language queries and retrieve relevant insights from uploaded documents with ease.\n\nKey Features:\n• Natural language processing\n• Semantic search\n• Context-aware results\n• Quick filtering options",
-    icon: (
-      <div className="relative w-16 h-16">
-        <Image
-          src="/icons/search.png"
-          alt="Search Icon"
-          fill
-          className="object-contain invert brightness-0"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
-      </div>
-    ),
-    shortDescription:
-      "Enter queries in natural language to find relevant insights quickly.",
+    author: {
+      name: "Dr. Emily Zhang",
+      handle: "@emilyzhang_ai",
+      avatar:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    },
+    text: "As a researcher, Colossus.AI has been invaluable. It turns our complex documentation into clear, navigable roadmaps.",
+    href: "https://twitter.com/emilyzhang_ai",
   },
   {
-    title: "Smart Document Management",
-    description:
-      "Upload, organize, and search documents effortlessly. Create and manage custom directories for efficient content structuring.\n\nKey Features:\n• Drag-and-drop upload\n• Automatic categorization\n• Version control\n• Advanced search capabilities",
-    icon: (
-      <div className="relative w-16 h-16">
-        <Image
-          src="/icons/Document.png"
-          alt="Document Management Icon"
-          fill
-          className="object-contain invert brightness-0"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
-      </div>
-    ),
-    shortDescription:
-      "Upload and organize documents with ease for efficient access.",
+    author: {
+      name: "Mark Davidson",
+      handle: "@markdavidson",
+      avatar:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+    },
+    text: "The intuitive interface and powerful visualization tools have revolutionized how our team handles documentation. Simply brilliant!",
   },
   {
-    title: "AI-Generated Summaries",
-    description:
-      "Save time with concise, AI-powered document summaries for quick insights.\n\nKey Features:\n• Automatic summarization\n• Key points extraction\n• Customizable length\n• Multi-document synthesis",
-    icon: (
-      <div className="relative w-16 h-16">
-        <Image
-          src="/icons/summarize.png"
-          alt="Summaries Icon"
-          fill
-          className="object-contain invert brightness-0"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
-      </div>
-    ),
-    shortDescription:
-      "Get quick, AI-powered summaries to understand documents faster.",
-  },
-  {
-    title: "Collaboration & Sharing",
-    description:
-      "Easily share generated knowledge graphs with peers. Enhance group learning and team collaboration.\n\nKey Features:\n• Real-time collaboration\n• Access control\n• Comment system\n• Export and sharing options",
-    icon: (
-      <div className="relative w-16 h-16">
-        <Image
-          src="/icons/share.png"
-          alt="Share Icon"
-          fill
-          className="object-contain invert brightness-0"
-          style={{ filter: "brightness(0) invert(1)" }}
-        />
-      </div>
-    ),
-    shortDescription:
-      "Share knowledge graphs with others to enhance group learning.",
+    author: {
+      name: "Dr. Rachel Martinez",
+      handle: "@drmartinez",
+      avatar:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+    },
+    text: "Colossus.AI has made it possible to create comprehensive learning paths for our medical residents. A game-changer in medical education.",
   },
 ];
 
-export default function Home() {
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
-  const [dropdownHeight] = useState(0);
-
+function Navbar() {
   return (
-    <PageLayout>
-      <div className="bg-black min-h-screen w-full relative overflow-hidden">
-        <Particles
-          className="absolute inset-0 pointer-events-none z-10"
-          quantity={700}
-          staticity={30}
-          ease={20}
-          color="#FF4A8D"
-          refresh={false}
-          size={2}
-          vx={0.5}
-          vy={0.5}
-        />
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/10 backdrop-blur-lg border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo with continuous rotation */}
+          <Link href="/" className="flex items-center gap-2">
+            <motion.div
+              animate={{ 
+                rotate: 360 
+              }}
+              transition={{ 
+                duration: 4,
+                ease: "linear",
+                repeat: Infinity
+              }}
+            >
+              <Image
+                src="/logo.png"
+                alt="Colossus.AI Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            </motion.div>
+            <span className="font-bold text-xl">Colossus.AI</span>
+          </Link>
 
-        {/* Feature Popup */}
-        <FeaturePopup
-          isOpen={selectedFeature !== null}
-          onClose={() => setSelectedFeature(null)}
-          title={selectedFeature?.title || ""}
-          description={selectedFeature?.description || ""}
-          icon={selectedFeature?.icon}
-        />
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-8">
+            {[
+              "Feedback",
+              "Rateus",
+              "Contactus",
+              "About"
+            ].map((item) => (
+              <Link
+                key={item}
+                href={`/${item.toLowerCase().replace(/ & /g, '-')}`}
+                className="relative text-gray-300 hover:text-white transition-colors group"
+              >
+                {item}
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+              </Link>
+            ))}
+          </div>
 
-        {/* Main content */}
-        <main style={{ marginTop: dropdownHeight }} className="relative">
-          {/* Hero Section */}
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col items-center justify-center min-h-screen pt-2 pb-20">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, ease: "linear", repeat: Infinity }}
-                className="mb-8"
-              >
-                <Image
-                  src="/logo.png"
-                  alt="Colossus.AI Logo"
-                  width={200}
-                  height={200}
-                  className="rounded-full"
-                />
-              </motion.div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-16 text-center text-white">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8 }}
+          {/* Auth Buttons */}
+          <div className="flex items-center">
+            <div className="inline-flex rounded-full overflow-hidden border border-white/30">
+              <Link href="/signin">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-white pr-6 pl-8 py-2 font-semibold hover:text-[#FF4A8D] transition-colors rounded-l-full border-r border-white/0"
                 >
-                  AI-Powered Learning,<br />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+                  Sign In
+                </motion.button>
+              </Link>
+              <Link href="/signup">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-2 rounded-full font-semibold"
                 >
-                  <div style={{ margin: '1.8rem 0' }}></div>
-                  Smarter Knowledge Navigation
-                </motion.div>
-              </h1>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all mb-8"
-              >
-                Try Colossus.AI →
-              </motion.button>
+                  Sign Up
+                </motion.button>
+              </Link>
             </div>
           </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-black/20 backdrop-blur-lg border-t border-white/10 py-12">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logo.png"
+                alt="Colossus.AI Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+              <span className="font-bold text-xl">Colossus.AI</span>
+            </Link>
+            <p className="text-gray-400 text-sm">
+              Transforming learning experiences through intelligent visualization.
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="font-semibold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              {["Features", "Feedback", "Rateus", "Contactus", "About"].map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/${item.toLowerCase().replace(/ /g, '-')}`}
+                    className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className="font-semibold mb-4">Support</h3>
+            <ul className="space-y-2">
+              {["Help Center", "Terms of Service", "Privacy Policy", "FAQ"].map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/${item.toLowerCase().replace(/ /g, '-')}`}
+                    className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <h3 className="font-semibold mb-4">Connect With Us</h3>
+            <div className="space-y-4">
+              <p className="text-gray-400 text-sm">
+                Stay updated with our latest features and releases.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="https://www.facebook.com/colossusai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Facebook className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://www.youtube.com/@ColossusAI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Youtube className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://www.instagram.com/colossusailk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Instagram className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://www.linkedin.com/company/colossusai/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://x.com/colossusailk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://discord.gg/JB473YPGUM"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="https://github.com/Colossus-AI-Learning-Guide-System"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#FF4A8D] transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 mt-8 pt-8 flex justify-center items-center">
+          <p className="text-gray-400 text-base">
+            © {new Date().getFullYear()} Colossus.AI. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default function Home() {
+  return (
+    <>
+      <AnimatedBackground />
+      <Navbar />
+      <main className="min-h-screen hero-gradient">
+        {/* Hero Section */}
+        <div className="container mx-auto px-4 pt-32 pb-32">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/logo.png"
+                alt="Colossus.AI Logo"
+                width={120}
+                height={120}
+                className="rounded-full"
+              />
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Welcome to <span className="gradient-text">Colossus.AI</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
+              Your intelligent roadmap visualization tool for seamless learning
+              and documentation navigation
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/signup">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2"
+                >
+                  Get Started
+                  <ArrowRightIcon className="w-5 h-5" />
+                </motion.button>
+              </Link>
+              <Link 
+                href="https://www.youtube.com/@ColossusAI" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-white/10 text-white px-8 py-3 rounded-full font-semibold backdrop-blur-sm transition-all duration-300"
+                >
+                  Learn More
+                </motion.button>
+              </Link>
+            </div>
+          </motion.div>
 
           {/* Features Section */}
-          <div className="container mx-auto px-4 py-6" id="features">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-[#FF9F4A] via-[#FF4A8D] to-[#8B4AFF] leading-loose pt-0 pb-2">
-              Innovative Tools for Smarter Learning
-            </h2>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
-            >
-              {features.slice(0, 3).map((feature) => (
-                <motion.div
-                  key={feature.title}
-                  className="bg-[#2d2d2d] backdrop-blur-lg rounded-xl p-8 hover:bg-[#333] transition-all duration-300 border border-white/10 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-black/20 group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  animate={{
-                    opacity: selectedFeature?.title === feature.title ? 0 : 1,
-                    scale: selectedFeature?.title === feature.title ? 0.8 : 1,
-                  }}
-                  onClick={() => setSelectedFeature(feature)}
-                >
-                  <div className="mb-6 transform transition-transform group-hover:scale-110 duration-300">
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4 text-[#e1e1e1]">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    {feature.shortDescription}
-                  </p>
-                </motion.div>
-              ))}
-
-              <div className="md:col-span-3 flex flex-col md:flex-row justify-center gap-8">
-                {features.slice(3, 5).map((feature) => (
-                  <motion.div
-                    key={feature.title}
-                    className="bg-[#2d2d2d] backdrop-blur-lg rounded-xl p-8 hover:bg-[#333] transition-all duration-300 border border-white/10 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-black/20 group w-full"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    animate={{
-                      opacity: selectedFeature?.title === feature.title ? 0 : 1,
-                      scale: selectedFeature?.title === feature.title ? 0.8 : 1,
-                    }}
-                    onClick={() => setSelectedFeature(feature)}
-                  >
-                    <div className="mb-6 transform transition-transform group-hover:scale-110 duration-300">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4 text-[#e1e1e1]">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-400 leading-relaxed">
-                      {feature.shortDescription}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* New YouTube Video Section */}
-          <div className="youtube-video flex flex-col items-center py-16 px-4 w-full" id="help">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 md:mb-8 text-center">
-              Watch Preview
-            </h2>
-            <div className="w-full max-w-[90%] md:max-w-[85%] lg:max-w-[854px] px-4">
-              <div className="relative overflow-hidden rounded-2xl shadow-2xl" style={{ paddingTop: '56.25%' }}>
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/0XRILxt-v00"
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32"
+          >
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <DocumentTextIcon className="w-12 h-12 text-[#ff6b6b] mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Smart Document Processing
+              </h3>
+              <p className="text-gray-400">
+                Upload and process your documentation materials with ease,
+                creating intuitive knowledge graphs.
+              </p>
             </div>
-          </div>
 
-          {/* Scroll Demo Section */}
-          <div className="relative z-10">
-            <HeroScrollDemo />
-          </div>
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <ChartBarIcon className="w-12 h-12 text-[#ff8e53] mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Visual Knowledge Graphs
+              </h3>
+              <p className="text-gray-400">
+                Transform complex information into clear, interactive visual
+                roadmaps.
+              </p>
+            </div>
 
-          {/* Testimonials Section */}
-          <TestimonialsDemo />
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <ShareIcon className="w-12 h-12 text-[#ff6b6b] mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Easy Sharing</h3>
+              <p className="text-gray-400">
+                Share your generated knowledge graphs with others to enhance
+                collaboration.
+              </p>
+            </div>
+          </motion.div>
+        </div>
 
-          {/* FAQ Section */}
-          <div id="faq">
-            <Faq3Demo />
-          </div>
-        </main>
-      </div>
-    </PageLayout>
+        {/* Scroll Demo Section */}
+        <HeroScrollDemo />
+
+        {/* Testimonials Section */}
+        <TestimonialsSection
+          title="Trusted by educators and researchers worldwide"
+          description="Join thousands of professionals who are already transforming their learning experience with Colossus.AI"
+          testimonials={testimonials}
+        />
+      </main>
+      <Footer />
+    </>
   );
 }
