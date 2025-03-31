@@ -26,7 +26,8 @@ import {
 import { processDocumentStructure } from "./utils";
 
 // API base URL from environment or default
-const API_BASE_URL = "http://127.0.0.1:5002";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5002";
 
 // Custom node component
 const CustomNode = ({ data }: { data: DocumentNodeData }) => {
@@ -349,10 +350,12 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
   }
 
   // Apply dark theme styles to your flow
-  const flowStyles = isDarkTheme ? {
-    backgroundColor: '#111827',
-    color: '#f3f4f6'
-  } : {};
+  const flowStyles = isDarkTheme
+    ? {
+        backgroundColor: "#111827",
+        color: "#f3f4f6",
+      }
+    : {};
 
   return (
     <div className={styles.flowContainer}>
@@ -398,12 +401,21 @@ const DocumentFlowInternal: React.FC<DocumentFlowProps> = ({
             </marker>
           </defs>
         </svg>
-        <Background color={isDarkTheme ? '#4b5563' : '#e5e7eb'} gap={16} style={{ opacity: 0.3 }} />
-        <Controls showZoom={true} showFitView={true} showInteractive={false} className={isDarkTheme ? "dark-controls" : ""} />
+        <Background
+          color={isDarkTheme ? "#4b5563" : "#e5e7eb"}
+          gap={16}
+          style={{ opacity: 0.3 }}
+        />
+        <Controls
+          showZoom={true}
+          showFitView={true}
+          showInteractive={false}
+          className={isDarkTheme ? "dark-controls" : ""}
+        />
         <MiniMap
           nodeStrokeColor={() => "#333"}
-          nodeColor={isDarkTheme ? '#4b5563' : '#e5e7eb'}
-          style={isDarkTheme ? { backgroundColor: '#1f2937' } : {}}
+          nodeColor={isDarkTheme ? "#4b5563" : "#e5e7eb"}
+          style={isDarkTheme ? { backgroundColor: "#1f2937" } : {}}
           maskColor="rgba(240, 240, 240, 0.1)"
         />
         <Panel position="bottom-left" className={styles.legend}>

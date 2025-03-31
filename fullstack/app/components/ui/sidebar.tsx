@@ -28,6 +28,10 @@ import { SettingsPanel } from "@/app/components/settings-panel";
 import { useProfile } from "@/app/hooks/use-profile";
 import { signOut } from "@/lib/supabase/auth";
 
+// Define API base URL
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5002";
+
 // TODO: Replace with real user data from authentication system in production
 // This temporary placeholder is used for demonstration purposes only
 const mockUserData = {
@@ -204,7 +208,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
 
       // Send to the new unified upload API
       const response = await fetch(
-        "http://127.0.0.1:5002/api/document/unified-upload",
+        `${API_BASE_URL}/api/document/unified-upload`,
         {
           method: "POST",
           headers: {
@@ -274,7 +278,7 @@ export function Sidebar({ onDocumentUpload }: SidebarProps) {
       // Poll up to 30 times with 5-second intervals (total 2.5 minutes)
       for (let i = 0; i < 30; i++) {
         const response = await fetch(
-          `http://127.0.0.1:5002/api/document/indexing-status/${documentId}`,
+          `${API_BASE_URL}/api/document/indexing-status/${documentId}`,
           {
             method: "GET",
             headers: {

@@ -17,7 +17,8 @@ const PDFViewer = dynamic(() => import("./components/PDFViewer"), {
 });
 
 // API base URL constant
-const API_BASE_URL = "http://127.0.0.1:5002";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5002";
 
 // Define interfaces for backend data
 interface DocumentMetadata {
